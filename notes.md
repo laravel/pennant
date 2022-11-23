@@ -277,6 +277,7 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 
 ### To consider
 
+- users should be generic, as they might be "Organisation" or "Team". Feature::for($team)
 - https://3.basecamp.com/3734608/buckets/19188934/messages/5567248106
 - Segment responses when `foo.a` is set but checking for `foo`
 - Ability to eagerly load a users active features in a service provider, middleware, etc. Then have that only trigger once the feature system is interacted with.
