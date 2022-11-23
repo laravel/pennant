@@ -277,6 +277,7 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 
 ### To consider
 
+- basic values with segments. "request_limit.5" "rate:4,5,6"
 - events 
 - users should be generic, as they might be "Organisation" or "Team". Feature::for($team)
 - https://3.basecamp.com/3734608/buckets/19188934/messages/5567248106
