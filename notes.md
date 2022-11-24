@@ -293,3 +293,5 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - post 1.0: Keeping track of feature usage / dashboard
 - All drivers should have in-memory caches, as we don't want the state to change throughout a single request.
 - Should we be able to check multiple features at once? Feature::active(['a', 'b', 'c'], $user])?
+- see test around `null`s. This needs to be seen.
+- A check against a user should not then fallback to the "for everyone" existing key. The reason being that it is possible that it is "on" for everyone, except user Y

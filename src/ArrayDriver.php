@@ -5,7 +5,6 @@ namespace Laravel\Feature;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 
 class ArrayDriver
@@ -27,7 +26,7 @@ class ArrayDriver
     /**
      * The initial feature state resolvers.
      *
-     * @var array<string, (callable(mixed $scope): bool)>
+     * @var array<string, (callable(mixed): bool)>
      */
     protected $initialFeatureStateResolvers = [];
 
@@ -42,7 +41,7 @@ class ArrayDriver
     }
 
     /**
-     * Determine if the feature is active for the given scope.
+     * Determine if the feature(s) is active for the given scope.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -50,19 +49,20 @@ class ArrayDriver
      */
     public function isActive($feature, $scope = null)
     {
-        return $this->resolveFeatureKeys($feature, $scope)->every(function ($feature, $key) use ($scope) {
-            if (! array_key_exists($key, $this->features) && ! array_key_exists($feature, $this->initialFeatureStateResolvers)) {
-                $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
+        return $this->resolveFeatureKeys($feature, $scope)
+            ->every(function ($feature, $key) use ($scope) {
+                if (! array_key_exists($key, $this->features) && ! array_key_exists($feature, $this->initialFeatureStateResolvers)) {
+                    $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
 
-                return false;
-            }
+                    return false;
+                }
 
-            return $this->features[$key] ??= (bool) $this->initialFeatureStateResolvers[$feature]($scope);
-        });
+                return $this->features[$key] ??= (bool) $this->initialFeatureStateResolvers[$feature]($scope);
+            });
     }
 
     /**
-     * Determine if the feature is inactive for the given scope.
+     * Determine if the feature(s) is inactive for the given scope.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -70,6 +70,8 @@ class ArrayDriver
      */
     public function isInactive($feature, $scope = null)
     {
+        // TODO: does this make sense to just invert?
+        // I think there could be an issue here. Need to test futher.
         return ! $this->isActive($feature, $scope);
     }
 
@@ -122,11 +124,11 @@ class ArrayDriver
     }
 
     /**
-     * Resolve the keys for the given feature and scope.
+     * Resolve all permutations of the feature(s) and scope.
      *
      * @param  string|array<string>  $feature
      * @param  mixed  $scope
-     * @return \Illuminate\Support\Collection<int, string>
+     * @return \Illuminate\Support\Collection<string, string>
      */
     protected function resolveFeatureKeys($feature, $scope)
     {
@@ -136,26 +138,27 @@ class ArrayDriver
             ->map(fn ($item) => $this->resolveKey($feature, $item))
             ->crossJoin(Arr::wrap($feature))
             ->mapWithKeys(fn ($value) => [
-                "{$value[1]}:{$value[0]}" => $value[1]
+                ($value[0] === null ? "{$value[1]}" : "{$value[1]}:{$value[0]}") => $value[1],
             ]);
     }
 
     /**
-     * Resolve the key for the given feature and scope.
+     * Resolve the unique key for the given feature and scope.
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return string|null
+     * @return string
      */
     protected function resolveKey($feature, $scope)
     {
-        // if ($scope === null) {
-        //     return null;
-        // }
-
         if ($scope instanceof Model) {
             return $scope::class.':'.$scope->getKey();
         }
+
+        // TODO: this needs to be improved. This is not okay and we will likely
+        // have a contract that objects can implement to be identified, but
+        // also allow drivers to override this resolution logic generally.
+        // we should also use the morphMap
 
         return json_encode($scope);
     }

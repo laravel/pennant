@@ -180,6 +180,32 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($driver->isActive('foo', [$second]));
     }
 
+    public function test_it_sees_null_and_empty_string_as_different_things()
+    {
+        $driver = $this->createManager()->driver('array');
+
+        $driver->activate('foo');
+        $this->assertFalse($driver->isActive('foo', ''));
+        $this->assertTrue($driver->isActive('foo', null));
+        $this->assertTrue($driver->isActive('foo'));
+
+        $driver->activate('bar', '');
+        $this->assertTrue($driver->isActive('bar', ''));
+        $this->assertFalse($driver->isActive('bar', null));
+        $this->assertFalse($driver->isActive('bar'));
+    }
+
+    public function test_it_sees_null_and_empty_array_and_empyt_array_with_null_as_same_thing()
+    {
+        $driver = $this->createManager()->driver('array');
+
+        $driver->activate('foo');
+        $this->assertTrue($driver->isActive('foo', []));
+        $this->assertTrue($driver->isActive('foo', [null]));
+        $this->assertTrue($driver->isActive('foo', null));
+        $this->assertTrue($driver->isActive('foo'));
+    }
+
     protected function createManager()
     {
         return new FeatureManager($this->app);
@@ -187,11 +213,6 @@ class ArrayDriverTest extends TestCase
 }
 
 class User extends Model
-{
-    protected $guarded = [];
-}
-
-class Team extends Model
 {
     protected $guarded = [];
 }
