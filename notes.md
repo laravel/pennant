@@ -280,6 +280,11 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - basic values with segments. "request_limit.5" "rate:4,5,6"
 - events 
 - users should be generic, as they might be "Organisation" or "Team". Feature::for($team)
+- Should scope allow for more than a single thing. an array vs a parameter list are different things. What about scenarios like Feature::for($team, $user)->active('foo') which is checking if a feature is active for the given team.
+- Allow a feature to be re-evaluated Feature::for($user)->reEvaluate('foo')
+- For registering things, could we detect the parameter type, and allow multiple registrations for different types but the same feature?
+- user morph map for identifiers?
+- Allow only a class to be registered. Feature::register(Foo::class);
 - https://3.basecamp.com/3734608/buckets/19188934/messages/5567248106
 - Segment responses when `foo.a` is set but checking for `foo`
 - Ability to eagerly load a users active features in a service provider, middleware, etc. Then have that only trigger once the feature system is interacted with.

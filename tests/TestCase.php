@@ -18,20 +18,23 @@ abstract class TestCase extends OrchestraTestCase
     {
         parent::setUp();
 
-        LaravelPackage::$authUsing = function () {
-            return true;
-        };
+        return;
+
+        // LaravelPackage::$authUsing = function () {
+        //     return true;
+        // };
     }
 
     protected function tearDown(): void
     {
         parent::tearDown();
 
-        LaravelPackage::$authUsing = null;
+        // LaravelPackage::$authUsing = null;
     }
 
     protected function getPackageProviders($app)
     {
+        return [];
         return [LaravelPackageServiceProvider::class];
     }
 }

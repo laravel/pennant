@@ -27,8 +27,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Laravel\\Package\\": "src/",
-            "Laravel\\Package\\Database\\Factories\\": "database/factories"
+            "Laravel\\Feature\\": "src/",
+            "Laravel\\Feature\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
@@ -42,7 +42,6 @@
         },
         "laravel": {
             "providers": [
-                "Laravel\\Package\\LaravelPackageServiceProvider"
             ]
         }
     },
