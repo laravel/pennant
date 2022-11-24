@@ -18,8 +18,6 @@ abstract class TestCase extends OrchestraTestCase
     {
         parent::setUp();
 
-        return;
-
         // LaravelPackage::$authUsing = function () {
         //     return true;
         // };
@@ -35,6 +33,7 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app)
     {
         return [];
+
         return [LaravelPackageServiceProvider::class];
     }
 }

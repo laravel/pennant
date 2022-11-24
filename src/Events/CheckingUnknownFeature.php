@@ -19,8 +19,8 @@ class CheckingUnknownFeature
     public $scope;
 
     /**
-     * @param string $feature
-     * @param mixed $scope
+     * @param  string  $feature
+     * @param  mixed  $scope
      */
     public function __construct($feature, $scope)
     {

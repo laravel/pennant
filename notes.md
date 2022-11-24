@@ -291,3 +291,5 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - Ability to eagerly load a users active features in a service provider, middleware, etc. Then have that only trigger once the feature system is interacted with.
 - Lazy / Eager feature saving. After request, for example.
 - post 1.0: Keeping track of feature usage / dashboard
+- All drivers should have in-memory caches, as we don't want the state to change throughout a single request.
+- Should we be able to check multiple features at once? Feature::active(['a', 'b', 'c'], $user])?

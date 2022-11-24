@@ -2,15 +2,11 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
-use Laravel\Feature\ArrayDriver;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 use Laravel\Feature\FeatureManager;
-use RuntimeException;
 use Tests\TestCase;
-use Throwable;
 
 class ArrayDriverTest extends TestCase
 {
@@ -29,7 +25,6 @@ class ArrayDriverTest extends TestCase
             return true;
         });
     }
-
 
     public function test_it_can_have_default_value()
     {

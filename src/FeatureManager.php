@@ -2,7 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Manager;
 
