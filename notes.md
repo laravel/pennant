@@ -280,6 +280,7 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - basic values with segments. "request_limit.5" "rate:4,5,6"
 - events 
 - users should be generic, as they might be "Organisation" or "Team". Feature::for($team)
+- Implement a "HasFeatureIdentifer" trait or something for objects to specify their cache key?
 - Should scope allow for more than a single thing. an array vs a parameter list are different things. What about scenarios like Feature::for($team, $user)->active('foo') which is checking if a feature is active for the given team.
 - Allow a feature to be re-evaluated Feature::for($user)->reEvaluate('foo')
 - For registering things, could we detect the parameter type, and allow multiple registrations for different types but the same feature?

@@ -41,15 +41,17 @@ class ArrayDriver
      */
     public function isActive($feature, $scope = null)
     {
-        $key = "{$feature}:{$this->resolveKey($feature, $scope)}";
+        return $this->resolveKeys($feature, $scope)->every(function ($key) use ($feature, $scope) {
+            $key = "{$feature}:{$key}";
 
-        if (! array_key_exists($key, $this->features) && ! array_key_exists($feature, $this->resolvers)) {
-            $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
+            if (! array_key_exists($key, $this->features) && ! array_key_exists($feature, $this->resolvers)) {
+                $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
 
-            return false;
-        }
+                return false;
+            }
 
-        return $this->features[$key] ??= (bool) $this->resolvers[$feature]($scope);
+            return $this->features[$key] ??= (bool) $this->resolvers[$feature]($scope);
+        });
     }
 
     /**
@@ -119,6 +121,11 @@ class ArrayDriver
         return (new PendingScopedFeatureEvaluation($this))->for($scope);
     }
 
+    /**
+     * @param string $feature
+     * @param mixed $scope
+     * @return \Illuminate\Support\Collection
+     */
     protected function resolveKeys($feature, $scope)
     {
         $scope = is_array($scope) ? $scope : [$scope];
@@ -129,7 +136,7 @@ class ArrayDriver
     /**
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return array
+     * @return string
      */
     protected function resolveKey($feature, $scope)
     {

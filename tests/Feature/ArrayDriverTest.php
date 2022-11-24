@@ -132,7 +132,7 @@ class ArrayDriverTest extends TestCase
         $this->assertFalse($driver->isActive('foo', $second));
     }
 
-    public function test_it_can_check_feature_is_active_or_inactive_with_scope_list()
+    public function test_it_can_activate_and_deactivate_feature_with_scope_list()
     {
         $driver = $this->createManager()->driver('array');
         $first = new User(['id' => 1]);
@@ -145,10 +145,44 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($driver->isActive('foo', $second));
         $this->assertFalse($driver->isActive('foo', $third));
 
-        $driver->deactivate('foo', [$second, $first]); // swap sort order
+        $driver->deactivate('foo', [$first, $second]);
         $this->assertFalse($driver->isActive('foo', $first));
         $this->assertFalse($driver->isActive('foo', $second));
         $this->assertFalse($driver->isActive('foo', $third));
+    }
+
+    public function test_it_can_check_feature_is_active_or_inactive_with_scope_list()
+    {
+        $driver = $this->createManager()->driver('array');
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
+
+        $driver->activate('foo', $first);
+        $this->assertFalse($driver->isActive('foo'));
+        $this->assertTrue($driver->isActive('foo', $first));
+        $this->assertTrue($driver->isActive('foo', [$first]));
+        $this->assertFalse($driver->isActive('foo', [$first, null]));
+        $this->assertFalse($driver->isActive('foo', [$first, $second]));
+        $this->assertFalse($driver->isActive('foo', $second));
+        $this->assertFalse($driver->isActive('foo', [$second]));
+
+        $driver->activate('foo', $second);
+        $this->assertFalse($driver->isActive('foo'));
+        $this->assertTrue($driver->isActive('foo', $first));
+        $this->assertTrue($driver->isActive('foo', [$first]));
+        $this->assertFalse($driver->isActive('foo', [$first, null]));
+        $this->assertTrue($driver->isActive('foo', [$first, $second]));
+        $this->assertTrue($driver->isActive('foo', $second));
+        $this->assertTrue($driver->isActive('foo', [$second]));
+
+        $driver->activate('foo');
+        $this->assertTrue($driver->isActive('foo'));
+        $this->assertTrue($driver->isActive('foo', $first));
+        $this->assertTrue($driver->isActive('foo', [$first]));
+        $this->assertTrue($driver->isActive('foo', [$first, null]));
+        $this->assertTrue($driver->isActive('foo', [$first, $second]));
+        $this->assertTrue($driver->isActive('foo', $second));
+        $this->assertTrue($driver->isActive('foo', [$second]));
     }
 
     protected function createManager()
