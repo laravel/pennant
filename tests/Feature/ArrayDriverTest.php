@@ -275,7 +275,7 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($driver->isActive('foo', 'eloquent_model:user:1'));
 
         // cleanup
-        Relation::morphMap([]);
+        Relation::$morphMap = [];
     }
 
     public function test_it_sees_null_and_empty_array_and_empyt_array_with_null_as_same_thing()
