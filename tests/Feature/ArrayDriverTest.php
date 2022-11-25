@@ -121,8 +121,8 @@ class ArrayDriverTest extends TestCase
         $driver->register('foo', fn ($user) => $user?->id === 1);
 
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertTrue($driver->isActive('foo', $active));
-        $this->assertFalse($driver->isActive('foo', $inactive));
+        $this->assertTrue($driver->isActive('foo', collect([$active])));
+        $this->assertFalse($driver->isActive('foo', collect([$inactive])));
     }
 
     public function test_it_can_check_if_a_feature_is_active_or_inactive_with_scope()
@@ -131,25 +131,19 @@ class ArrayDriverTest extends TestCase
         $active = new User(['id' => 1]);
         $inactive = new User(['id' => 2]);
 
-        $driver->activate('foo', $active);
+        $driver->activate('foo', collect([$active]));
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertFalse($driver->isActive('foo', null));
-        $this->assertFalse($driver->isActive('foo', []));
-        $this->assertFalse($driver->isActive('foo', [null]));
-        $this->assertTrue($driver->isActive('foo', $active));
-        $this->assertTrue($driver->isActive('foo', [$active]));
-        $this->assertFalse($driver->isActive('foo', $inactive));
-        $this->assertFalse($driver->isActive('foo', [$inactive]));
+        $this->assertFalse($driver->isActive('foo', collect([])));
+        $this->assertFalse($driver->isActive('foo', collect([null])));
+        $this->assertTrue($driver->isActive('foo', collect([$active])));
+        $this->assertFalse($driver->isActive('foo', collect([$inactive])));
 
-        $driver->deactivate('foo', $active);
+        $driver->deactivate('foo', collect([$active]));
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertFalse($driver->isActive('foo', null));
-        $this->assertFalse($driver->isActive('foo', []));
-        $this->assertFalse($driver->isActive('foo', [null]));
-        $this->assertFalse($driver->isActive('foo', $active));
-        $this->assertFalse($driver->isActive('foo', [$active]));
-        $this->assertFalse($driver->isActive('foo', $inactive));
-        $this->assertFalse($driver->isActive('foo', [$inactive]));
+        $this->assertFalse($driver->isActive('foo', collect([])));
+        $this->assertFalse($driver->isActive('foo', collect([null])));
+        $this->assertFalse($driver->isActive('foo', collect([$active])));
+        $this->assertFalse($driver->isActive('foo', collect([$inactive])));
     }
 
     public function test_it_can_activate_and_deactivate_feature_with_an_array_of_scope()
@@ -159,16 +153,16 @@ class ArrayDriverTest extends TestCase
         $second = new User(['id' => 2]);
         $third = new User(['id' => 3]);
 
-        $driver->activate('foo', [$first, $second]);
+        $driver->activate('foo', collect([$first, $second]));
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertTrue($driver->isActive('foo', $first));
-        $this->assertTrue($driver->isActive('foo', $second));
-        $this->assertFalse($driver->isActive('foo', $third));
+        $this->assertTrue($driver->isActive('foo', collect([$first])));
+        $this->assertTrue($driver->isActive('foo', collect([$second])));
+        $this->assertFalse($driver->isActive('foo', collect([$third])));
 
-        $driver->deactivate('foo', [$first, $second]);
-        $this->assertFalse($driver->isActive('foo', $first));
-        $this->assertFalse($driver->isActive('foo', $second));
-        $this->assertFalse($driver->isActive('foo', $third));
+        $driver->deactivate('foo', collect([$first, $second]));
+        $this->assertFalse($driver->isActive('foo', collect([$first])));
+        $this->assertFalse($driver->isActive('foo', collect([$second])));
+        $this->assertFalse($driver->isActive('foo', collect([$third])));
     }
 
     public function test_it_can_check_if_a_feature_is_active_or_inactive_with_an_array_of_scope()
@@ -177,32 +171,26 @@ class ArrayDriverTest extends TestCase
         $first = new User(['id' => 1]);
         $second = new User(['id' => 2]);
 
-        $driver->activate('foo', $first);
+        $driver->activate('foo', collect([$first]));
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertTrue($driver->isActive('foo', $first));
-        $this->assertTrue($driver->isActive('foo', [$first]));
-        $this->assertFalse($driver->isActive('foo', [$first, null]));
-        $this->assertFalse($driver->isActive('foo', [$first, $second]));
-        $this->assertFalse($driver->isActive('foo', $second));
-        $this->assertFalse($driver->isActive('foo', [$second]));
+        $this->assertTrue($driver->isActive('foo', collect([$first])));
+        $this->assertFalse($driver->isActive('foo', collect([$first, null])));
+        $this->assertFalse($driver->isActive('foo', collect([$first, $second])));
+        $this->assertFalse($driver->isActive('foo', collect([$second])));
 
-        $driver->activate('foo', $second);
+        $driver->activate('foo', collect([$second]));
         $this->assertFalse($driver->isActive('foo'));
-        $this->assertTrue($driver->isActive('foo', $first));
-        $this->assertTrue($driver->isActive('foo', [$first]));
-        $this->assertFalse($driver->isActive('foo', [$first, null]));
-        $this->assertTrue($driver->isActive('foo', [$first, $second]));
-        $this->assertTrue($driver->isActive('foo', $second));
-        $this->assertTrue($driver->isActive('foo', [$second]));
+        $this->assertTrue($driver->isActive('foo', collect([$first])));
+        $this->assertFalse($driver->isActive('foo', collect([$first, null])));
+        $this->assertTrue($driver->isActive('foo', collect([$first, $second])));
+        $this->assertTrue($driver->isActive('foo', collect([$second])));
 
         $driver->activate('foo');
         $this->assertTrue($driver->isActive('foo'));
-        $this->assertTrue($driver->isActive('foo', $first));
-        $this->assertTrue($driver->isActive('foo', [$first]));
-        $this->assertTrue($driver->isActive('foo', [$first, null]));
-        $this->assertTrue($driver->isActive('foo', [$first, $second]));
-        $this->assertTrue($driver->isActive('foo', $second));
-        $this->assertTrue($driver->isActive('foo', [$second]));
+        $this->assertTrue($driver->isActive('foo', collect([$first])));
+        $this->assertTrue($driver->isActive('foo', collect([$first, null])));
+        $this->assertTrue($driver->isActive('foo', collect([$first, $second])));
+        $this->assertTrue($driver->isActive('foo', collect([$second])));
     }
 
     public function test_it_sees_null_and_empty_string_as_different_things()
@@ -210,13 +198,13 @@ class ArrayDriverTest extends TestCase
         $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo');
-        $this->assertFalse($driver->isActive('foo', ''));
-        $this->assertTrue($driver->isActive('foo', null));
+        $this->assertFalse($driver->isActive('foo', collect([''])));
+        $this->assertTrue($driver->isActive('foo', collect([null])));
         $this->assertTrue($driver->isActive('foo'));
 
-        $driver->activate('bar', '');
-        $this->assertTrue($driver->isActive('bar', ''));
-        $this->assertFalse($driver->isActive('bar', null));
+        $driver->activate('bar', collect(['']));
+        $this->assertTrue($driver->isActive('bar', collect([''])));
+        $this->assertFalse($driver->isActive('bar', collect([null])));
         $this->assertFalse($driver->isActive('bar'));
     }
 
@@ -224,11 +212,9 @@ class ArrayDriverTest extends TestCase
     {
         $driver = $this->createManager()->driver('array')->toBaseDriver();
 
-        $driver->activate('foo', 'tim@laravel.com');
-        $this->assertFalse($driver->isActive('foo', 'tim@example.com'));
-        $this->assertFalse($driver->isActive('foo', ['tim@example.com']));
-        $this->assertTrue($driver->isActive('foo', 'tim@laravel.com'));
-        $this->assertTrue($driver->isActive('foo', ['tim@laravel.com']));
+        $driver->activate('foo', collect(['tim@laravel.com']));
+        $this->assertFalse($driver->isActive('foo', collect(['tim@example.com'])));
+        $this->assertTrue($driver->isActive('foo', collect(['tim@laravel.com'])));
     }
 
     public function test_it_can_handle_feature_scopeable_objects()
@@ -242,13 +228,10 @@ class ArrayDriverTest extends TestCase
             }
         };
 
-        $driver->activate('foo', $scopeable);
-        $this->assertFalse($driver->isActive('foo', 'tim@example.com'));
-        $this->assertFalse($driver->isActive('foo', ['tim@example.com']));
-        $this->assertTrue($driver->isActive('foo', 'tim@laravel.com'));
-        $this->assertTrue($driver->isActive('foo', ['tim@laravel.com']));
-        $this->assertTrue($driver->isActive('foo', $scopeable));
-        $this->assertTrue($driver->isActive('foo', [$scopeable]));
+        $driver->activate('foo', collect([$scopeable]));
+        $this->assertFalse($driver->isActive('foo', collect(['tim@example.com'])));
+        $this->assertTrue($driver->isActive('foo', collect(['tim@laravel.com'])));
+        $this->assertTrue($driver->isActive('foo', collect([$scopeable])));
     }
 
     public function test_it_users_the_morph_map()
@@ -257,21 +240,21 @@ class ArrayDriverTest extends TestCase
         $user = new User(['id' => 1]);
 
         Relation::morphMap([]);
-        $driver->activate('foo', $user);
+        $driver->activate('foo', collect([$user]));
 
-        $this->assertTrue($driver->isActive('foo', $user));
-        $this->assertTrue($driver->isActive('foo', 'eloquent_model:Tests\Feature\User:1'));
-        $this->assertFalse($driver->isActive('foo', 'eloquent_model:user:1'));
+        $this->assertTrue($driver->isActive('foo', collect([$user])));
+        $this->assertTrue($driver->isActive('foo', collect(['eloquent_model:Tests\Feature\User:1'])));
+        $this->assertFalse($driver->isActive('foo', collect(['eloquent_model:user:1'])));
 
         $driver = $this->createManager()->driver('array')->toBaseDriver();
         $user = new User(['id' => 1]);
 
         Relation::morphMap(['user' => User::class]);
-        $driver->activate('foo', $user);
+        $driver->activate('foo', collect([$user]));
 
-        $this->assertTrue($driver->isActive('foo', $user));
-        $this->assertFalse($driver->isActive('foo', 'eloquent_model:Tests\Feature\User:1'));
-        $this->assertTrue($driver->isActive('foo', 'eloquent_model:user:1'));
+        $this->assertTrue($driver->isActive('foo', collect([$user])));
+        $this->assertFalse($driver->isActive('foo', collect(['eloquent_model:Tests\Feature\User:1'])));
+        $this->assertTrue($driver->isActive('foo', collect(['eloquent_model:user:1'])));
 
         // cleanup
         Relation::$morphMap = [];
@@ -282,9 +265,8 @@ class ArrayDriverTest extends TestCase
         $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo');
-        $this->assertTrue($driver->isActive('foo', []));
-        $this->assertTrue($driver->isActive('foo', [null]));
-        $this->assertTrue($driver->isActive('foo', null));
+        $this->assertTrue($driver->isActive('foo', collect([])));
+        $this->assertTrue($driver->isActive('foo', collect([null])));
         $this->assertTrue($driver->isActive('foo'));
     }
 }

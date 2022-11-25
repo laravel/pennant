@@ -17,7 +17,7 @@ class DriverDecorator
     /**
      * The authenticate factory.
      *
-     * @var \Illuminate\Contracts\Auth\Factory 
+     * @var \Illuminate\Contracts\Auth\Factory
      */
     protected $auth;
 
@@ -25,6 +25,7 @@ class DriverDecorator
      * Create a new Driver Decorator instance.
      *
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
+     * @param  \Illuminate\Contracts\Auth\Factory  $auth
      */
     public function __construct($driver, $auth)
     {

@@ -28,7 +28,7 @@ class ArrayDriver
     /**
      * The initial feature state resolvers.
      *
-     * @var array<string, (callable(mixed): bool)>
+     * @var array<string, (callable(\Illuminate\Support\Collection<int, mixed>): bool)>
      */
     protected $initialFeatureStateResolvers = [];
 
@@ -46,23 +46,24 @@ class ArrayDriver
      * Determine if the feature(s) is active for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return bool
      */
-    public function isActive($feature, $scope = null)
+    public function isActive($feature, $scope = new Collection)
     {
-        return $this->resolveFeatureCacheKeys($feature, $scope)
-            ->every(function ($feature, $cacheKey) use ($scope) {
-                if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
-                    $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
+        return $this->resolveFeatureCacheKeys($feature, $scope)->every(function ($resolved) {
+            ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
 
-                    return false;
-                }
+            if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
+                $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
 
-                $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
+                return false;
+            }
 
-                return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
-            });
+            $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
+
+            return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
+        });
     }
 
     /**
@@ -72,10 +73,10 @@ class ArrayDriver
      * issue here. Need to test futher.
      *
      * @param  string|array<int, string>  $feature
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return bool
      */
-    public function isInactive($feature, $scope = null)
+    public function isInactive($feature, $scope = new Collection)
     {
         return ! $this->isActive($feature, $scope);
     }
@@ -84,15 +85,17 @@ class ArrayDriver
      * Activate the feature(s) for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return void
      */
-    public function activate($feature, $scope = null)
+    public function activate($feature, $scope = new Collection)
     {
         $this->cache = array_merge(
             $this->cache,
             $this->resolveFeatureCacheKeys($feature, $scope)
-                ->map(fn () => true)
+                ->mapWithKeys(fn ($resolved) => [
+                    $resolved['cacheKey'] => true,
+                ])
                 ->all()
         );
     }
@@ -101,15 +104,17 @@ class ArrayDriver
      * Deactivate the feature(s) for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return void
      */
-    public function deactivate($feature, $scope = null)
+    public function deactivate($feature, $scope = new Collection)
     {
         $this->cache = array_merge(
             $this->cache,
             $this->resolveFeatureCacheKeys($feature, $scope)
-                ->map(fn () => false)
+                ->mapWithKeys(fn ($resolved) => [
+                    $resolved['cacheKey'] => false,
+                ])
                 ->all()
         );
     }
@@ -118,7 +123,7 @@ class ArrayDriver
      * Resolve an initial features state.
      *
      * @param  string  $feature
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return bool
      */
     protected function resolveInitialFeatureState($feature, $scope)
@@ -133,7 +138,7 @@ class ArrayDriver
      * interesting modifications while registering?
      *
      * @param  string  $feature
-     * @param  (callable(mixed $scope): bool)  $resolver
+     * @param  (callable(\Illuminate\Support\Collection<int, mixed> $scope): bool)  $resolver
      * @return void
      */
     public function register($feature, $resolver)
@@ -166,18 +171,23 @@ class ArrayDriver
     /**
      * Resolve all permutations of the feature(s) and scope cache keys.
      *
+     * TODO don't love this pipeline. not readable at all.
+     *
      * @param  string|array<string>  $feature
-     * @param  mixed  $scope
-     * @return \Illuminate\Support\Collection<string, string>
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, cacheKey: string }>
      */
     protected function resolveFeatureCacheKeys($feature, $scope)
     {
-        return Collection::wrap($scope)
-            ->whenEmpty(fn ($collection) => $collection->merge([null]))
-            ->map(fn ($item) => $this->resolveCacheKey($item))
+        return $scope->whenEmpty(fn ($collection) => $collection->merge([null]))
+            ->map(fn ($scope) => [$this->resolveCacheKey($scope), $scope])
             ->crossJoin(Collection::wrap($feature))
-            ->mapWithKeys(fn ($value) => [
-                ($value[0] === null ? "{$value[1]}" : "{$value[1]}:{$value[0]}") => $value[1],
+            ->map(fn ($value) => [
+                'feature' => $value[1],
+                'scope' => $value[0][1],
+                'cacheKey' => $value[0][0] === null
+                    ? "{$value[1]}"
+                    : "{$value[1]}:{$value[0][0]}",
             ]);
     }
 

@@ -17,28 +17,31 @@ class PendingScopedFeatureInteraction
     /**
      * The authenticate factory.
      *
-     * @var \Illuminate\Contracts\Auth\Factory 
+     * @var \Illuminate\Contracts\Auth\Factory
      */
     protected $auth;
 
     /**
      * The feature interaction scope.
      *
-     * @var array<mixed>
+     * @var \Illuminate\Support\Collection<int, mixed>
      */
-    protected $scope = [];
+    protected $scope;
 
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      */
-    public function __construct($driver, $auth)
+    public function __construct($driver, $auth, $scope = new Collection)
     {
         $this->driver = $driver;
 
         $this->auth = $auth;
+
+        $this->scope = $scope;
     }
 
     /**
@@ -49,7 +52,7 @@ class PendingScopedFeatureInteraction
      */
     public function for($scope)
     {
-        $this->scope = array_merge($this->scope, Collection::wrap($scope)->all());
+        $this->scope = $this->scope->merge(Collection::wrap($scope));
 
         return $this;
     }
@@ -61,7 +64,7 @@ class PendingScopedFeatureInteraction
      */
     public function globally()
     {
-        $this->scope = array_merge($this->scope, [null]);
+        $this->scope = $this->scope->merge([null]);
 
         return $this;
     }
@@ -73,11 +76,11 @@ class PendingScopedFeatureInteraction
      */
     public function forTheAuthenticatedUser()
     {
-        if (! $this->auth->check()) {
+        if (! $this->auth->guard()->check()) {
             throw new RuntimeException('There is no user currently authenticated.');
         }
 
-        $this->scope = array_merge($this->scope, [$this->auth->user()]);
+        $this->scope = $this->scope->merge([$this->auth->guard()->user()]);
 
         return $this;
     }
