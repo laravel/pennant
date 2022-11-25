@@ -2,8 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Support\Traits\ForwardsCalls;
-
 class PendingScopedFeatureInteraction
 {
     /**

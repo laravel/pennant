@@ -5,10 +5,10 @@ namespace Tests\Feature;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
+use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 use Laravel\Feature\FeatureManager;
-use Laravel\Feature\Contracts\FeatureScopeable;
 use Tests\TestCase;
 
 class ArrayDriverTest extends TestCase
@@ -236,7 +236,8 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_handle_feature_scopeable_objects()
     {
         $driver = $this->createManager()->driver('array');
-        $scopeable = new class implements FeatureScopeable {
+        $scopeable = new class implements FeatureScopeable
+        {
             public function toFeatureScopeIdentifier()
             {
                 return 'tim@laravel.com';
