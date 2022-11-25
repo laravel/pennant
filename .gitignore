@@ -1,5 +1,3 @@
-/node_modules
-/public/app.js.LICENSE.txt
 /vendor
 composer.lock
 /phpunit.xml
