@@ -13,6 +13,18 @@ use Laravel\Feature\Drivers\ArrayDriver;
 class FeatureManager extends Manager
 {
     /**
+     * Register an initial feature state resolver.
+     *
+     * @param  string  $feature
+     * @param  (callable(\Illuminate\Support\Collection<int, mixed> $scope): bool)  $resolver
+     * @return void
+     */
+    public function register($feature, $resolver)
+    {
+        $this->driver()->toBaseDriver()->register($feature, $resolver);
+    }
+
+    /**
      * Create an instance of the Array driver.
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver

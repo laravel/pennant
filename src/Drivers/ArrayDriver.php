@@ -21,9 +21,9 @@ class ArrayDriver
     /**
      * The current state of the features.
      *
-     * @var array<string, bool>
+     * @var \Illuminate\Support\Collection<string, bool>
      */
-    protected $cache = [];
+    protected $cache;
 
     /**
      * The initial feature state resolvers.
@@ -37,9 +37,11 @@ class ArrayDriver
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      */
-    public function __construct(Dispatcher $events)
+    public function __construct(Dispatcher $events, $cache = new Collection())
     {
         $this->events = $events;
+
+        $this->cache = $cache;
     }
 
     /**
@@ -90,13 +92,11 @@ class ArrayDriver
      */
     public function activate($feature, $scope = new Collection)
     {
-        $this->cache = array_merge(
-            $this->cache,
+        $this->cache = $this->cache->merge(
             $this->resolveFeatureCacheKeys($feature, $scope)
                 ->mapWithKeys(fn ($resolved) => [
                     $resolved['cacheKey'] => true,
                 ])
-                ->all()
         );
     }
 
@@ -109,26 +109,12 @@ class ArrayDriver
      */
     public function deactivate($feature, $scope = new Collection)
     {
-        $this->cache = array_merge(
-            $this->cache,
+        $this->cache = $this->cache->merge(
             $this->resolveFeatureCacheKeys($feature, $scope)
                 ->mapWithKeys(fn ($resolved) => [
                     $resolved['cacheKey'] => false,
                 ])
-                ->all()
         );
-    }
-
-    /**
-     * Resolve an initial features state.
-     *
-     * @param  string  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
-     * @return bool
-     */
-    protected function resolveInitialFeatureState($feature, $scope)
-    {
-        return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
     }
 
     /**
@@ -147,6 +133,18 @@ class ArrayDriver
     }
 
     /**
+     * Resolve an initial features state.
+     *
+     * @param  string  $feature
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @return bool
+     */
+    protected function resolveInitialFeatureState($feature, $scope)
+    {
+        return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
+    }
+
+    /**
      * Determine if the feature has not yet been cached.
      *
      * @param  string  $cacheKey
@@ -154,7 +152,7 @@ class ArrayDriver
      */
     protected function featureNotYetCached($cacheKey)
     {
-        return ! array_key_exists($cacheKey, $this->cache);
+        return ! $this->cache->has($cacheKey);
     }
 
     /**
