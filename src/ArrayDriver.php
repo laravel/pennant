@@ -2,9 +2,11 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 
@@ -36,7 +38,7 @@ class ArrayDriver
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      */
-    public function __construct($events)
+    public function __construct(Dispatcher $events)
     {
         $this->events = $events;
     }
@@ -76,8 +78,6 @@ class ArrayDriver
      */
     public function isInactive($feature, $scope = null)
     {
-        // TODO: does this make sense to just invert?
-        // I think there could be an issue here. Need to test futher.
         return ! $this->isActive($feature, $scope);
     }
 
@@ -187,7 +187,7 @@ class ArrayDriver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return string
+     * @return string|null
      */
     protected function resolveCacheKey($feature, $scope)
     {

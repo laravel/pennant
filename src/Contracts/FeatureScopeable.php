@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Feature\Contracts;
 
 interface FeatureScopeable
 {

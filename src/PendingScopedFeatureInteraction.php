@@ -4,19 +4,38 @@ namespace Laravel\Feature;
 
 use Illuminate\Support\Traits\ForwardsCalls;
 
-class PendingScopedFeatureEvaluation
+class PendingScopedFeatureInteraction
 {
-    use ForwardsCalls;
-
+    /**
+     * The feature driver.
+     *
+     * @var TODO
+     */
     protected $driver;
 
-    protected $scope;
+    /**
+     * The feature interaction scope.
+     *
+     * @var array
+     */
+    protected $scope = [];
 
+    /**
+     * Create a new Pending Scoped Feature Interaction instance.
+     *
+     * @param  TODO  $driver
+     */
     public function __construct($driver)
     {
         $this->driver = $driver;
     }
 
+    /**
+     * Add scope to the interaction.
+     *
+     * @param  mixed  $scope
+     * @return $this
+     */
     public function for($scope)
     {
         $this->scope = $scope;

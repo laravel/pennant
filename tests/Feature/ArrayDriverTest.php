@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Event;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 use Laravel\Feature\FeatureManager;
-use Laravel\Feature\FeatureScopeable;
+use Laravel\Feature\Contracts\FeatureScopeable;
 use Tests\TestCase;
 
 class ArrayDriverTest extends TestCase
