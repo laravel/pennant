@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Feature\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
@@ -46,7 +46,7 @@ class ArrayDriver
     /**
      * Determine if the feature(s) is active for the given scope.
      *
-     * @param  string  $feature
+     * @param  string|array<int, string>  $feature
      * @param  mixed  $scope
      * @return bool
      */
@@ -72,7 +72,7 @@ class ArrayDriver
      * TODO: does this make sense to just invert?  I think there could be an
      * issue here. Need to test futher.
      *
-     * @param  string  $feature
+     * @param  string|array<int, string>  $feature
      * @param  mixed  $scope
      * @return bool
      */
@@ -122,7 +122,7 @@ class ArrayDriver
      * @param  mixed  $scope
      * @return bool
      */
-    public function resolveInitialFeatureState($feature, $scope)
+    protected function resolveInitialFeatureState($feature, $scope)
     {
         return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
     }

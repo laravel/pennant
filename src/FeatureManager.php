@@ -3,7 +3,12 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Manager;
+use Laravel\Feature\Drivers\ArrayDriver;
 
+/**
+ * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
+ * @method \Laravel\Feature\DriverDecorator driver(string $driver)
+ */
 class FeatureManager extends Manager
 {
     /**
@@ -34,5 +39,16 @@ class FeatureManager extends Manager
     public function getDefaultDriver()
     {
         return 'array';
+    }
+
+    /**
+     * Create a new driver instance.
+     *
+     * @param  string  $driver
+     * @return \Laravel\Feature\DriverDecorator
+     */
+    protected function createDriver($driver)
+    {
+        return new DriverDecorator(parent::createDriver($driver));
     }
 }
