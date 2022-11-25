@@ -17,7 +17,7 @@ class PendingScopedFeatureInteraction
     /**
      * The authenticate factory.
      *
-     * @var \Illuminate\Contracts\Auth\Factory  $auth
+     * @var \Illuminate\Contracts\Auth\Factory 
      */
     protected $auth;
 
@@ -31,8 +31,8 @@ class PendingScopedFeatureInteraction
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
-     * @param \Laravel\Feature\Drivers\ArrayDriver  $driver
-     * @param \Illuminate\Contracts\Auth\Factory  $auth
+     * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
+     * @param  \Illuminate\Contracts\Auth\Factory  $auth
      */
     public function __construct($driver, $auth)
     {

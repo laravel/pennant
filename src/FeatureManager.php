@@ -7,8 +7,8 @@ use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
 
 /**
- * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
  * @method \Laravel\Feature\DriverDecorator driver(string $driver)
+ * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
  */
 class FeatureManager extends Manager
 {

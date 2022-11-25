@@ -4,7 +4,6 @@ namespace Laravel\Feature\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
@@ -176,7 +175,7 @@ class ArrayDriver
         return Collection::wrap($scope)
             ->whenEmpty(fn ($collection) => $collection->merge([null]))
             ->map(fn ($item) => $this->resolveCacheKey($item))
-            ->crossJoin(Arr::wrap($feature))
+            ->crossJoin(Collection::wrap($feature))
             ->mapWithKeys(fn ($value) => [
                 ($value[0] === null ? "{$value[1]}" : "{$value[1]}:{$value[0]}") => $value[1],
             ]);

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Event;
 use Laravel\Feature\Contracts\FeatureScopeable;
@@ -15,7 +14,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_defaults_to_false_for_unknown_values_and_dispatches_unknown_feature_event()
     {
         Event::fake([CheckingUnknownFeature::class]);
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $result = $driver->isActive('foo');
 
@@ -31,7 +30,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_register_default_values()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->register('true', fn () => true);
         $driver->register('false', fn () => false);
@@ -45,7 +44,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_caches_state_after_resolving()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $called = 0;
         $driver->register('foo', function () use (&$called) {
@@ -63,7 +62,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_user_returned_boolean_ish_values_are_cast_to_booleans()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $driver->register('foo', function () use (&$called) {
             return 1;
         });
@@ -76,7 +75,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_check_if_a_feature_is_active_or_inactive_and_it_dispatches_events()
     {
         Event::fake([CheckingKnownFeature::class]);
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo');
         $this->assertTrue($driver->isActive('foo'));
@@ -98,7 +97,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_activate_and_deactivate_several_features_at_once()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate(['foo', 'bar']);
         $this->assertTrue($driver->isActive('foo'));
@@ -115,7 +114,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_provides_scope_to_resolvers()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $active = new User(['id' => 1]);
         $inactive = new User(['id' => 2]);
 
@@ -128,7 +127,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_check_if_a_feature_is_active_or_inactive_with_scope()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $active = new User(['id' => 1]);
         $inactive = new User(['id' => 2]);
 
@@ -155,7 +154,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_activate_and_deactivate_feature_with_an_array_of_scope()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $first = new User(['id' => 1]);
         $second = new User(['id' => 2]);
         $third = new User(['id' => 3]);
@@ -174,7 +173,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_check_if_a_feature_is_active_or_inactive_with_an_array_of_scope()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $first = new User(['id' => 1]);
         $second = new User(['id' => 2]);
 
@@ -208,7 +207,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_sees_null_and_empty_string_as_different_things()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo');
         $this->assertFalse($driver->isActive('foo', ''));
@@ -223,7 +222,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_scope_can_be_strings_like_email_addresses()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo', 'tim@laravel.com');
         $this->assertFalse($driver->isActive('foo', 'tim@example.com'));
@@ -234,7 +233,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_handle_feature_scopeable_objects()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $scopeable = new class implements FeatureScopeable
         {
             public function toFeatureScopeIdentifier()
@@ -254,7 +253,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_users_the_morph_map()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $user = new User(['id' => 1]);
 
         Relation::morphMap([]);
@@ -264,7 +263,7 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($driver->isActive('foo', 'eloquent_model:Tests\Feature\User:1'));
         $this->assertFalse($driver->isActive('foo', 'eloquent_model:user:1'));
 
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $user = new User(['id' => 1]);
 
         Relation::morphMap(['user' => User::class]);
@@ -280,7 +279,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_sees_null_and_empty_array_and_empyt_array_with_null_as_same_thing()
     {
-        $driver = $this->createManager()->driver('array')->toBase();
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
 
         $driver->activate('foo');
         $this->assertTrue($driver->isActive('foo', []));
@@ -289,4 +288,3 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($driver->isActive('foo'));
     }
 }
-
