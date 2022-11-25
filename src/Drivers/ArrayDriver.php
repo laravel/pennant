@@ -175,7 +175,7 @@ class ArrayDriver
     {
         return Collection::wrap($scope)
             ->whenEmpty(fn ($collection) => $collection->merge([null]))
-            ->map(fn ($item) => $this->resolveCacheKey($feature, $item))
+            ->map(fn ($item) => $this->resolveCacheKey($item))
             ->crossJoin(Arr::wrap($feature))
             ->mapWithKeys(fn ($value) => [
                 ($value[0] === null ? "{$value[1]}" : "{$value[1]}:{$value[0]}") => $value[1],
@@ -183,13 +183,12 @@ class ArrayDriver
     }
 
     /**
-     * Resolve the cache key for the given feature and scope.
+     * Resolve the cache key for the given scope.
      *
-     * @param  string  $feature
      * @param  mixed  $scope
      * @return string|null
      */
-    protected function resolveCacheKey($feature, $scope)
+    protected function resolveCacheKey($scope)
     {
         if ($scope === null) {
             return null;

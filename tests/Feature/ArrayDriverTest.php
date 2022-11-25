@@ -290,7 +290,3 @@ class ArrayDriverTest extends TestCase
     }
 }
 
-class User extends Model
-{
-    protected $guarded = [];
-}

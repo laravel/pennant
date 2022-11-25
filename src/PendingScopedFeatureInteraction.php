@@ -3,6 +3,7 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Collection;
+use RuntimeException;
 
 class PendingScopedFeatureInteraction
 {
@@ -14,9 +15,16 @@ class PendingScopedFeatureInteraction
     protected $driver;
 
     /**
+     * The authenticate factory.
+     *
+     * @var \Illuminate\Contracts\Auth\Factory  $auth
+     */
+    protected $auth;
+
+    /**
      * The feature interaction scope.
      *
-     * @var array
+     * @var array<mixed>
      */
     protected $scope = [];
 
@@ -24,10 +32,13 @@ class PendingScopedFeatureInteraction
      * Create a new Pending Scoped Feature Interaction instance.
      *
      * @param \Laravel\Feature\Drivers\ArrayDriver  $driver
+     * @param \Illuminate\Contracts\Auth\Factory  $auth
      */
-    public function __construct($driver)
+    public function __construct($driver, $auth)
     {
         $this->driver = $driver;
+
+        $this->auth = $auth;
     }
 
     /**
@@ -39,6 +50,34 @@ class PendingScopedFeatureInteraction
     public function for($scope)
     {
         $this->scope = array_merge($this->scope, Collection::wrap($scope)->all());
+
+        return $this;
+    }
+
+    /**
+     * Scope the feature to check the global state.
+     *
+     * @return $this
+     */
+    public function globally()
+    {
+        $this->scope = array_merge($this->scope, [null]);
+
+        return $this;
+    }
+
+    /**
+     * Scope the feature interaction to the authenticated user.
+     *
+     * @return $this
+     */
+    public function forTheAuthenticatedUser()
+    {
+        if (! $this->auth->check()) {
+            throw new RuntimeException('There is no user currently authenticated.');
+        }
+
+        $this->scope = array_merge($this->scope, [$this->auth->user()]);
 
         return $this;
     }
@@ -73,7 +112,7 @@ class PendingScopedFeatureInteraction
      */
     public function activate($feature)
     {
-        return $this->driver->activate($feature, $this->scope);
+        $this->driver->activate($feature, $this->scope);
     }
 
     /**
@@ -84,6 +123,6 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        return $this->driver->deactivate($feature, $this->scope);
+        $this->driver->deactivate($feature, $this->scope);
     }
 }

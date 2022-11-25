@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
 class FeatureManagerTest extends TestCase
@@ -56,5 +57,48 @@ class FeatureManagerTest extends TestCase
 
         $manager->for('taylor@laravel.com')->activate('foo');
         $this->assertTrue($manager->for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));
+    }
+
+    public function test_it_can_add_everyone_to_the_scope()
+    {
+        $manager = $this->createManager();
+
+        $manager->globally()->activate('foo');
+
+        $this->assertTrue($manager->isActive('foo'));
+        $this->assertTrue($manager->globally()->isActive('foo'));
+        $this->assertFalse($manager->for('tim@laravel.com')->isActive('foo'));
+        $this->assertFalse($manager->globally()->for('tim@laravel.com')->isActive('foo'));
+
+        $manager->for('tim@laravel.com')->activate('foo');
+
+        $this->assertTrue($manager->isActive('foo'));
+        $this->assertTrue($manager->globally()->isActive('foo'));
+        $this->assertTrue($manager->for('tim@laravel.com')->isActive('foo'));
+        $this->assertTrue($manager->globally()->for('tim@laravel.com')->isActive('foo'));
+    }
+
+    public function test_it_can_add_the_authenicated_user_to_scope()
+    {
+        $manager = $this->createManager();
+        $user = new User(['id' => 2]);
+        Auth::login($user);
+
+        $manager->forTheAuthenticatedUser()->activate('foo');
+
+        $this->assertFalse($manager->isActive('foo'));
+        $this->assertFalse($manager->for('misc')->isActive('foo'));
+        $this->assertTrue($manager->forTheAuthenticatedUser()->isActive('foo'));
+        $this->assertTrue($manager->for($user)->isActive('foo'));
+        $this->assertTrue($manager->for('eloquent_model:Tests\Feature\User:2')->isActive('foo'));
+    }
+
+    public function test_it_throws_if_there_is_no_authenticated_user()
+    {
+        $manager = $this->createManager();
+
+        $this->expectExceptionMessage('There is no user currently authenticated.');
+
+        $manager->forTheAuthenticatedUser();
     }
 }

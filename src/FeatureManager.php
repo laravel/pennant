@@ -2,6 +2,7 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
 
@@ -14,21 +15,11 @@ class FeatureManager extends Manager
     /**
      * Create an instance of the Array driver.
      *
-     * @return \Laravel\Feature\ArrayDriver
+     * @return \Laravel\Feature\Drivers\ArrayDriver
      */
     public function createArrayDriver()
     {
         return $this->container[ArrayDriver::class];
-    }
-
-    /**
-     * Create an instance of the Database driver.
-     *
-     * @return \Laravel\Feature\DatabaseDriver
-     */
-    public function createDatabaseDriver()
-    {
-        return $this->container[DatabaseDriver::class];
     }
 
     /**
@@ -49,6 +40,9 @@ class FeatureManager extends Manager
      */
     protected function createDriver($driver)
     {
-        return new DriverDecorator(parent::createDriver($driver));
+        return new DriverDecorator(
+            parent::createDriver($driver),
+            $this->container[Factory::class]
+        );
     }
 }
