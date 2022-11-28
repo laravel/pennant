@@ -52,9 +52,20 @@ class PendingScopedFeatureInteraction
      */
     public function for($scope)
     {
-        $this->scope[] = $scope;
+        $this->scope = array_merge($this->scope, Arr::wrap($scope));
 
         return $this;
+    }
+
+    /**
+     * Add scope to the feature interaction.
+     *
+     * @param  mixed  $scope
+     * @return $this
+     */
+    public function andFor($scope)
+    {
+        return $this->for($scope);
     }
 
     /**
