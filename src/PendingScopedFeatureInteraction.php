@@ -59,6 +59,18 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Add additional to the feature interaction. Aliases `$this->for()`.
+     *
+     * @param  mixed  $scope
+     * @param  mixed  ...$additional
+     * @return $this
+     */
+    public function andFor($scope, ...$additional)
+    {
+        return $this->for($scope, ...$additional);
+    }
+
+    /**
      * Scope the feature to check the global state.
      *
      * TODO: `null` doesn't feel like a good identifier here.
