@@ -213,7 +213,7 @@ class ArrayDriver
                 }
 
                 if ($scope instanceof FeatureScopeable) {
-                    return $scope->toFeatureScopeIdentifier();
+                    return (string) $scope->toFeatureScopeIdentifier();
                 }
 
                 if ($scope instanceof Model) {
