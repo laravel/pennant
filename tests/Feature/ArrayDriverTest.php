@@ -313,7 +313,7 @@ class ArrayDriverTest extends TestCase
             $called['bar']++;
         });
 
-        $driver->load('foo');
+        $driver->load(['foo']);
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
@@ -325,23 +325,23 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        $driver->load('foo');
+        $driver->load(['foo']);
         $this->assertSame(2, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        $driver->load('bar');
-        $this->assertSame(2, $called['foo']);
-        $this->assertSame(1, $called['bar']);
-
-        $driver->isActive('foo');
+        $driver->load(['bar']);
         $this->assertSame(2, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        $driver->load('bar');
+        $driver->isActive('foo');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        $driver->load(['bar']);
         $this->assertSame(2, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
-        $driver->load('foo');
+        $driver->load(['foo']);
         $this->assertSame(3, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
@@ -365,7 +365,10 @@ class ArrayDriverTest extends TestCase
         $driver->isActive(['foo'], collect([collect(['new_context'])]));
         $this->assertSame(5, $called['foo']);
 
-        $driver->load(['foo', 'bar'], collect([collect(['new_context'])]));
+        $driver->load([
+            'foo' => [['new_context']],
+            'bar' => [['new_context']],
+        ]);
         $this->assertSame(6, $called['foo']);
         $this->assertSame(4, $called['bar']);
 
@@ -376,5 +379,36 @@ class ArrayDriverTest extends TestCase
         $driver->isActive(['bar'], collect([collect(['new_context'])]));
         $this->assertSame(6, $called['foo']);
         $this->assertSame(4, $called['bar']);
+    }
+
+    public function test_it_can_load_missing_feature_state_into_memory()
+    {
+        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        $called = ['foo' => 0, 'bar' => 0];
+        $driver->register('foo', function () use (&$called) {
+            $called['foo']++;
+        });
+
+        $driver->loadMissing(['foo']);
+        $this->assertSame(1, $called['foo']);
+
+        $driver->loadMissing(['foo']);
+        $this->assertSame(1, $called['foo']);
+
+        $driver->isActive('foo');
+        $this->assertSame(1, $called['foo']);
+
+        $driver->loadMissing([
+            'foo' => [['new_context']]
+        ]);
+        $this->assertSame(2, $called['foo']);
+
+        $driver->loadMissing([
+            'foo' => [['new_context']]
+        ]);
+        $this->assertSame(2, $called['foo']);
+
+        $driver->isActive('foo', collect([collect(['new_context'])]));
+        $this->assertSame(2, $called['foo']);
     }
 }

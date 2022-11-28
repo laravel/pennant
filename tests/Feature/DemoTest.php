@@ -16,10 +16,10 @@
 
          // Our users...
 
-         $jess = User::make(['id' => 1]);
+         $jess = User::make(['id' => 1, 'is_subscribed' => true]);
          $tim = User::make(['id' => 2]);
          $james = User::make(['id' => 3]);
-         $team = Team::make(['id' => 4]);
+         $team = Team::make(['id' => 4, 'member_count' => 3]);
 
 
 
@@ -152,22 +152,63 @@
          );
 
         // Some features may be based on certain scope. Perhaps you need the
-         // user, the "current" team, and some arbitrary value.
+        // user, the "current" team, and some arbitrary value.
+
+         $currentTeam = $team;
 
          Feature::register('new-search', function ($user, $team, $country = null) {
-             return $user->isSubscribed() && $team->isActive() && $country === 'AU';
+             return $user->is_subscribed && $team->member_count < 3 && $country === 'AU';
          });
 
          // 'CF-IPCountry' => 'US'
-         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-states'); // false ❌
+         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-search'); // false ❌
 
          // 'CF-IPCountry' => 'AU'
-         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-states'); // true ✅
+         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-search'); // true ✅
 
 
+         // Everytime we check a feature, there is potential the driver has to make a request,
+         // hit a database, etc. To reduce that count, we may eagerly load feature
+         // states in a service provider, middleware, in a controller, etc.
 
-         //Feature::for($jess, $james, $tim)->load(['...', '...']);
-         //Feature::for($jess, $james, $tim)->loadMissing(['...', '...']);
+
+         // Note: dislike this API. New suggestion below to improve this - just not yet implemented.
+
+         Feature::load([
+             'new-faster-api',
+             'new-login' => [
+                 [$jess],
+                 [$james],
+                 [$tim],
+             ],
+             'new-search' => [
+                 [$jess, $currentTeam, request()->header('CF-IPCountry')],
+                 [$james, $currentTeam, request()->header('CF-IPCountry')],
+                 [$tim, $currentTeam, request()->header('CF-IPCountry')],
+             ],
+         ]);
+
+
+         // Perhaps we could create a pending object here...
+         // Feature::load('new-faster-api')
+         //     ->andLoad('new-login')
+         //     ->for($jess)->andFor($james)->andFor($tim)
+         //     ->andLoad('new-search')
+         //     ->for($jess, $currentTeam, request()->header('CF-IPCountry'))
+         //     ->andFor($james, $currentTeam, request()->header('CF-IPCountry'))
+         //     ->andFor($tim, $currentTeam, request()->header('CF-IPCountry'));
+
+         // we may want a `forMany` method here and in other bits...
+
+         // Feature::load('new-faster-api')
+         //     ->andLoad('new-login')
+         //     ->forMany([[$jess], [$james], [$tim]])
+         //     ->andLoad('new-search')
+         //     ->forMany([
+         //         [$jess, $currentTeam, request()->header('CF-IPCountry')]
+         //         [$james, $currentTeam, request()->header('CF-IPCountry')]
+         //         [$tim, $currentTeam, request()->header('CF-IPCountry')]
+         //     ])
 
          //Feature::for($jess)->for($james)->isActive(['new-ducks', 'new-states']);
          //Feature::for($tim)->isActive(['new-ducks', 'new-states']);

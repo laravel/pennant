@@ -142,23 +142,57 @@ class ArrayDriver
     }
 
     /**
-     * Load the feature states into memory.
+     * Eagerly load the feature state into memory.
      *
-     * @param  array<int, string>  $features
-     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
+     * @param  array<string|int, array<int, mixed>|string>  $feature
      * @return void
      */
-    public function load($features, $scope = new Collection)
+    public function load($features)
     {
-        $this->resolveFeatureCacheKeys($features, $scope)->each(function ($resolved) {
-            ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
+        Collection::make($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => Collection::make([])]
+                : [$key => Collection::make($value)->map(fn ($v) => Collection::make($v))])
+            ->map(function ($scope, $feature) {
+                return $this->resolveFeatureCacheKeys([$feature], $scope);
+            })
+            ->flatten(1)
+            ->each(function ($resolved) {
+                ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
 
-            if ($this->missingResolver($feature)) {
-                return;
-            }
+                if ($this->missingResolver($feature)) {
+                    return;
+                }
 
-            $this->cache[$cacheKey] = $this->resolveInitialFeatureState($feature, $scope);
-        });
+                $this->cache[$cacheKey] = $this->resolveInitialFeatureState($feature, $scope);
+            });
+    }
+
+    /**
+     * Eagerly load the missing feature state into memory.
+     *
+     * @param  array<string|int, array<int, mixed>|string>  $feature
+     * @return void
+     */
+    public function loadMissing($features)
+    {
+        Collection::make($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => Collection::make([])]
+                : [$key => Collection::make($value)->map(fn ($v) => Collection::make($v))])
+            ->map(function ($scope, $feature) {
+                return $this->resolveFeatureCacheKeys([$feature], $scope);
+            })
+            ->flatten(1)
+            ->each(function ($resolved) {
+                ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
+
+                if ($this->missingResolver($feature)) {
+                    return;
+                }
+
+                $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
+            });
     }
 
     /**

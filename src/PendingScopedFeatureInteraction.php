@@ -2,6 +2,7 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use RuntimeException;
 
@@ -106,7 +107,7 @@ class PendingScopedFeatureInteraction
      */
     public function isActive($feature)
     {
-        return $this->driver->isActive($feature, $this->scope);
+        return $this->driver->isActive(Arr::wrap($feature), $this->scope);
     }
 
     /**
@@ -117,7 +118,7 @@ class PendingScopedFeatureInteraction
      */
     public function isInactive($feature)
     {
-        return $this->driver->isInactive($feature, $this->scope);
+        return $this->driver->isInactive(Arr::wrap($feature), $this->scope);
     }
 
     /**
@@ -128,7 +129,7 @@ class PendingScopedFeatureInteraction
      */
     public function activate($feature)
     {
-        $this->driver->activate($feature, $this->scope);
+        $this->driver->activate(Arr::wrap($feature), $this->scope);
     }
 
     /**
@@ -139,6 +140,6 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        $this->driver->deactivate($feature, $this->scope);
+        $this->driver->deactivate(Arr::wrap($feature), $this->scope);
     }
 }

@@ -2,6 +2,9 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Support\Arr;
+
+
 /**
  * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
  */
@@ -47,6 +50,28 @@ class DriverDecorator
     public function register($feature, $resolver)
     {
         $this->toBaseDriver()->register($feature, $resolver);
+    }
+
+    /**
+     * Eagerly load the feature state into memory.
+     *
+     * @param  array<string|int, array<int, mixed>|string>  $feature
+     * @return void
+     */
+    public function load($features)
+    {
+        $this->toBaseDriver()->load($features);
+    }
+
+    /**
+     * Eagerly load the missing feature state into memory.
+     *
+     * @param  array<string|int, array<int, mixed>|string>  $feature
+     * @return void
+     */
+    public function loadMissing($features)
+    {
+        $this->toBaseDriver()->loadMissing($features);
     }
 
     /**
