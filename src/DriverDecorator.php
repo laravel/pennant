@@ -50,7 +50,7 @@ class DriverDecorator
     }
 
     /**
-     * Get the driver being decorated.
+     * Get the decorated driver.
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver
      */

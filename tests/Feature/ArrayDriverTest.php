@@ -65,13 +65,14 @@ class ArrayDriverTest extends TestCase
     public function test_user_returned_boolean_ish_values_are_cast_to_booleans()
     {
         $driver = $this->createManager()->driver('array')->toBaseDriver();
-        $driver->register('foo', function () use (&$called) {
-            return 1;
-        });
+        $driver->register('foo', fn () => 1);
+        $driver->register('bar', fn () => 0);
 
         $result = $driver->isActive('foo');
-
         $this->assertTrue($result);
+
+        $result = $driver->isActive('bar');
+        $this->assertFalse($result);
     }
 
     public function test_it_can_check_if_a_feature_is_active_or_inactive_and_it_dispatches_events()
