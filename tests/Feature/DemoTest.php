@@ -6,7 +6,8 @@
  use Illuminate\Support\Facades\Auth;
  use Laravel\Feature\Contracts\FeatureScopeable;
  use Laravel\Feature\Feature;
- use Tests\TestCase;
+use Laravel\Feature\HasFeature;
+use Tests\TestCase;
 
  class DemoTest extends TestCase
  {
@@ -167,12 +168,20 @@
          Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-search'); // true ✅
 
 
+         // Objects may implement the `HasFeatures` trait and the following API is not available...
+
+         $obj = new class (['id' => 55]) extends User {
+             use HasFeature;
+         };
+
+         $obj->featureIsActive('new-login');
+
+
          // Everytime we check a feature, there is potential the driver has to make a request,
          // hit a database, etc. To reduce that count, we may eagerly load feature
          // states in a service provider, middleware, in a controller, etc.
 
-
-         // Note: dislike this API. New suggestion below to improve this - just not yet implemented.
+         // Note: I hate this API. New suggestion below to improve this - just not yet implemented.
 
          Feature::load([
              'new-faster-api',
@@ -189,7 +198,8 @@
          ]);
 
 
-         // Perhaps we could create a pending object here...
+         // Perhaps we could create a pending object using the destructor pattern here instead...
+         //
          // Feature::load('new-faster-api')
          //     ->andLoad('new-login')
          //     ->for($jess)->andFor($james)->andFor($tim)
@@ -209,127 +219,6 @@
          //         [$james, $currentTeam, request()->header('CF-IPCountry')]
          //         [$tim, $currentTeam, request()->header('CF-IPCountry')]
          //     ])
-
-         //Feature::for($jess)->for($james)->isActive(['new-ducks', 'new-states']);
-         //Feature::for($tim)->isActive(['new-ducks', 'new-states']);
-
-
-         //$jess->hasFeature('new-ducks', 'QLD');
-
-         //public function hasFeature($feature, ...$stuff)
-         //{
-         //    Feature::for($this, ...$stuff)->isActive($feature);
-         //}
-
-         //Feature::for($jess)->isActive('new-states');
-
-         //// only true when active for everyone. Shared context.
-         //Feature::for($jess, ['QLD'])->isActive('new-ous');
-
-         //// only true when active for everyone. Individual context.
-         //// Feature::forAll([
-         ////     [$jess, ['QLD', 'NSW']],
-         ////     [$tim, ['VIC']],
-         //// ])->isActive('new-ous');
-
-         //Feature::for($jess, ['foo', 'bar', 'baz'])->isActive('new-ous');
-
-
-         //Feature::register('foo', function ($env) {
-         //    // 'prod'
-         //    return $env === 'prod';
-         //});
-
-         //Feature::for(app()->env())->isActive('foo'); // { "foo: true" }
-
-         //Feature::register('foo', function ($scope) {
-         //    if ($scope === 'tim@laravel.com') {
-         //        return true;
-         //    }
-
-         //    if ($scope instanceof Model && $scope->is($tim)) {
-         //        return true;
-         //    }
-
-         //    if (is_object($scope)) {
-         //        return true;
-         //    }
-
-         //    return false;
-         //});
-
-         //Feature::for('tim@laravel.com')->isActive('foo'); // { "foo:\"tim@laravel.com\"": true }
-         //Feature::for($tim)->isActive('foo'); // { "foo:eloquent_model:App\Models\User:3": true }
-         //Feature::for(new class () implements FeatureScopeable  {
-         //    public function toFeatureScopeIdentifier()
-         //    {
-         //        return 'tim@laravel.com';
-         //    }
-         //})->isActive('foo'); // { "foo:tim@laravel.com": true }
-
-         //Feature::initially('experimental-delivery', function ($invoice) {
-         //    if ($invoice->highValue()) {
-         //        return false;
-         //    }
-
-         //    return Lottery::odds(5 / 100);
-         //});
-
-         //php artisan feature:purge --inactive
-         //php artisan feature:toggle --inactive
-
-         //Feature::forTheAuthenticatedUser()->activate('new-search');
-
-         //Feature::remember('new-design', function ($plan) {
-         //    if ($plan->isExpensive()) {
-         //        return false;
-         //    }
-
-         //    return true;
-         //});
-
-         //Feature::register('new-fast-api', function ($user) {
-         //    if ($user->is($jess)) {
-         //        return true;
-         //    }
-
-         //    return config('features.fast_api_odds');
-         //});
-
-         //Feature::for('robby')->deactivate('new-fast-api');
-
-         //Feature::for('robby')->isActive('new-fast-api'); // always `false`
-         //Feature::for($foo)->isActive('new-fast-api'); // random every time
-
-
-
-         //Feature::for($jess)->isActive('new-translations');
-
-         //// HTTP POST switch.io
-         //// { id: 1, name: "Jess", "age": 38 }
-
-         //if ($_POST['age'] === 38) {
-         //    return true;
-         //}
-
-         //if (request()->user()->plan->hasFeature('new-fast-deploy')) {
-         //    //
-         //}
-
-
-         //if ($invoice->hasFeature('experimental-delivery')) {
-         //    //
-         //}
-
-         //if ($invoice->hasFeature('experimental-delivery')) { // same as above
-         //    //
-         //}
-
-
-
-
-
-
 
 
 
