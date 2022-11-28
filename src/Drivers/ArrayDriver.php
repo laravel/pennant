@@ -27,9 +27,16 @@ class ArrayDriver
     protected $cache;
 
     /**
+     * The key to use when encountering a null value to differentiate from an empty string.
+     *
+     * @var string
+     */
+    protected $nullKey;
+
+    /**
      * The initial feature state resolvers.
      *
-     * @var array<string, (callable(mixed, mixed ... $additional): bool)>
+     * @var array<string, (callable(mixed, mixed ...): mixed)>
      */
     protected $initialFeatureStateResolvers = [];
 
@@ -175,7 +182,7 @@ class ArrayDriver
      *
      * @param  string|array<string>  $feature
      * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
-     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, cacheKey: string }>
+     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: \Illuminate\Support\Collection<int, mixed>, cacheKey: string }>
      */
     protected function resolveFeatureCacheKeys($feature, $scope)
     {
