@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Lottery;
 use Tests\TestCase;
 
 class FeatureManagerTest extends TestCase
@@ -95,5 +96,28 @@ class FeatureManagerTest extends TestCase
         $this->expectExceptionMessage('There is no user currently authenticated.');
 
         $manager->forTheAuthenticatedUser();
+    }
+
+    public function test_it_can_return_lottery_as_value()
+    {
+        $manager = $this->createManager();
+        Lottery::fix([true, true, true, true, false]);
+
+        $manager->register('foo', Lottery::odds(1, 100));
+
+        $manager->load(['foo']);
+        $this->assertTrue($manager->isActive('foo'));
+
+        $manager->load(['foo']);
+        $this->assertTrue($manager->isActive('foo'));
+
+        $manager->load(['foo']);
+        $this->assertTrue($manager->isActive('foo'));
+
+        $manager->load(['foo']);
+        $this->assertTrue($manager->isActive('foo'));
+
+        $manager->load(['foo']);
+        $this->assertFalse($manager->isActive('foo'));
     }
 }

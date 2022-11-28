@@ -278,28 +278,13 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 ### To consider
 
 - basic values with segments. "request_limit.5" "rate:4,5,6"
-- events 
-- users should be generic, as they might be "Organisation" or "Team". Feature::for($team)
-- Implement a "HasFeatureIdentifer" trait or something for objects to specify their cache key?
-- Should scope allow for more than a single thing. an array vs a parameter list are different things. What about scenarios like Feature::for($team, $user)->active('foo') which is checking if a feature is active for the given team.
-- Allow a feature to be re-evaluated Feature::for($user)->reEvaluate('foo')
 - For registering things, could we detect the parameter type, and allow multiple registrations for different types but the same feature?
-- user morph map for identifiers?
 - Allow only a class to be registered. Feature::register(Foo::class);
 - https://3.basecamp.com/3734608/buckets/19188934/messages/5567248106
 - Segment responses when `foo.a` is set but checking for `foo`
-- Ability to eagerly load a users active features in a service provider, middleware, etc. Then have that only trigger once the feature system is interacted with.
 - Lazy / Eager feature saving. After request, for example.
-- post 1.0: Keeping track of feature usage / dashboard
-- All drivers should have in-memory caches, as we don't want the state to change throughout a single request.
-- Should we be able to check multiple features at once? Feature::active(['a', 'b', 'c'], $user])?
-- see test around `null`s. This needs to be seen.
-- A check against a user should not then fallback to the "for everyone" existing key. The reason being that it is possible that it is "on" for everyone, except user Y
-- naming: laravel/switch
-- trigger event when checking
-- trigger event when resolving
+- post 1.0: Keeping track of feature usage / dashboard, Allow "throw on unknown flag". Just add a listener.
 - Ability to provide reasoning for the current value. Maybe return a rich object from the register closure for local versions. Maybe actually just "meta" data.
 - For something like launch darkly, the closure on register() may just be used for "offline" mode.
 - Is it possible to get all features for a given user / entity?
-- Ability to get all features for a user.
-- Allow "throw on unknown flag". Just add a listener.
+- Ability to get all features for given scope.

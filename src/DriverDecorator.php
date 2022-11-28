@@ -3,7 +3,7 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Arr;
-
+use Illuminate\Support\Lottery;
 
 /**
  * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
@@ -40,11 +40,8 @@ class DriverDecorator
     /**
      * Register an initial feature state resolver.
      *
-     * TODO: Should this return a pending registration object so we can do
-     * interesting modifications while registering?
-     *
      * @param  string  $feature
-     * @param  (callable(mixed $scope, mixed ...$additional): mixed)  $resolver
+     * @param  (callable(mixed $scope): mixed)  $resolver
      * @return void
      */
     public function register($feature, $resolver)
@@ -55,7 +52,7 @@ class DriverDecorator
     /**
      * Eagerly load the feature state into memory.
      *
-     * @param  array<string|int, array<int, mixed>|string>  $feature
+     * @param  array<string|int, array<int, mixed>|string>  $features
      * @return void
      */
     public function load($features)
@@ -66,7 +63,7 @@ class DriverDecorator
     /**
      * Eagerly load the missing feature state into memory.
      *
-     * @param  array<string|int, array<int, mixed>|string>  $feature
+     * @param  array<string|int, array<int, mixed>|string>  $features
      * @return void
      */
     public function loadMissing($features)
@@ -93,6 +90,6 @@ class DriverDecorator
      */
     public function __call($name, $parameters)
     {
-        return (new PendingScopedFeatureInteraction($this->driver, $this->auth))->{$name}(...$parameters);
+        return (new PendingScopedFeatureInteraction($this->driver, $this->auth, []))->{$name}(...$parameters);
     }
 }

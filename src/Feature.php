@@ -5,10 +5,10 @@ namespace Laravel\Feature;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Laravel\Feature\Drivers\ArrayDriver register(string $feature, (callable(mixed $scope, mixed ...$additional): mixed) $resolver)
+ * @method static \Laravel\Feature\Drivers\ArrayDriver register(string $feature, (callable(mixed $scope): mixed) $resolver)
  * @method static \Laravel\Feature\Drivers\ArrayDriver toBaseDriver()
- * @method static \Laravel\Feature\PendingScopedFeatureInteraction for(mixed $scope, mixed ...$additional)
- * @method static \Laravel\Feature\PendingScopedFeatureInteraction forTheAuthenticatedUser(mixed ...$additionalScope)
+ * @method static \Laravel\Feature\PendingScopedFeatureInteraction for(mixed $scope)
+ * @method static \Laravel\Feature\PendingScopedFeatureInteraction forTheAuthenticatedUser()
  * @method static \Laravel\Feature\PendingScopedFeatureInteraction globally()
  * @method static bool activate(string|array<int, string> $feature)
  * @method static bool deactivate(string|array<int, string> $feature)

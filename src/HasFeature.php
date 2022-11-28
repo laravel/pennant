@@ -8,23 +8,21 @@ trait HasFeature
      * Determine if the feature is active.
      *
      * @param  string  $feature
-     * @param  mixed  ...$additionalScope
      * @return bool
      */
-    public function featureIsActive($feature, ...$additionalScope)
+    public function featureIsActive($feature)
     {
-        return Feature::for($this, ...$additionalScope)->isActive($feature);
+        return Feature::for($this)->isActive($feature);
     }
 
     /**
      * Determine if the feature is inactive.
      *
      * @param  string  $feature
-     * @param  mixed  ...$additionalScope
      * @return bool
      */
-    public function featureIsInactive($feature, ...$additionalScope)
+    public function featureIsInactive($feature)
     {
-        return Feature::for($this, ...$additionalScope)->isInactive($feature);
+        return Feature::for($this)->isInactive($feature);
     }
 }

@@ -18,7 +18,7 @@ class CheckingKnownFeature
     /**
      * The scope of the feature check.
      *
-     * @var \Illuminate\Support\Collection<int, mixed>
+     * @var mixed
      */
     public $scope;
 
@@ -26,7 +26,7 @@ class CheckingKnownFeature
      * Create a new event instance.
      *
      * @param  string  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  mixed  $scope
      */
     public function __construct($feature, $scope)
     {

@@ -3,7 +3,6 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Arr;
-use Illuminate\Support\Collection;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
@@ -25,7 +24,7 @@ class PendingScopedFeatureInteraction
     /**
      * The feature interaction scope.
      *
-     * @var \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>
+     * @var array<int, mixed>
      */
     protected $scope;
 
@@ -34,9 +33,9 @@ class PendingScopedFeatureInteraction
      *
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
+     * @param  array<int, mixed>  $scope
      */
-    public function __construct($driver, $auth, $scope = new Collection)
+    public function __construct($driver, $auth, $scope)
     {
         $this->driver = $driver;
 
@@ -49,26 +48,13 @@ class PendingScopedFeatureInteraction
      * Add scope to the feature interaction.
      *
      * @param  mixed  $scope
-     * @param  mixed  ...$additional
      * @return $this
      */
-    public function for($scope, ...$additional)
+    public function for($scope)
     {
-        $this->scope->push(Collection::make([$scope, ...$additional]));
+        $this->scope[] = $scope;
 
         return $this;
-    }
-
-    /**
-     * Add additional to the feature interaction. Aliases `$this->for()`.
-     *
-     * @param  mixed  $scope
-     * @param  mixed  ...$additional
-     * @return $this
-     */
-    public function andFor($scope, ...$additional)
-    {
-        return $this->for($scope, ...$additional);
     }
 
     /**
@@ -76,27 +62,25 @@ class PendingScopedFeatureInteraction
      *
      * TODO: `null` doesn't feel like a good identifier here.
      *
-     * @param  mixed  ...$additionalScope
      * @return $this
      */
-    public function globally(...$additionalScope)
+    public function globally()
     {
-        return $this->for(null, ...$additionalScope);
+        return $this->for(null);
     }
 
     /**
      * Scope the feature interaction to the authenticated user.
      *
-     * @param  mixed  ...$additionalScope
      * @return $this
      */
-    public function forTheAuthenticatedUser(...$additionalScope)
+    public function forTheAuthenticatedUser()
     {
         if (! $this->auth->guard()->check()) {
             throw new RuntimeException('There is no user currently authenticated.');
         }
 
-        return $this->for($this->auth->guard()->user(), ...$additionalScope);
+        return $this->for($this->auth->guard()->user());
     }
 
     /**
