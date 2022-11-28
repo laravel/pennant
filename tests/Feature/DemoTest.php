@@ -122,7 +122,7 @@
          // Oh wait, we just remembered we should have excluded $jess from the new-fast-api as $jess is a major customer
          // that we don't want to test the new API on. Problem is, we've persisteded that $jess should use the new API
          // because we checked above.
-         //
+
          // Let's deactive that feature for $jess manually.
 
          Feature::for($jess)->deactivate('new-faster-api');
@@ -151,18 +151,18 @@
              Feature::for($tim)->isActive('new-faster-api') // ✅
          );
 
-         //Feature::register('new-states', function ($foo, $bar, $baz) {
-         //    return $user->is($jess);
-         //});
+        // Some features may be based on certain scope. Perhaps you need the
+         // user, the "current" team, and some arbitrary value.
 
-         //// Feature::register('new-states', function ($user) {
-         ////     return $user->is($jess);
-         //// });
+         Feature::register('new-search', function ($user, $team, $country = null) {
+             return $user->isSubscribed() && $team->isActive() && $country === 'AU';
+         });
 
-         //Feature::for($jess)->isActive('new-states'); // true. cached in "my-feature-flag:1"
-         //Feature::for($tim)->isActive('new-states'); // false. cached in "my-feature-flag:3"
+         // 'CF-IPCountry' => 'US'
+         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-states'); // false ❌
 
-         //Feature::for($jess)->activate('new-states');
+         // 'CF-IPCountry' => 'AU'
+         Feature::for($jess, $currentTeam, request()->header('CF-IPCountry'))->isActive('new-states'); // true ✅
 
 
 
