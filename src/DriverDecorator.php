@@ -35,6 +35,21 @@ class DriverDecorator
     }
 
     /**
+     * Register an initial feature state resolver.
+     *
+     * TODO: Should this return a pending registration object so we can do
+     * interesting modifications while registering?
+     *
+     * @param  string  $feature
+     * @param  (callable(mixed $scope, mixed ...$additional): mixed)  $resolver
+     * @return void
+     */
+    public function register($feature, $resolver)
+    {
+        $this->toBaseDriver()->register($feature, $resolver);
+    }
+
+    /**
      * Get the driver being decorated.
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver

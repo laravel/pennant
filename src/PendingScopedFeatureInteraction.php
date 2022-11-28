@@ -24,7 +24,7 @@ class PendingScopedFeatureInteraction
     /**
      * The feature interaction scope.
      *
-     * @var \Illuminate\Support\Collection<int, mixed>
+     * @var \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>
      */
     protected $scope;
 
@@ -33,7 +33,7 @@ class PendingScopedFeatureInteraction
      *
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      */
     public function __construct($driver, $auth, $scope = new Collection)
     {
@@ -48,11 +48,12 @@ class PendingScopedFeatureInteraction
      * Add scope to the feature interaction.
      *
      * @param  mixed  $scope
+     * @param  mixed  ...$additional
      * @return $this
      */
-    public function for($scope)
+    public function for($scope, ...$additional)
     {
-        $this->scope = $this->scope->merge(Collection::wrap($scope));
+        $this->scope->push(Collection::make([$scope, ...$additional]));
 
         return $this;
     }
@@ -60,29 +61,29 @@ class PendingScopedFeatureInteraction
     /**
      * Scope the feature to check the global state.
      *
+     * TODO: `null` doesn't feel like a good identifier here.
+     *
+     * @param  mixed  ...$additionalScope
      * @return $this
      */
-    public function globally()
+    public function globally(...$additionalScope)
     {
-        $this->scope = $this->scope->merge([null]);
-
-        return $this;
+        return $this->for(null, ...$additionalScope);
     }
 
     /**
      * Scope the feature interaction to the authenticated user.
      *
+     * @param  mixed  ...$additionalScope
      * @return $this
      */
-    public function forTheAuthenticatedUser()
+    public function forTheAuthenticatedUser(...$additionalScope)
     {
         if (! $this->auth->guard()->check()) {
             throw new RuntimeException('There is no user currently authenticated.');
         }
 
-        $this->scope = $this->scope->merge([$this->auth->guard()->user()]);
-
-        return $this;
+        return $this->for($this->auth->guard()->user(), ...$additionalScope);
     }
 
     /**

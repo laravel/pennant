@@ -4,8 +4,27 @@ namespace Laravel\Feature;
 
 trait HasFeature
 {
-    public function hasFeature($feature, ...$context)
+    /**
+     * Determine if the feature is active.
+     *
+     * @param  string  $feature
+     * @param  mixed  ...$additionalScope
+     * @return bool
+     */
+    public function featureIsActive($feature, ...$additionalScope)
     {
-        return Feature::for($this, ...$context)->isActive($feature);
+        return Feature::for($this, ...$additionalScope)->isActive($feature);
+    }
+
+    /**
+     * Determine if the feature is inactive.
+     *
+     * @param  string  $feature
+     * @param  mixed  ...$additionalScope
+     * @return bool
+     */
+    public function featureIsInactive($feature, ...$additionalScope)
+    {
+        return Feature::for($this, ...$additionalScope)->isInactive($feature);
     }
 }

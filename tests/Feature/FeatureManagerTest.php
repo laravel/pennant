@@ -45,15 +45,10 @@ class FeatureManagerTest extends TestCase
 
         $this->assertFalse($manager->isActive('foo'));
         $this->assertTrue($manager->for('tim@laravel.com')->isActive('foo'));
-        $this->assertTrue($manager->for(['tim@laravel.com'])->isActive('foo'));
         $this->assertTrue($manager->for('jess@laravel.com')->isActive('foo'));
-        $this->assertTrue($manager->for(['jess@laravel.com'])->isActive('foo'));
         $this->assertFalse($manager->for('taylor@laravel.com')->isActive('foo'));
-        $this->assertFalse($manager->for(['taylor@laravel.com'])->isActive('foo'));
-        $this->assertTrue($manager->for('tim@laravel.com')->for('jess@laravel.com')->isActive('foo'));
-        $this->assertTrue($manager->for(['tim@laravel.com', 'jess@laravel.com'])->isActive('foo'));
+        $this->assertTrue($manager->for('jess@laravel.com')->for('tim@laravel.com')->isActive('foo'));
         $this->assertFalse($manager->for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));
-        $this->assertFalse($manager->for(['tim@laravel.com', 'jess@laravel.com', 'taylor@laravel.com'])->isActive('foo'));
 
         $manager->for('taylor@laravel.com')->activate('foo');
         $this->assertTrue($manager->for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));

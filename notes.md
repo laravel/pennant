@@ -298,3 +298,7 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - naming: laravel/switch
 - trigger event when checking
 - trigger event when resolving
+- Ability to provide reasoning for the current value. Maybe return a rich object from the register closure for local versions. Maybe actually just "meta" data.
+- For something like launch darkly, the closure on register() may just be used for "offline" mode.
+- Is it possible to get all features for a given user / entity?
+- Ability to get all features for a user.

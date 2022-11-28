@@ -5,6 +5,7 @@ namespace Laravel\Feature;
 use Illuminate\Support\Facades\Facade;
 
 /**
+ * @method static \Laravel\Feature\Drivers\ArrayDriver register(string $feature, (callable(mixed $scope, mixed ...$additional): bool) $resolver)
  * @method static \Laravel\Feature\Drivers\ArrayDriver toBaseDriver()
  * @method static \Laravel\Feature\PendingScopedFeatureInteraction for(mixed $scope)
  * @method static \Laravel\Feature\PendingScopedFeatureInteraction forTheAuthenticatedUser()

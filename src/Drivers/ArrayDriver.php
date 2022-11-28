@@ -5,6 +5,7 @@ namespace Laravel\Feature\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
@@ -28,7 +29,7 @@ class ArrayDriver
     /**
      * The initial feature state resolvers.
      *
-     * @var array<string, (callable(\Illuminate\Support\Collection<int, mixed>): bool)>
+     * @var array<string, (callable(mixed, mixed ... $additional): bool)>
      */
     protected $initialFeatureStateResolvers = [];
 
@@ -36,19 +37,23 @@ class ArrayDriver
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  \Illuminate\Support\Collection<string, bool>  $cache
+     * @param  ?string  $nullKey
      */
-    public function __construct(Dispatcher $events, $cache = new Collection())
+    public function __construct(Dispatcher $events, $cache = new Collection(), $nullKey = null)
     {
         $this->events = $events;
 
         $this->cache = $cache;
+
+        $this->nullKey = $nullKey ?? Str::random();
     }
 
     /**
      * Determine if the feature(s) is active for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      * @return bool
      */
     public function isActive($feature, $scope = new Collection)
@@ -75,7 +80,7 @@ class ArrayDriver
      * issue here. Need to test futher.
      *
      * @param  string|array<int, string>  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      * @return bool
      */
     public function isInactive($feature, $scope = new Collection)
@@ -87,7 +92,7 @@ class ArrayDriver
      * Activate the feature(s) for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      * @return void
      */
     public function activate($feature, $scope = new Collection)
@@ -104,7 +109,7 @@ class ArrayDriver
      * Deactivate the feature(s) for the given scope.
      *
      * @param  string|array<int, string>  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      * @return void
      */
     public function deactivate($feature, $scope = new Collection)
@@ -120,11 +125,8 @@ class ArrayDriver
     /**
      * Register an initial feature state resolver.
      *
-     * TODO: Should this return a pending registration object so we can do
-     * interesting modifications while registering?
-     *
      * @param  string  $feature
-     * @param  (callable(\Illuminate\Support\Collection<int, mixed> $scope): bool)  $resolver
+     * @param  (callable(mixed $scope, mixed ...$additional): mixed)  $resolver
      * @return void
      */
     public function register($feature, $resolver)
@@ -133,7 +135,7 @@ class ArrayDriver
     }
 
     /**
-     * Resolve an initial features state.
+     * Resolve a features initial state.
      *
      * @param  string  $feature
      * @param  \Illuminate\Support\Collection<int, mixed>  $scope
@@ -141,7 +143,7 @@ class ArrayDriver
      */
     protected function resolveInitialFeatureState($feature, $scope)
     {
-        return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
+        return (bool) $this->initialFeatureStateResolvers[$feature](...$scope);
     }
 
     /**
@@ -172,12 +174,12 @@ class ArrayDriver
      * TODO don't love this pipeline. not readable at all.
      *
      * @param  string|array<string>  $feature
-     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  \Illuminate\Support\Collection<int, \Illuminate\Support\Collection<int, mixed>>  $scope
      * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, cacheKey: string }>
      */
     protected function resolveFeatureCacheKeys($feature, $scope)
     {
-        return $scope->whenEmpty(fn ($collection) => $collection->merge([null]))
+        return $scope->whenEmpty(fn ($c) => $c->push(Collection::make([null])))
             ->map(fn ($scope) => [$this->resolveCacheKey($scope), $scope])
             ->crossJoin(Collection::wrap($feature))
             ->map(fn ($value) => [
@@ -192,23 +194,26 @@ class ArrayDriver
     /**
      * Resolve the cache key for the given scope.
      *
-     * @param  mixed  $scope
+     * @param  \Illuminate\Support\Collection<int, mixed>  $scope
      * @return string|null
      */
     protected function resolveCacheKey($scope)
     {
-        if ($scope === null) {
-            return null;
-        }
+        return $scope->whenEmpty(fn ($c) => $c->push(null))
+            ->map(function ($scope) {
+                if ($scope === null) {
+                    return $this->nullKey;
+                }
 
-        if ($scope instanceof FeatureScopeable) {
-            return $scope->toFeatureScopeIdentifier();
-        }
+                if ($scope instanceof FeatureScopeable) {
+                    return $scope->toFeatureScopeIdentifier();
+                }
 
-        if ($scope instanceof Model) {
-            return 'eloquent_model:'.(new $scope)->getMorphClass().':'.$scope->getKey();
-        }
+                if ($scope instanceof Model) {
+                    return 'eloquent_model:'.(new $scope)->getMorphClass().':'.$scope->getKey();
+                }
 
-        return (string) $scope;
+                return (string) $scope;
+            })->join(',');
     }
 }
