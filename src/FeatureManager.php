@@ -5,6 +5,7 @@ namespace Laravel\Feature;
 use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
+use Laravel\Feature\Drivers\DatabaseDriver;
 
 /**
  * @method \Laravel\Feature\DriverDecorator driver(?string $driver)
@@ -20,6 +21,16 @@ class FeatureManager extends Manager
     public function createArrayDriver()
     {
         return $this->container[ArrayDriver::class];
+    }
+
+    /**
+     * Create an instance of the Datbase driver.
+     *
+     * @return \Laravel\Feature\Drivers\ArrayDriver
+     */
+    public function createDatabaseDriver()
+    {
+        return $this->container[DatabaseDriver::class];
     }
 
     /**
