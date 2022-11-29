@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool deactivate(string|array<int, string> $feature)
  * @method static bool isActive(string|array<int, string> $feature)
  * @method static bool isInactive(string|array<int, string> $feature)
+ * @method static void load(string|array<int|string, string|array<int, mixed>> $features)
+ * @method static void loadMissing(string|array<int|string, string|array<int, mixed>> $features)
  *
  * @see \Laravel\Feature\FeatureManager
  */

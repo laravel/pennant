@@ -3,12 +3,44 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Lottery;
+use Laravel\Feature\Drivers\ArrayDriver;
+use Laravel\Feature\Drivers\DatabaseDriver;
+use Laravel\Feature\Feature;
 use Tests\TestCase;
 
 class FeatureManagerTest extends TestCase
 {
-    public function test_it_proxies_feature_checks_to_driver()
+    public function test_default_driver_is_array_driver()
+    {
+        $this->assertInstanceOf(ArrayDriver::class, Feature::driver()->toBaseDriver());
+    }
+
+    public function test_it_checks_config_for_driver()
+    {
+        Config::set('features.default', 'database');
+
+        $this->assertInstanceOf(DatabaseDriver::class, Feature::driver()->toBaseDriver());
+    }
+
+    public function test_feature_is_false_when_not_registered($driver)
+    {
+        $manager = $this->createManager();
+
+        $this->assertFalse($manager->isActive('foo'));
+
+        $manager->activate('foo');
+        $this->assertTrue($manager->isActive('foo'));
+
+        $manager->deactivate('foo');
+        $this->assertFalse($manager->isActive('foo'));
+    }
+
+    /**
+     * @dataProvider drivers
+     */
+    public function test_it_can_ch($driver)
     {
         $manager = $this->createManager();
 

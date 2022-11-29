@@ -60,10 +60,10 @@ class ArrayDriver
      * Determine if the features are active for the given scope.
      *
      * @param  array<int, string>  $features
-     * @param  array<int, mixed>  $scope
+     * @param  mixed  $scope
      * @return bool
      */
-    public function isActive($features, $scope = [])
+    public function isActive($features, $scope)
     {
         return $this->resolveFeatureCacheKeys($features, $scope)->every(function ($resolved) {
             ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
@@ -166,7 +166,7 @@ class ArrayDriver
     /**
      * Eagerly load the missing feature state into memory.
      *
-     * @param  array<string|int, array<int, mixed>|string>  $features
+     * @param  string|array<string|int, array<int, mixed>|string>  $features
      * @return void
      */
     public function loadMissing($features)
@@ -194,7 +194,7 @@ class ArrayDriver
      */
     protected function resolveInitialFeatureState($feature, $scope)
     {
-        return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
+        return $this->initialFeatureStateResolvers[$feature]($scope) !== false;
     }
 
     /**
@@ -228,13 +228,20 @@ class ArrayDriver
      */
     protected function resolveFeatureCacheKeys($features, $scope)
     {
-        return Collection::make($scope)->whenEmpty(fn ($c) => $c->push(null))
-            ->map(fn ($scope) => [$this->resolveCacheKey($scope), $scope])
+        if ($scope === []) {
+            return Collection::make($features)->map(fn ($feature) => [
+                'feature' => $feature,
+                'scope' => null,
+                'cacheKey' => $feature,
+            ]);
+        }
+
+        return Collection::make($scope)
             ->crossJoin($features)
-            ->map(fn ($value) => [
-                'feature' => $value[1],
-                'scope' => $value[0][1],
-                'cacheKey' => "{$value[1]}:{$value[0][0]}",
+            ->mapSpread(fn ($scope, $feature) => [
+                'feature' => $feature,
+                'scope' => $scope,
+                'cacheKey' => "{$feature}:{$this->resolveCacheKey($scope)}",
             ]);
     }
 

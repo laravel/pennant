@@ -288,3 +288,4 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - For something like launch darkly, the closure on register() may just be used for "offline" mode.
 - Is it possible to get all features for a given user / entity?
 - Ability to get all features for given scope.
+- Ability to register "remembered" and always "in-memory" features. i.e. ones that re-evaluate each time.

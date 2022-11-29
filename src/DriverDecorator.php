@@ -52,7 +52,7 @@ class DriverDecorator
     /**
      * Eagerly load the feature state into memory.
      *
-     * @param  array<string|int, array<int, mixed>|string>  $features
+     * @param  string|array<string|int, array<int, mixed>|string>  $features
      * @return void
      */
     public function load($features)
@@ -63,7 +63,7 @@ class DriverDecorator
     /**
      * Eagerly load the missing feature state into memory.
      *
-     * @param  array<string|int, array<int, mixed>|string>  $features
+     * @param  string|array<string|int, array<int, mixed>|string>  $features
      * @return void
      */
     public function loadMissing($features)
@@ -90,6 +90,6 @@ class DriverDecorator
      */
     public function __call($name, $parameters)
     {
-        return (new PendingScopedFeatureInteraction($this->driver, $this->auth, []))->{$name}(...$parameters);
+        return (new PendingScopedFeatureInteraction($this->driver, $this->auth))->{$name}(...$parameters);
     }
 }

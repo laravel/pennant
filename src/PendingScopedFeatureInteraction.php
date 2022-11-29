@@ -24,30 +24,27 @@ class PendingScopedFeatureInteraction
     /**
      * The feature interaction scope.
      *
-     * @var array<int, mixed>
+     * @var array<mixed>
      */
-    protected $scope;
+    protected $scope = [];
 
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @param  array<int, mixed>  $scope
      */
-    public function __construct($driver, $auth, $scope)
+    public function __construct($driver, $auth)
     {
         $this->driver = $driver;
 
         $this->auth = $auth;
-
-        $this->scope = $scope;
     }
 
     /**
-     * Add scope to the feature interaction.
+     * Scope the feature interaction.
      *
-     * @param  mixed  $scope
+     * @param  mixed|array<mixed>  $scope
      * @return $this
      */
     public function for($scope)
@@ -55,29 +52,6 @@ class PendingScopedFeatureInteraction
         $this->scope = array_merge($this->scope, Arr::wrap($scope));
 
         return $this;
-    }
-
-    /**
-     * Add scope to the feature interaction.
-     *
-     * @param  mixed  $scope
-     * @return $this
-     */
-    public function andFor($scope)
-    {
-        return $this->for($scope);
-    }
-
-    /**
-     * Scope the feature to check the global state.
-     *
-     * TODO: `null` doesn't feel like a good identifier here.
-     *
-     * @return $this
-     */
-    public function globally()
-    {
-        return $this->for(null);
     }
 
     /**
@@ -95,9 +69,9 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Determine if the feature(s) is active.
+     * Determine if the feature is active.
      *
-     * @param  string|array<int, string>  $feature
+     * @param  string|array<string>  $feature
      * @return bool
      */
     public function isActive($feature)
@@ -106,9 +80,9 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Determine if the feature(s) is inactive.
+     * Determine if the feature is inactive.
      *
-     * @param  string|array<int, string>  $feature
+     * @param  string  $feature
      * @return bool
      */
     public function isInactive($feature)
@@ -117,9 +91,9 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Activate the feature(s).
+     * Activate the feature.
      *
-     * @param  string|array<int, string>  $feature
+     * @param  string|array<string>  $feature
      * @return void
      */
     public function activate($feature)
@@ -128,9 +102,9 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Deactivate the feature(s).
+     * Deactivate the feature.
      *
-     * @param  string|array<int, string>  $feature
+     * @param  string|array<string>  $feature
      * @return void
      */
     public function deactivate($feature)

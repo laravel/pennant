@@ -3,22 +3,36 @@
 namespace Tests\Feature;
 
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
+use Laravel\Feature\Feature;
 use Tests\TestCase;
 
 class ArrayDriverTest extends TestCase
 {
-    public function test_it_defaults_to_false_for_unknown_values_and_dispatches_unknown_feature_event()
+    protected function setUp(): void
     {
-        Event::fake([CheckingUnknownFeature::class]);
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        parent::setUp();
 
-        $result = $driver->isActive(['foo']);
+        Config::set('features.default', 'array');
+    }
+
+    public function test_it_defaults_to_false_for_unknown_values()
+    {
+        $result = Feature::isActive('foo');
 
         $this->assertFalse($result);
+    }
+
+    public function test_it_dispatches_events_on_unknown_feature_checks()
+    {
+        Event::fake([CheckingUnknownFeature::class]);
+
+        Feature::isActive('foo');
+
         Event::assertDispatchedTimes(CheckingUnknownFeature::class, 1);
         Event::assertDispatched(function (CheckingUnknownFeature $event) {
             $this->assertSame('foo', $event->feature);
@@ -28,15 +42,13 @@ class ArrayDriverTest extends TestCase
         });
     }
 
-    public function test_it_can_register_default_values()
+    public function test_it_can_register_default_boolean_values()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::register('true', fn () => true);
+        Feature::register('false', fn () => false);
 
-        $driver->register('true', fn () => true);
-        $driver->register('false', fn () => false);
-
-        $true = $driver->isActive(['true']);
-        $false = $driver->isActive(['false']);
+        $true = Feature::isActive('true');
+        $false = Feature::isActive('false');
 
         $this->assertTrue($true);
         $this->assertFalse($false);
@@ -44,211 +56,215 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_caches_state_after_resolving()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
-
         $called = 0;
-        $driver->register('foo', function () use (&$called) {
+        Feature::register('foo', function () use (&$called) {
             $called++;
 
             return true;
         });
 
-        $driver->isActive(['foo']);
+        $this->assertSame(0, $called);
 
+        Feature::isActive('foo');
         $this->assertSame(1, $called);
 
-        $driver->isActive(['foo']);
-
+        Feature::isActive('foo');
         $this->assertSame(1, $called);
     }
 
-    public function test_user_returned_boolean_ish_values_are_cast_to_booleans()
+    public function test_non_false_registered_values_are_considered_active()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
-        $driver->register('foo', fn () => 1);
-        $driver->register('bar', fn () => 0);
+        Feature::register('one', fn () => 1);
+        Feature::register('zero', fn () => 0);
+        Feature::register('null', fn () => null);
+        Feature::register('empty-string', fn () => '');
 
-        $result = $driver->isActive(['foo']);
-        $this->assertTrue($result);
-
-        $result = $driver->isActive(['bar']);
-        $this->assertFalse($result);
+        $this->assertTrue(Feature::isActive('one'));
+        $this->assertTrue(Feature::isActive('zero'));
+        $this->assertTrue(Feature::isActive('null'));
+        $this->assertTrue(Feature::isActive('empty-string'));
     }
 
-    public function test_it_can_check_if_a_feature_is_active_or_inactive_and_it_dispatches_events()
+    public function test_it_can_programatically_activate_and_deativate_features()
+    {
+        Feature::activate('foo');
+        $this->assertTrue(Feature::isActive('foo'));
+
+        Feature::deactivate('foo');
+        $this->assertFalse(Feature::isActive('foo'));
+
+        Feature::activate('foo');
+        $this->assertTrue(Feature::isActive('foo'));
+    }
+
+    public function test_it_dispatches_events_when_checking_known_features()
     {
         Event::fake([CheckingKnownFeature::class]);
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::register('foo', fn () => true);
+        Feature::deactivate('bar');
 
-        $driver->activate(['foo']);
+        Feature::isActive('foo');
+        Feature::isActive('bar');
 
-        $this->assertTrue($driver->isActive(['foo']));
-
-        $driver->deactivate(['foo']);
-
-        $this->assertFalse($driver->isActive(['foo']));
-
-        $driver->activate(['foo']);
-
-        $this->assertTrue($driver->isActive(['foo']));
-        Event::assertDispatchedTimes(CheckingKnownFeature::class, 3);
+        Event::assertDispatchedTimes(CheckingKnownFeature::class, 2);
         Event::assertDispatched(function (CheckingKnownFeature $event) {
-            $this->assertSame('foo', $event->feature);
-            $this->assertNull($event->scope);
-
-            return true;
+            return $event->feature === 'foo' && $event->scope === null;
+        });
+        Event::assertDispatched(function (CheckingKnownFeature $event) {
+            return $event->feature === 'bar' && $event->scope === null;
         });
     }
 
     public function test_it_can_activate_and_deactivate_several_features_at_once()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::activate(['foo', 'bar']);
 
-        $driver->activate(['foo', 'bar']);
+        $this->assertTrue(Feature::isActive('foo'));
+        $this->assertTrue(Feature::isActive('bar'));
+        $this->assertFalse(Feature::isActive('baz'));
 
-        $this->assertTrue($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['bar']));
+        Feature::deactivate(['foo', 'bar']);
 
-        $driver->deactivate(['foo', 'bar']);
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertFalse(Feature::isActive('bar'));
+        $this->assertFalse(Feature::isActive('bar'));
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertFalse($driver->isActive(['bar']));
+        Feature::activate(['bar', 'baz']);
 
-        $driver->activate(['foo', 'bar']);
-
-        $this->assertTrue($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['bar']));
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertTrue(Feature::isActive('bar'));
+        $this->assertTrue(Feature::isActive('bar'));
     }
 
-    public function test_it_provides_scope_to_resolvers()
+    public function test_it_can_check_if_multiple_features_are_active_at_once()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::activate(['foo', 'bar']);
+
+        $this->assertTrue(Feature::isActive(['foo']));
+        $this->assertTrue(Feature::isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+
+        Feature::deactivate('baz');
+
+        $this->assertTrue(Feature::isActive(['foo']));
+        $this->assertTrue(Feature::isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+    }
+
+    public function test_it_can_scope_features()
+    {
         $active = new User(['id' => 1]);
         $inactive = new User(['id' => 2]);
         $captured = [];
 
-        $driver->register('foo', function ($user) use (&$captured) {
-            $captured[] = func_get_args();
+        Feature::register('foo', function ($scope) use (&$captured) {
+            $captured[] = $scope;
 
-            return $user?->id === 1;
+            return $scope?->id === 1;
         });
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['foo'], [$active]));
-        $this->assertFalse($driver->isActive(['foo'], [$inactive]));
-        $this->assertSame([
-            [null],
-            [$active],
-            [$inactive],
-        ], $captured);
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertTrue(Feature::for($active)->isActive('foo'));
+        $this->assertFalse(Feature::for($inactive)->isActive('foo'));
+        $this->assertSame([null, $active, $inactive], $captured);
     }
 
-    public function test_it_can_check_if_a_feature_is_active_or_inactive_with_scope()
+    public function test_it_can_activate_and_deactivate_features_with_scope()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
-        $active = new User(['id' => 1]);
-        $inactive = new User(['id' => 2]);
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
 
-        $driver->activate(['foo'], [$active]);
+        Feature::for($first)->activate('foo');
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertFalse($driver->isActive(['foo'], []));
-        $this->assertFalse($driver->isActive(['foo'], [null]));
-        $this->assertTrue($driver->isActive(['foo'],  [$active]));
-        $this->assertFalse($driver->isActive(['foo'], [$inactive]));
-
-        $driver->deactivate(['foo'], [$active]);
-
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertFalse($driver->isActive(['foo'], []));
-        $this->assertFalse($driver->isActive(['foo'], [null]));
-        $this->assertFalse($driver->isActive(['foo'], [$active]));
-        $this->assertFalse($driver->isActive(['foo'], [$inactive]));
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertTrue(Feature::for($first)->isActive('foo'));
+        $this->assertFalse(Feature::for($second)->isActive('foo'));
     }
 
-    public function test_it_can_activate_and_deactivate_feature_with_an_array_of_scope()
+    public function test_it_can_activate_and_deactivate_features_for_multiple_scope_at_once()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $first = new User(['id' => 1]);
         $second = new User(['id' => 2]);
         $third = new User(['id' => 3]);
 
-        $driver->activate(['foo'], [$first, $second]);
+        Feature::for([$first, $second])->activate('foo');
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['foo'], [$first]));
-        $this->assertTrue($driver->isActive(['foo'], [$second]));
-        $this->assertFalse($driver->isActive(['foo'], [$third]));
-
-        $driver->deactivate(['foo'], [$first, $second]);
-
-        $this->assertFalse($driver->isActive(['foo'], [$first]));
-        $this->assertFalse($driver->isActive(['foo'], [$second]));
-        $this->assertFalse($driver->isActive(['foo'], [$third]));
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertTrue(Feature::for($first)->isActive('foo'));
+        $this->assertTrue(Feature::for($second)->isActive('foo'));
+        $this->assertFalse(Feature::for($third)->isActive('foo'));
     }
 
-    public function test_it_can_check_if_a_feature_is_active_or_inactive_with_an_array_of_scope()
+    public function test_it_can_activate_and_deactivate_multiple_features_for_multiple_scope_at_once()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $first = new User(['id' => 1]);
         $second = new User(['id' => 2]);
+        $third = new User(['id' => 3]);
 
-        $driver->activate(['foo'], [$first]);
+        Feature::for([$first, $second])->activate(['foo', 'bar']);
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['foo'], [$first]));
-        $this->assertFalse($driver->isActive(['foo'], [$first, null]));
-        $this->assertFalse($driver->isActive(['foo'], [$first, $second]));
-        $this->assertFalse($driver->isActive(['foo'], [$second]));
+        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertTrue(Feature::for($first)->isActive('foo'));
+        $this->assertTrue(Feature::for($second)->isActive('foo'));
+        $this->assertFalse(Feature::for($third)->isActive('foo'));
 
-        $driver->activate(['foo'], [$second]);
+        $this->assertFalse(Feature::isActive('bar'));
+        $this->assertTrue(Feature::for($first)->isActive('bar'));
+        $this->assertTrue(Feature::for($second)->isActive('bar'));
+        $this->assertFalse(Feature::for($third)->isActive('bar'));
+    }
 
-        $this->assertFalse($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['foo'], [$first]));
-        $this->assertFalse($driver->isActive(['foo'], [$first, null]));
-        $this->assertTrue($driver->isActive(['foo'], [$first, $second]));
-        $this->assertTrue($driver->isActive(['foo'], [$second]));
+    public function test_it_can_check_multiple_features_for_multiple_scope_at_once()
+    {
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
+        $third = new User(['id' => 3]);
 
-        $driver->activate(['foo']);
+        Feature::for([$first, $second])->activate(['foo', 'bar']);
 
-        $this->assertTrue($driver->isActive(['foo']));
-        $this->assertTrue($driver->isActive(['foo'], [$first]));
-        $this->assertTrue($driver->isActive(['foo'], [$first, null]));
-        $this->assertTrue($driver->isActive(['foo'], [$first, $second]));
-        $this->assertTrue($driver->isActive(['foo'], [$second]));
+        $this->assertFalse(Feature::isActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($first)->isActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($second)->isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for($third)->isActive(['foo', 'bar']));
+
+        $this->assertTrue(Feature::for([$first, $second])->isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$second, $third])->isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$first, $second, $third])->isActive(['foo', 'bar']));
+    }
+
+    public function test_null_is_same_as_global()
+    {
+        Feature::activate('foo');
+
+        $this->assertTrue(Feature::for(null)->isActive('foo'));
     }
 
     public function test_it_sees_null_and_empty_string_as_different_things()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::activate('foo');
 
-        $driver->activate(['foo']);
+        $this->assertFalse(Feature::for('')->isActive('foo'));
+        $this->assertTrue(Feature::for(null)->isActive('foo'));
+        $this->assertTrue(Feature::isActive('foo'));
 
-        $this->assertFalse($driver->isActive(['foo'], ['']));
-        $this->assertTrue($driver->isActive(['foo'], [null]));
-        $this->assertTrue($driver->isActive(['foo']));
+        Feature::for('')->activate('bar');
 
-        $driver->activate(['bar'], ['']);
-
-        $this->assertTrue($driver->isActive(['bar'], ['']));
-        $this->assertFalse($driver->isActive(['bar'], [null]));
-        $this->assertFalse($driver->isActive(['bar']));
+        $this->assertTrue(Feature::for('')->isActive('bar'));
+        $this->assertFalse(Feature::for(null)->isActive('bar'));
+        $this->assertFalse(Feature::isActive('bar'));
     }
 
     public function test_scope_can_be_strings_like_email_addresses()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::for('tim@laravel.com')->activate('foo');
 
-        $driver->activate(['foo'], ['tim@laravel.com']);
-
-        $this->assertFalse($driver->isActive(['foo'], ['tim@example.com']));
-        $this->assertTrue($driver->isActive(['foo'], ['tim@laravel.com']));
+        $this->assertFalse(Feature::for('james@laravel.com')->isActive('foo'));
+        $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
     }
 
     public function test_it_can_handle_feature_scopeable_objects()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
-        $scopeable = new class implements FeatureScopeable
+        $scopeable = fn () => new class extends User implements FeatureScopeable
         {
             public function toFeatureScopeIdentifier()
             {
@@ -256,157 +272,191 @@ class ArrayDriverTest extends TestCase
             }
         };
 
-        $driver->activate(['foo'], [$scopeable]);
+        Feature::for($scopeable())->activate('foo');
 
-        $this->assertFalse($driver->isActive(['foo'], ['tim@example.com']));
-        $this->assertTrue($driver->isActive(['foo'], ['tim@laravel.com']));
-        $this->assertTrue($driver->isActive(['foo'], [$scopeable]));
+        $this->assertFalse(Feature::for('james@laravel.com')->isActive('foo'));
+        $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
+        $this->assertTrue(Feature::for($scopeable())->isActive('foo'));
     }
 
-    public function test_it_users_the_morph_map()
+    public function test_it_serializes_eloquent_models()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $user = new User(['id' => 1]);
 
-        Relation::morphMap([]);
-        $driver->activate(['foo'], [$user]);
+        Feature::for($user)->activate('foo');
 
-        $this->assertTrue($driver->isActive(['foo'], [$user]));
-        $this->assertTrue($driver->isActive(['foo'], ['eloquent_model:Tests\Feature\User:1']));
-        $this->assertFalse($driver->isActive(['foo'], ['eloquent_model:user:1']));
+        $this->assertTrue(Feature::for($user)->isActive('foo'));
+        $this->assertTrue(Feature::for('eloquent_model:Tests\Feature\User:1')->isActive('foo'));
+        $this->assertFalse(Feature::for('eloquent_model:user:1')->isActive('foo'));
+    }
 
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
-        $user = new User(['id' => 1]);
-
+    public function test_it_uses_morph_map()
+    {
         Relation::morphMap(['user' => User::class]);
-        $driver->activate(['foo'], [$user]);
+        $user = new User(['id' => 1]);
 
-        $this->assertTrue($driver->isActive(['foo'], [$user]));
-        $this->assertFalse($driver->isActive(['foo'], ['eloquent_model:Tests\Feature\User:1']));
-        $this->assertTrue($driver->isActive(['foo'], ['eloquent_model:user:1']));
+        Feature::for($user)->activate('foo');
 
-        // cleanup
+        $this->assertTrue(Feature::for($user)->isActive('foo'));
+        $this->assertFalse(Feature::for('eloquent_model:Tests\Feature\User:1')->isActive('foo'));
+        $this->assertTrue(Feature::for('eloquent_model:user:1')->isActive('foo'));
+
         Relation::$morphMap = [];
     }
 
-    public function test_it_sees_null_and_empty_array_and_empyt_array_with_null_as_same_thing()
+    public function test_it_sees_empty_array_as_null()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
+        Feature::activate('foo');
 
-        $driver->activate(['foo']);
-
-        $this->assertTrue($driver->isActive(['foo'], []));
-        $this->assertTrue($driver->isActive(['foo'], [null]));
-        $this->assertTrue($driver->isActive(['foo']));
+        // $this->assertTrue(Feature::for([])->isActive('foo'));
+        $this->assertFalse(Feature::for([null])->isActive('foo'));
     }
 
     public function test_it_can_load_feature_state_into_memory()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $called = ['foo' => 0, 'bar' => 0];
-        $driver->register('foo', function () use (&$called) {
+        Feature::register('foo', function () use (&$called) {
             $called['foo']++;
         });
-        $driver->register('bar', function () use (&$called) {
+        Feature::register('bar', function () use (&$called) {
             $called['bar']++;
         });
 
-        $driver->load(['foo']);
+        $this->assertSame(0, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::load('foo');
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        $driver->isActive('foo');
+        Feature::isActive('foo');
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        $driver->isActive('foo');
-        $this->assertSame(1, $called['foo']);
-        $this->assertSame(0, $called['bar']);
-
-        $driver->load(['foo']);
+        Feature::load(['foo']);
         $this->assertSame(2, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        $driver->load('bar');
+        Feature::isActive('foo');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::load('bar');
         $this->assertSame(2, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        $driver->isActive('foo');
+        Feature::isActive('bar');
         $this->assertSame(2, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        $driver->load(['bar']);
+        Feature::load(['bar']);
         $this->assertSame(2, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
-        $driver->load(['foo']);
+        Feature::load(['foo', 'bar']);
         $this->assertSame(3, $called['foo']);
-        $this->assertSame(2, $called['bar']);
-
-        $driver->isActive('foo');
-        $this->assertSame(3, $called['foo']);
-        $this->assertSame(2, $called['bar']);
-
-        $driver->isActive(['foo', 'bar']);
-        $this->assertSame(3, $called['foo']);
-        $this->assertSame(2, $called['bar']);
-
-        $driver->load(['foo', 'bar']);
-        $this->assertSame(4, $called['foo']);
         $this->assertSame(3, $called['bar']);
 
-        $driver->isActive(['foo']);
-        $driver->isActive(['bar']);
-        $this->assertSame(4, $called['foo']);
+        Feature::isActive(['foo', 'bar']);
+        $this->assertSame(3, $called['foo']);
         $this->assertSame(3, $called['bar']);
+    }
 
-        $driver->isActive(['foo'], ['new_context']);
-        $this->assertSame(5, $called['foo']);
+    public function test_it_can_load_scoped_feature_state_into_memory()
+    {
+        $called = ['foo' => 0, 'bar' => 0];
+        Feature::register('foo', function ($scope) use (&$called) {
+            $called['foo']++;
+        });
+        Feature::register('bar', function () use (&$called) {
+            $called['bar']++;
+        });
 
-        $driver->load([
-            'foo' => ['new_context'],
-            'bar' => ['new_context'],
+        $this->assertSame(0, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::load(['foo' => 'loaded']);
+        $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->isActive('foo');
+        $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::load(['foo' => 'loaded']);
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->isActive('foo');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::load(['bar' => 'loaded']);
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        Feature::for('loaded')->isActive('bar');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        Feature::for('noloaded')->isActive('bar');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(2, $called['bar']);
+
+        Feature::load([
+            'foo' => [1, 2, 3],
+            'bar' => [2],
         ]);
-        $this->assertSame(6, $called['foo']);
-        $this->assertSame(4, $called['bar']);
+        $this->assertSame(5, $called['foo']);
+        $this->assertSame(3, $called['bar']);
 
-
-        $driver->isActive(['foo']);
-        $driver->isActive(['foo'], ['new_context']);
-        $driver->isActive(['bar']);
-        $driver->isActive(['bar'], ['new_context']);
-        $this->assertSame(6, $called['foo']);
-        $this->assertSame(4, $called['bar']);
+        Feature::for([1, 2, 3])->isActive('foo');
+        Feature::for([2])->isActive('bar');
+        $this->assertSame(5, $called['foo']);
+        $this->assertSame(3, $called['bar']);
     }
 
     public function test_it_can_load_missing_feature_state_into_memory()
     {
-        $driver = $this->createManager()->driver('array')->toBaseDriver();
         $called = ['foo' => 0, 'bar' => 0];
-        $driver->register('foo', function () use (&$called) {
+        Feature::register('foo', function () use (&$called) {
             $called['foo']++;
         });
+        Feature::register('bar', function () use (&$called) {
+            $called['bar']++;
+        });
 
-        $driver->loadMissing(['foo']);
+        $this->assertSame(0, $called['foo']);
+
+        Feature::loadMissing('foo');
         $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
 
-        $driver->loadMissing(['foo']);
+        Feature::loadMissing('foo');
+        $this->assertSame(0, $called['bar']);
+
+        Feature::isActive('foo');
         $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
 
-        $driver->isActive('foo');
+        Feature::isActive('bar');
         $this->assertSame(1, $called['foo']);
+        $this->assertSame(1, $called['bar']);
 
-        $driver->loadMissing([
-            'foo' => ['new_context']
+        Feature::loadMissing(['bar']);
+        $this->assertSame(1, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        Feature::loadMissing([
+            'foo' => [1, 2, 3],
+            'bar' => [2],
         ]);
-        $this->assertSame(2, $called['foo']);
+        $this->assertSame(4, $called['foo']);
+        $this->assertSame(2, $called['bar']);
 
-        $driver->loadMissing([
-            'foo' => ['new_context']
-        ]);
-        $this->assertSame(2, $called['foo']);
-
-        $driver->isActive('foo', ['new_context']);
-        $this->assertSame(2, $called['foo']);
+        Feature::for([1, 2, 3])->isActive('foo');
+        Feature::for([2])->isActive('bar');
+        $this->assertSame(4, $called['foo']);
+        $this->assertSame(2, $called['bar']);
     }
 }
