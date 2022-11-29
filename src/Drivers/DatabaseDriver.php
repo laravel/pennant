@@ -33,7 +33,7 @@ class DatabaseDriver
     /**
      * Create a new Database Driver instance.
      *
-     * @param  \Illuminate\Database\Connection $db
+     * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      */
     public function __construct(Connection $db, Dispatcher $events)
@@ -80,15 +80,15 @@ class DatabaseDriver
 
         // dd($query->get());
 
-                // if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
+        // if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
 
                 //     return false;
-                // }
+        // }
 
-                // $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
+        // $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
 
-                // return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
-            // });
+        // return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
+        // });
     }
 
     /**

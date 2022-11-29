@@ -2,9 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Lottery;
-
 /**
  * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
  */
