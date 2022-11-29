@@ -235,7 +235,7 @@ Feature::register('foo', Lottery::odds(1, 100))->forgetful();
 
 // Activate a feature for everyone...
 
-Feature::globally()->activate('foo');
+Feature::activate('foo');
 
 // Activate a feature for specific user...
 
@@ -255,7 +255,7 @@ Feature::for(Lottery::odds(1, 100))->activate('foo'))
 
 // Deactivate a feature for everyone...
 
-Feature::globally()->deactivate('foo');
+Feature::deactivate('foo');
 
 
 // Deactivate a feature for specific user...
