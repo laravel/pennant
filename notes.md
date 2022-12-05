@@ -289,3 +289,23 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
 - Is it possible to get all features for a given user / entity?
 - Ability to get all features for given scope.
 - Ability to register "remembered" and always "in-memory" features. i.e. ones that re-evaluate each time.
+         //// Questions...
+
+         //// What should we do in the following scenario...
+
+         ////        Feature::register('foo', fn ($user) => $user->is($tim));
+         ////
+         ////        Feature::isActive('foo');  // ❌ this value has been remebered for next time.
+         ////
+         ////        Feature::for($tim)->isActive('foo'); // ✅ this value has been remembered for next time.
+         ////
+         ////        Feature::globally()->activate('foo'); // turn the feature on globally.
+         ////
+         ////        Feature::isActive('foo');  // ✅ this value has been remebered for next time.
+         ////
+         ////        Feature::for($tim)->isActive('foo'); // ❓ Should this now be active for Tim?
+         ////
+         ////        // Should we introduce modifiers?
+         ////
+         ////        Feature::globally()->activate('foo')->flushingExisting();
+         ////        Feature::globally()->activate('foo')->rememberExisting();

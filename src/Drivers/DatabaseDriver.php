@@ -23,6 +23,8 @@ class DatabaseDriver
      */
     protected $events;
 
+    protected $cache;
+
     /**
      * The initial feature state resolvers.
      *
@@ -41,6 +43,8 @@ class DatabaseDriver
         $this->db = $db;
 
         $this->events = $events;
+
+        $this->cache = new Collection();
     }
 
     /**
@@ -52,44 +56,173 @@ class DatabaseDriver
      */
     public function isActive($features, $scope = [])
     {
-        $query = $this->db->table('features');
+        $resolved = $this->resolve($features, $scope);
 
-        $resolved = $this->resolveFeatureStorageKeys($features, $scope)->each(function ($resolved) use ($query) {
-            $query->where('name', $resolved['feature'])->where('scope', $resolved['storageKey']);
-        });
+        $this->cacheMissing($resolved);
 
-        if ($query->get()->isEmpty()) {
-            $this->db->table('features')->upsert($resolved->map(fn ($resolved) => [
-                'name' => $resolved['feature'],
-                'scope' => $resolved['storageKey'],
-                'is_active' => $this->resolveInitialFeatureState($resolved['feature'], $resolved['storageKey']),
-            ])->all(), [
-                'name',
-                'scope',
-            ], [
-                'is_active',
+        return $resolved->every(function ($feature) {
+            $record = $this->cache->where('name', $feature['name'])->where('scope', $feature['key'])->first();
+
+            if ($record !== null) {
+                return $record->is_active;
+            }
+
+            if ($this->missingResolver($feature['name'])) {
+                $this->events->dispatch(new CheckingUnknownFeature($feature['name'], $feature['scope'] ?? null));
+
+                return false;
+            }
+
+            $isActive = $this->resolveInitialFeatureState($feature['name'], $feature['scope']);
+
+            $this->db->table('features')->insert([
+                'name' => $feature['name'],
+                'scope' => $feature['key'],
+                'is_active' => $isActive,
             ]);
 
-            return $resolved->every(fn ($resolved) => $this->resolveInitialFeatureState($resolved['feature'], $resolved['storageKey']));
+            $this->cache->push((object) [
+                'name' => $feature['name'],
+                'scope' => $feature['key'],
+                'is_active' => $isActive,
+            ]);
+
+            return $isActive;
+        });
+    }
+
+    protected function cacheMissing($resolved)
+    {
+        $missing = $resolved->reject(fn ($feature) => $this->isCached($feature));
+
+        if ($missing->isEmpty()) {
+            return;
         }
 
-        $this->events->dispatch(new CheckingUnknownFeature($features[0], $scope[0] ?? null));
-
-        return false;
-        // $results = $query->get();
-
-        // dd($query->get());
-
-        // if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
-
-                //     return false;
-        // }
-
-        // $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
-
-        // return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
-        // });
+        $this->cache = $this->cache->merge($this->fetch($missing));
     }
+
+    protected function fetch($resolved)
+    {
+        return tap($this->db->table('features'), function ($query) use ($resolved) {
+            $resolved->each(fn ($feature) => $query->where('name', $feature['name'])->where('scope', $feature['key']));
+        })->get();
+    }
+
+    protected function isCached($feature)
+    {
+        return $this->cache->contains(
+            fn ($f) => $f->name === $feature['name'] && $f->scope === $feature['key']
+        );
+    }
+
+    /**
+     * Activate the features for the given scope.
+     *
+     * TODO caching
+     *
+     * @param  array<int, string>  $features
+     * @param  array<int, mixed>  $scope
+     * @return void
+     */
+    public function activate($features, $scope = [])
+    {
+        $resolved = $this->resolve($features, $scope);
+
+        $existing = $this->fetch($resolved);
+
+        $resolved->each(function ($feature) use ($existing) {
+            $record = $existing->where('name', $feature['name'])->where('scope', $feature['key'])->first();
+
+            if ($record !== null && $record->is_active !== false) {
+                return;
+            }
+
+            if (! $record) {
+                $this->db->table('features')->insert([
+                    'name' => $feature['name'],
+                    'scope' => $feature['key'],
+                    'is_active' => true,
+                ]);
+
+                return;
+            }
+
+            $this->db->table('features')
+                ->where('id', $record->id)
+                ->update([
+                    'is_active' => true,
+                ]);
+        })->each(function ($feature) {
+            $this->cache([
+                ...$feature,
+                'is_active' => true,
+            ]);
+        });
+
+
+        //
+        // cache.
+        // $this->cache = $this->cache->merge(
+        //     $this->resolve($features, $scope)
+        //         ->mapWithKeys(fn ($resolved) => [
+        //             $resolved['key'] => true,
+        //         ])
+        // );
+    }
+
+    protected function cache($feature)
+    {
+        $this->cache = $this->cache->reject(
+            fn ($f) => $f->name === $feature['name'] && $f->scope === $feature['key']
+        )->push((object) $feature)->values();
+    }
+
+    /**
+     * Deactivate the features for the given scope.
+     *
+     * TODO caching
+     *
+     * @param  array<int, string>  $features
+     * @param  array<int, mixed>  $scope
+     * @return void
+     */
+    public function deactivate($features, $scope = [])
+    {
+        $resolved = $this->resolve($features, $scope);
+
+        $existing = $this->fetch($resolved);
+
+        $resolved->each(function ($feature) use ($existing) {
+            $record = $existing->where('name', $feature['name'])->where('scope', $feature['key'])->first();
+
+            if ($record !== null && $record->is_active === false) {
+                return;
+            }
+
+            if (! $record) {
+                $this->db->table('features')->insert([
+                    'name' => $feature['name'],
+                    'scope' => $feature['key'],
+                    'is_active' => false,
+                ]);
+
+                return;
+            }
+
+            $this->db->table('features')
+                ->where('id', $record->id)
+                ->update([
+                    'is_active' => false,
+                ]);
+        })->each(function ($feature) {
+            $this->cache([
+                ...$feature,
+                'is_active' => false,
+            ]);
+        });
+    }
+
 
     /**
      * Register an initial feature state resolver.
@@ -104,6 +237,17 @@ class DatabaseDriver
     }
 
     /**
+     * Determine if the feature has no resolver available.
+     *
+     * @param  string  $feature
+     * @return bool
+     */
+    protected function missingResolver($feature)
+    {
+        return ! array_key_exists($feature, $this->initialFeatureStateResolvers);
+    }
+
+    /**
      * Resolve a features initial state.
      *
      * @param  string  $feature
@@ -112,35 +256,42 @@ class DatabaseDriver
      */
     protected function resolveInitialFeatureState($feature, $scope)
     {
-        return (bool) $this->initialFeatureStateResolvers[$feature]($scope);
+        return $this->initialFeatureStateResolvers[$feature]($scope) !== false;
     }
 
     /**
-     * Resolve all permutations of the features and scope storage keys.
+     * Resolve all permutations of the features and scope keys.
      *
      * @param  array<int, string>  $features
      * @param  array<int, mixed>  $scope
-     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, storageKey: string|null }>
+     * @return \Illuminate\Support\Collection<int, array{ name: string, scope: mixed, key: string }>
      */
-    protected function resolveFeatureStorageKeys($features, $scope)
+    protected function resolve($features, $scope)
     {
-        return Collection::make($scope)->whenEmpty(fn ($c) => $c->push(null))
-            ->map(fn ($scope) => [$this->resolveStorageKey($scope), $scope])
+        if ($scope === []) {
+            return Collection::make($features)->map(fn ($feature) => [
+                'name' => $feature,
+                'scope' => null,
+                'key' => null,
+            ]);
+        }
+
+        return Collection::make($scope)
             ->crossJoin($features)
-            ->map(fn ($value) => [
-                'feature' => $value[1],
-                'scope' => $value[0][1],
-                'storageKey' => $value[0][0],
+            ->mapSpread(fn ($scope, $feature) => [
+                'name' => $feature,
+                'scope' => $scope,
+                'key' => $this->resolveKey($scope),
             ]);
     }
 
     /**
-     * Resolve the storage key for the given scope.
+     * Resolve the key for the given scope.
      *
      * @param  mixed  $scope
      * @return string|null
      */
-    protected function resolveStorageKey($scope)
+    protected function resolveKey($scope)
     {
         if ($scope === null) {
             return null;

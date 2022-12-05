@@ -65,18 +65,18 @@ class ArrayDriver
      */
     public function isActive($features, $scope)
     {
-        return $this->resolveFeatureCacheKeys($features, $scope)->every(function ($resolved) {
-            ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
+        return $this->resolve($features, $scope)->every(function ($resolved) {
+            ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
 
-            if ($this->featureNotYetCached($cacheKey) && $this->missingResolver($feature)) {
-                $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
+            if ($this->resultNotYetKnown($key) && $this->missingResolver($name)) {
+                $this->events->dispatch(new CheckingUnknownFeature($name, $scope));
 
                 return false;
             }
 
-            $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
+            $this->events->dispatch(new CheckingKnownFeature($name, $scope));
 
-            return $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
+            return $this->cache[$key] ??= $this->resolveInitialFeatureState($name, $scope);
         });
     }
 
@@ -105,9 +105,9 @@ class ArrayDriver
     public function activate($features, $scope = [])
     {
         $this->cache = $this->cache->merge(
-            $this->resolveFeatureCacheKeys($features, $scope)
+            $this->resolve($features, $scope)
                 ->mapWithKeys(fn ($resolved) => [
-                    $resolved['cacheKey'] => true,
+                    $resolved['key'] => true,
                 ])
         );
     }
@@ -122,9 +122,9 @@ class ArrayDriver
     public function deactivate($features, $scope = [])
     {
         $this->cache = $this->cache->merge(
-            $this->resolveFeatureCacheKeys($features, $scope)
+            $this->resolve($features, $scope)
                 ->mapWithKeys(fn ($resolved) => [
-                    $resolved['cacheKey'] => false,
+                    $resolved['key'] => false,
                 ])
         );
     }
@@ -151,15 +151,15 @@ class ArrayDriver
     {
         Collection::wrap($features)
             ->mapWithKeys(fn ($value, $key) => is_int($key) ? [$value => []] : [$key => $value])
-            ->flatMap(fn ($scope, $feature) => $this->resolveFeatureCacheKeys([$feature], $scope))
+            ->flatMap(fn ($scope, $feature) => $this->resolve([$feature], $scope))
             ->each(function ($resolved) {
-                ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
+                ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
 
-                if ($this->missingResolver($feature)) {
+                if ($this->missingResolver($name)) {
                     return;
                 }
 
-                $this->cache[$cacheKey] = $this->resolveInitialFeatureState($feature, $scope);
+                $this->cache[$key] = $this->resolveInitialFeatureState($name, $scope);
             });
     }
 
@@ -173,15 +173,15 @@ class ArrayDriver
     {
         Collection::make($features)
             ->mapWithKeys(fn ($value, $key) => is_int($key) ? [$value => []] : [$key => $value])
-            ->flatMap(fn ($scope, $feature) => $this->resolveFeatureCacheKeys([$feature], $scope))
+            ->flatMap(fn ($scope, $feature) => $this->resolve([$feature], $scope))
             ->each(function ($resolved) {
-                ['scope' => $scope, 'cacheKey' => $cacheKey, 'feature' => $feature] = $resolved;
+                ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
 
-                if ($this->missingResolver($feature)) {
+                if ($this->missingResolver($name)) {
                     return;
                 }
 
-                $this->cache[$cacheKey] ??= $this->resolveInitialFeatureState($feature, $scope);
+                $this->cache[$key] ??= $this->resolveInitialFeatureState($name, $scope);
             });
     }
 
@@ -198,14 +198,14 @@ class ArrayDriver
     }
 
     /**
-     * Determine if the feature has not yet been cached.
+     * Determine if a result already exists.
      *
-     * @param  string  $cacheKey
+     * @param  string  $key
      * @return bool
      */
-    protected function featureNotYetCached($cacheKey)
+    protected function resultNotYetKnown($key)
     {
-        return ! $this->cache->has($cacheKey);
+        return ! $this->cache->has($key);
     }
 
     /**
@@ -224,34 +224,34 @@ class ArrayDriver
      *
      * @param  array<int, string>  $features
      * @param  array<int, mixed>  $scope
-     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, cacheKey: string }>
+     * @return \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, key: string }>
      */
-    protected function resolveFeatureCacheKeys($features, $scope)
+    protected function resolve($features, $scope)
     {
         if ($scope === []) {
             return Collection::make($features)->map(fn ($feature) => [
-                'feature' => $feature,
+                'name' => $feature,
                 'scope' => null,
-                'cacheKey' => $feature,
+                'key' => $feature,
             ]);
         }
 
         return Collection::make($scope)
             ->crossJoin($features)
             ->mapSpread(fn ($scope, $feature) => [
-                'feature' => $feature,
+                'name' => $feature,
                 'scope' => $scope,
-                'cacheKey' => "{$feature}:{$this->resolveCacheKey($scope)}",
+                'key' => "{$feature}:{$this->resolveKey($scope)}",
             ]);
     }
 
     /**
-     * Resolve the cache key for the given scope.
+     * Resolve the key for the given scope.
      *
      * @param  mixed  $scope
      * @return string
      */
-    protected function resolveCacheKey($scope)
+    protected function resolveKey($scope)
     {
         if ($scope === null) {
             return $this->nullKey;

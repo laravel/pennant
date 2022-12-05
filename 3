@@ -80,10 +80,7 @@ class DatabaseDriverTest extends TestCase
         Feature::isActive('foo');
         $this->assertSame(1, $called);
 
-        Feature::isActive('foo');
-        $this->assertSame(1, $called);
-
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_non_false_registered_values_are_considered_active()
@@ -98,12 +95,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::isActive('null'));
         $this->assertTrue(Feature::isActive('empty-string'));
 
-        $this->assertTrue(Feature::isActive('one'));
-        $this->assertTrue(Feature::isActive('zero'));
-        $this->assertTrue(Feature::isActive('null'));
-        $this->assertTrue(Feature::isActive('empty-string'));
-
-        $this->assertCount(8, DB::getQueryLog());
+        $this->assertCount(4, DB::getQueryLog());
     }
 
     public function test_it_can_programatically_activate_and_deativate_features()
@@ -116,9 +108,6 @@ class DatabaseDriverTest extends TestCase
 
         Feature::activate('foo');
         $this->assertTrue(Feature::isActive('foo'));
-        dd(DB::getQueryLog());
-
-        $this->assertCount(5, DB::getQueryLog());
     }
 
     public function test_it_dispatches_events_when_checking_known_features()

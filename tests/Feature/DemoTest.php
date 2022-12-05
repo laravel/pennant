@@ -1,195 +1,155 @@
 <?php
+// Let's assume we only want to scope feature checks to "User" models, for now.
 
-namespace Tests\Feature;
+// Our users...
 
- use Illuminate\Support\Facades\Auth;
- use Illuminate\Support\Lottery;
- use Laravel\Feature\Feature;
- use Laravel\Feature\HasFeature;
- use Tests\TestCase;
+$jess = new User(['id' => 1, 'is_subscribed' => true]);
+$tim = new User(['id' => 2]);
+$james = new User(['id' => 3]);
+$team = new Team(['id' => 4, 'member_count' => 3]);
 
- class DemoTest extends TestCase
- {
-     public function test_the_demo()
-     {
-         // Let's assume we only want to scope feature checks to "User" models, for now.
+// "new-login" is registered as only being active for Jess...
 
-         // Our users...
+Feature::register('new-login', fn (?User $user) => $user?->is($jess) === true);
 
-         $jess = new User(['id' => 1, 'is_subscribed' => true]);
-         $tim = new User(['id' => 2]);
-         $james = new User(['id' => 3]);
-         $team = new Team(['id' => 4, 'member_count' => 3]);
+Feature::isActive('new-login'); // ❌
 
-         // "new-login" is registered as only being active for Jess...
+Feature::for($jess)->isActive('new-login'); // ✅
 
-         Feature::register('new-login', fn (?User $user) => $user?->is($jess));
+Feature::for($james)->isActive('new-login'); // ❌
 
-         $this->assertFalse(
-             Feature::isActive('new-login') // ❌
-         );
+Feature::for([$jess, $james])->isActive('new-login'); // ❌
 
-         $this->assertTrue(
-             Feature::for($jess)->isActive('new-login') // ✅
-         );
+// Jess logs in...
 
-         $this->assertFalse(
-             Feature::for($james)->isActive('new-login') // ❌
-         );
+Auth::login($jess);
 
-         $this->assertFalse(
-             Feature::for([$jess, $james])->isActive('new-login') // ❌
-         );
+Feature::isActive('new-login'); // ❌
 
-         // Jess logs in...
+// $jess is authenticated.
+Feature::forTheAuthenticatedUser()->isActive('new-login'); // ✅
 
-         Auth::login($jess);
+// Let's programatically activate the feature for James...
 
-         $this->assertFalse(
-             Feature::isActive('new-login') // ❌
-         );
+Feature::for($james)->activate('new-login');
 
-         $this->assertTrue( // $jess is authenticated.
-             Feature::forTheAuthenticatedUser()->isActive('new-login') // ✅
-         );
+// $jess and $james now have `new-login` active.
 
-         // Let's programatically activate the feature for James...
+Feature::isActive('new-login'); // ❌
 
-         Feature::for($james)->activate('new-login');
+Feature::for($jess)->isActive('new-login'); // ✅
 
-         // $jess and $james now have `new-login` active.
+Feature::for($james)->isActive('new-login'); // ✅
 
-         $this->assertFalse(
-             Feature::isActive('new-login') // ❌
-         );
+Feature::for([$jess, $james])->isActive('new-login'); // ✅
 
-         $this->assertTrue(
-             Feature::for($jess)->isActive('new-login') // ✅
-         );
+// $jess is authenticated.
+Feature::forTheAuthenticatedUser()->for($james)->isActive('new-login'); // ✅
 
-         $this->assertTrue(
-             Feature::for($james)->isActive('new-login') // ✅
-         );
+Feature::for($tim)->isActive('new-login'); // ❌
 
-         $this->assertTrue(
-             Feature::for([$jess, $james])->isActive('new-login') // ✅
-         );
+// Let's register another feature that is active for *everyone*...
 
-         $this->assertTrue( // $jess is authenticated.
-             Feature::forTheAuthenticatedUser()->for($james)->isActive('new-login') // ✅
-         );
+Feature::register('new-faster-api', fn () => true);
 
-         $this->assertFalse(
-             Feature::for($tim)->isActive('new-login') // ❌
-         );
+Feature::for($jess)->isActive('new-faster-api'); // ✅
 
-         // Let's register another feature that is active for *everyone*...
+Feature::for($james)->isActive('new-faster-api'); // ✅
 
-         Feature::register('new-faster-api', fn () => true);
+Feature::for($jess)->for($james)->isActive('new-faster-api'); // ✅
 
-         $this->assertTrue(
-             Feature::for($jess)->isActive('new-faster-api') // ✅
-         );
+Feature::forTheAuthenticatedUser()->for($james)->isActive('new-faster-api'); // ✅
 
-         $this->assertTrue(
-             Feature::for($james)->isActive('new-faster-api') // ✅
-         );
+Feature::isActive('new-faster-api'); // ✅
 
-         $this->assertTrue(
-             Feature::for($jess)->for($james)->isActive('new-faster-api') // ✅
-         );
+Feature::for($tim)->isActive('new-faster-api'); // ✅
 
-         $this->assertTrue(
-             Feature::forTheAuthenticatedUser()->for($james)->isActive('new-faster-api') // ✅
-         );
 
-         $this->assertTrue(
-             Feature::isActive('new-faster-api') // ✅
-         );
+// It is possible to check for several features states at once against an array of scope...
 
-         $this->assertTrue(
-             Feature::for($tim)->isActive('new-faster-api') // ✅
-         );
+Feature::for([$jess, $james])->isActive(['new-faster-api', 'new-api-credentials']);
 
-         // Oh wait, we just remembered we should have excluded $jess from the new-fast-api as $jess is a major customer
-         // that we don't want to test the new API on. Problem is, we've persisteded that $jess should use the new API
-         // because we checked above.
+// Oh wait, we just remembered we should have excluded $jess from the new-fast-api as $jess is a major customer
+// that we don't want to test the new API on. Problem is, we've persisteded that $jess should use the new API
+// because we checked above.
 
-         // Let's deactive that feature for $jess manually.
+// Let's deactive that feature for $jess manually.
 
-         Feature::for($jess)->deactivate('new-faster-api');
+Feature::for($jess)->deactivate('new-faster-api');
 
-         $this->assertTrue(
-             Feature::isActive('new-faster-api') // ✅
-         );
+Feature::isActive('new-faster-api'); // ✅
 
-         $this->assertFalse(
-             Feature::for($jess)->isActive('new-faster-api') // ❌
-         );
+Feature::for($jess)->isActive('new-faster-api'); // ❌
 
-         $this->assertTrue(
-             Feature::for($james)->isActive('new-faster-api') // ✅
-         );
+Feature::for($james)->isActive('new-faster-api'); // ✅
 
-         $this->assertFalse(
-             Feature::for($jess)->for($james)->isActive('new-faster-api') // ❌
-         );
+Feature::for($jess)->for($james)->isActive('new-faster-api'); // ❌
 
-         $this->assertFalse( // $jess is authenticated
-             Feature::forTheAuthenticatedUser()->for($james)->isActive('new-faster-api') // ❌
-         );
+// $jess is authenticated
+Feature::forTheAuthenticatedUser()->for($james)->isActive('new-faster-api'); // ❌
 
-         $this->assertTrue(
-             Feature::for($tim)->isActive('new-faster-api') // ✅
-         );
+Feature::for($tim)->isActive('new-faster-api'); // ✅
 
-         // Objects may implement the `HasFeatures` trait and the following API is not available...
+// Objects may implement the `HasFeatures` trait and the following API is not available...
 
-         $obj = new class(['id' => 55]) extends User
-         {
-             use HasFeature;
-         };
+$obj = new class(['id' => 55]) extends User {
+    use HasFeature;
+};
 
-         $obj->featureIsActive('new-login');
+$obj->featureIsActive('new-login');
 
-         // Lotteries may be returned from resolvers to have a random value assigned
-         // based on the odds.
+// Lotteries may be returned from resolvers to have a random value assigned
+// based on the odds.
 
-         Feature::register('new-checkout', Lottery::odds(1, 1000));
+Feature::register('new-checkout', Lottery::odds(1, 1000));
 
-         Feature::for($jess)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
-         Feature::for($james)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
-         Feature::for($tim)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
+Feature::for($jess)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
+Feature::for($james)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
+Feature::for($tim)->isActive('new-checkout'); // 1 in 1000 chance. Result will be remembered.
 
-         // Everytime we check a feature, there is potential the driver has to make a request,
-         // hit a database, etc. To reduce that count, we may eagerly load feature
-         // states in a service provider, middleware, in a controller, etc.
+// Features do not have to be used against Models. They may also apply to other values...
+// This will apply the new email layout to 1 in 10 "gmail" email addresses.
 
-         Feature::load([
-             'new-faster-api',
-             'new-login' => [$jess, $james, $tim],
-             'new-search' => [$jess, $james],
-         ]);
+Feature::register('new-mail-layout', Lottery::odds(1, 10)->winner(
+    fn ($email) => Str::endsWith($email, '@gmail.com')
+));
 
-         //// Questions...
+Feature::for('tim@gmail.com')->isActive('new-mail-layout'); // 1 in 10 chance. Result will be remembered.
+Feature::for('tim@laravel.com')->isActive('new-mail-layout'); // will always be false
+Feature::for('taylor@gmail.com')->isActive('new-mail-layout'); // 1 in 10 chance. Result will be remembered.
 
-         //// What should we do in the following scenario...
+// Everytime we check a feature, there is potential the driver has to make a request,
+// hit a database, etc. To reduce that count, we may eagerly load feature
+// states in a service provider, middleware, in a controller, etc.
 
-         ////        Feature::register('foo', fn ($user) => $user->is($tim));
-         ////
-         ////        Feature::isActive('foo');  // ❌ this value has been remebered for next time.
-         ////
-         ////        Feature::for($tim)->isActive('foo'); // ✅ this value has been remembered for next time.
-         ////
-         ////        Feature::globally()->activate('foo'); // turn the feature on globally.
-         ////
-         ////        Feature::isActive('foo');  // ✅ this value has been remebered for next time.
-         ////
-         ////        Feature::for($tim)->isActive('foo'); // ❓ Should this now be active for Tim?
-         ////
-         ////        // Should we introduce modifiers?
-         ////
-         ////        Feature::globally()->activate('foo')->flushingExisting();
-         ////        Feature::globally()->activate('foo')->rememberExisting();
-     }
- }
+Feature::load([
+    'new-faster-api',
+    'new-login' => [$jess, $james, $tim],
+    'new-search' => [$jess, $james],
+]);
+
+
+// We can also only load values that are not yet in memory...
+// This would be a no-op after the previous "load" call.
+
+Feature::loadMissing([
+    'new-faster-api',
+    'new-login' => [$jess, $james, $tim],
+    'new-search' => [$jess, $james],
+]);
+
+// Features do not only have to be only be booleans on / off flags.
+// They may also be numbers, strings, or JSON blobs if you wanna get
+// really fancy.
+
+Feature::register('button-design', fn () => Arr::random(['green', 'black', 'blue']));
+
+// in blade...
+
+@if(Feature::for($tim)->get('button-design') === 'green')
+    <Button color="green" label="Buy Now"/>
+@elseif(Feature::for($tim)->get('button-design') === 'black')
+    <Button color="black" label="Buy Now"/>
+@else
+    <Button color="blue" label="Buy Now"/>
+@endif
