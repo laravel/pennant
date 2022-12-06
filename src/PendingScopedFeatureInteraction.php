@@ -3,23 +3,18 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
+use Laravel\Feature\Contracts\FeatureScopeable;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
 {
     /**
-     * The feature driver.
+     * The feature driver wrapper.
      *
-     * @var \Laravel\Feature\Drivers\ArrayDriver
+     * @var \Laravel\Feature\DriverDecorator
      */
-    protected $driver;
-
-    /**
-     * The authenticate factory.
-     *
-     * @var \Illuminate\Contracts\Auth\Factory
-     */
-    protected $auth;
+    protected $wrapper;
 
     /**
      * The feature interaction scope.
@@ -31,14 +26,11 @@ class PendingScopedFeatureInteraction
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
-     * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
-     * @param  \Illuminate\Contracts\Auth\Factory  $auth
+     * @param  \Laravel\Feature\DriverDecorator  $wrapper
      */
-    public function __construct($driver, $auth)
+    public function __construct($wrapper)
     {
-        $this->driver = $driver;
-
-        $this->auth = $auth;
+        $this->wrapper = $wrapper;
     }
 
     /**
@@ -61,11 +53,11 @@ class PendingScopedFeatureInteraction
      */
     public function forTheAuthenticatedUser()
     {
-        if (! $this->auth->guard()->check()) {
+        if (! $this->wrapper->auth()->guard()->check()) {
             throw new RuntimeException('There is no user currently authenticated.');
         }
 
-        return $this->for($this->auth->guard()->user());
+        return $this->for($this->wrapper->auth()->guard()->user());
     }
 
     /**
@@ -76,7 +68,11 @@ class PendingScopedFeatureInteraction
      */
     public function isActive($feature)
     {
-        return $this->driver->isActive(Arr::wrap($feature), $this->scope);
+        return Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->every(function ($bits) {
+                return $this->driver()->isActive(...$bits);
+            });
     }
 
     /**
@@ -87,7 +83,11 @@ class PendingScopedFeatureInteraction
      */
     public function isInactive($feature)
     {
-        return $this->driver->isInactive(Arr::wrap($feature), $this->scope);
+        return Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->every(function ($bits) {
+                return ! $this->driver()->isActive(...$bits);
+            });
     }
 
     /**
@@ -98,7 +98,11 @@ class PendingScopedFeatureInteraction
      */
     public function activate($feature)
     {
-        $this->driver->activate(Arr::wrap($feature), $this->scope);
+        Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->each(function ($bits) {
+                $this->driver()->activate(...$bits);
+            });
     }
 
     /**
@@ -109,6 +113,33 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        $this->driver->deactivate(Arr::wrap($feature), $this->scope);
+        return Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->each(function ($bits) {
+                $this->driver()->deactivate(...$bits);
+            });
+    }
+
+    /**
+     * The scope for the feature check.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    protected function scope()
+    {
+        return Collection::make($this->scope ?: [null])
+            ->map(fn ($scope) => $scope instanceof FeatureScopeable
+                ? $scope->toFeatureScopeIdentifier($this->wrapper->name)
+                : $scope);
+    }
+
+    /**
+     * The underlying driver.
+     *
+     * @return \Laravel\Feature\Drivers\ArrayDriver
+     */
+    protected function driver()
+    {
+        return $this->wrapper->driver();
     }
 }

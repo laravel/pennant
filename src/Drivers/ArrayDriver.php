@@ -20,113 +20,71 @@ class ArrayDriver
     protected $events;
 
     /**
-     * The current state of the features.
+     * The feature state resolvers.
      *
-     * @var \Illuminate\Support\Collection<string, bool>
+     * @var array<string, (callable(mixed $scope): mixed)>
      */
-    protected $cache;
-
-    /**
-     * The key to use when encountering a null value to differentiate from an empty string.
-     *
-     * @var string
-     */
-    protected $nullKey;
-
-    /**
-     * The initial feature state resolvers.
-     *
-     * @var array<string, (callable(mixed, mixed ...): mixed)>
-     */
-    protected $initialFeatureStateResolvers = [];
+    protected $featureStateResolvers = [];
 
     /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  \Illuminate\Support\Collection<string, bool>  $cache
-     * @param  ?string  $nullKey
      */
-    public function __construct(Dispatcher $events, $cache = new Collection(), $nullKey = null)
+    public function __construct(Dispatcher $events)
     {
         $this->events = $events;
-
-        $this->cache = $cache;
-
-        $this->nullKey = $nullKey ?? Str::random();
     }
 
     /**
-     * Determine if the features are active for the given scope.
+     * Determine if the feature is active.
      *
-     * @param  array<int, string>  $features
+     * @param  string  $feature
      * @param  mixed  $scope
      * @return bool
      */
-    public function isActive($features, $scope)
+    public function isActive($feature, $scope)
     {
-        return $this->resolve($features, $scope)->every(function ($resolved) {
-            ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
+        if ($this->missingResolver($feature)) {
+            $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
 
-            if ($this->resultNotYetKnown($key) && $this->missingResolver($name)) {
-                $this->events->dispatch(new CheckingUnknownFeature($name, $scope));
+            return false;
+        }
 
-                return false;
-            }
+        $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
 
-            $this->events->dispatch(new CheckingKnownFeature($name, $scope));
-
-            return $this->cache[$key] ??= $this->resolveInitialFeatureState($name, $scope);
-        });
+        return $this->resolveFeatureState($feature, $scope);
     }
 
     /**
-     * Determine if the feature are inactive for the given scope.
+     * Activate the feature.
      *
-     * TODO: does this make sense to just invert?  I think there could be an
-     * issue here. Need to test futher.
-     *
-     * @param  array<int, string>  $features
-     * @param  array<int, mixed>  $scope
-     * @return bool
-     */
-    public function isInactive($features, $scope = [])
-    {
-        return ! $this->isActive($features, $scope);
-    }
-
-    /**
-     * Activate the features for the given scope.
-     *
-     * @param  array<int, string>  $features
-     * @param  array<int, mixed>  $scope
+     * @param  string  $feature
+     * @param  mixed  $scope
      * @return void
      */
-    public function activate($features, $scope = [])
+    public function activate($feature, $scope)
     {
-        $this->cache = $this->cache->merge(
-            $this->resolve($features, $scope)
-                ->mapWithKeys(fn ($resolved) => [
-                    $resolved['key'] => true,
-                ])
-        );
+        $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
+
+        $this->register($feature, fn ($s) => $scope === $s ? true : $existing($s));
     }
 
     /**
-     * Deactivate the features for the given scope.
+     * Deactivate the feature.
      *
-     * @param  array<int, string>  $features
-     * @param  array<int, mixed>  $scope
+     * @param  string  $feature
+     * @param  mixed  $scope
      * @return void
      */
-    public function deactivate($features, $scope = [])
+    public function deactivate($feature, $scope)
     {
-        $this->cache = $this->cache->merge(
-            $this->resolve($features, $scope)
-                ->mapWithKeys(fn ($resolved) => [
-                    $resolved['key'] => false,
-                ])
-        );
+        $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
+
+        // TODO: this comparison needs to be handled elsewhere and allow for configuration.
+        $this->register($feature, fn ($s) => $scope === $s
+            ? false
+            : $existing($scope));
     }
 
     /**
@@ -138,7 +96,7 @@ class ArrayDriver
      */
     public function register($feature, $resolver)
     {
-        $this->initialFeatureStateResolvers[$feature] = $resolver;
+        $this->featureStateResolvers[$feature] = $resolver;
     }
 
     /**
@@ -159,7 +117,7 @@ class ArrayDriver
                     return;
                 }
 
-                $this->cache[$key] = $this->resolveInitialFeatureState($name, $scope);
+                $this->cache[$key] = $this->resolveFeatureState($name, $scope);
             });
     }
 
@@ -181,31 +139,20 @@ class ArrayDriver
                     return;
                 }
 
-                $this->cache[$key] ??= $this->resolveInitialFeatureState($name, $scope);
+                $this->cache[$key] ??= $this->resolveFeatureState($name, $scope);
             });
     }
 
     /**
-     * Resolve a features initial state.
+     * Resolve a features state.
      *
      * @param  string  $feature
      * @param  mixed  $scope
      * @return bool
      */
-    protected function resolveInitialFeatureState($feature, $scope)
+    protected function resolveFeatureState($feature, $scope)
     {
-        return $this->initialFeatureStateResolvers[$feature]($scope) !== false;
-    }
-
-    /**
-     * Determine if a result already exists.
-     *
-     * @param  string  $key
-     * @return bool
-     */
-    protected function resultNotYetKnown($key)
-    {
-        return ! $this->cache->has($key);
+        return $this->featureStateResolvers[$feature]($scope) !== false;
     }
 
     /**
@@ -216,7 +163,7 @@ class ArrayDriver
      */
     protected function missingResolver($feature)
     {
-        return ! array_key_exists($feature, $this->initialFeatureStateResolvers);
+        return ! array_key_exists($feature, $this->featureStateResolvers);
     }
 
     /**
@@ -251,7 +198,7 @@ class ArrayDriver
      * @param  mixed  $scope
      * @return string
      */
-    protected function resolveKey($scope)
+    public function resolveKey($scope)
     {
         if ($scope === null) {
             return $this->nullKey;

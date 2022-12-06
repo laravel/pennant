@@ -266,7 +266,7 @@ class ArrayDriverTest extends TestCase
     {
         $scopeable = fn () => new class extends User implements FeatureScopeable
         {
-            public function toFeatureScopeIdentifier()
+            public function toFeatureScopeIdentifier($driver)
             {
                 return 'tim@laravel.com';
             }
@@ -277,39 +277,6 @@ class ArrayDriverTest extends TestCase
         $this->assertFalse(Feature::for('james@laravel.com')->isActive('foo'));
         $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
         $this->assertTrue(Feature::for($scopeable())->isActive('foo'));
-    }
-
-    public function test_it_serializes_eloquent_models()
-    {
-        $user = new User(['id' => 1]);
-
-        Feature::for($user)->activate('foo');
-
-        $this->assertTrue(Feature::for($user)->isActive('foo'));
-        $this->assertTrue(Feature::for('eloquent_model:Tests\Feature\User:1')->isActive('foo'));
-        $this->assertFalse(Feature::for('eloquent_model:user:1')->isActive('foo'));
-    }
-
-    public function test_it_uses_morph_map()
-    {
-        Relation::morphMap(['user' => User::class]);
-        $user = new User(['id' => 1]);
-
-        Feature::for($user)->activate('foo');
-
-        $this->assertTrue(Feature::for($user)->isActive('foo'));
-        $this->assertFalse(Feature::for('eloquent_model:Tests\Feature\User:1')->isActive('foo'));
-        $this->assertTrue(Feature::for('eloquent_model:user:1')->isActive('foo'));
-
-        Relation::$morphMap = [];
-    }
-
-    public function test_it_sees_empty_array_as_null()
-    {
-        Feature::activate('foo');
-
-        // $this->assertTrue(Feature::for([])->isActive('foo'));
-        $this->assertFalse(Feature::for([null])->isActive('foo'));
     }
 
     public function test_it_can_load_feature_state_into_memory()

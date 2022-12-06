@@ -52,6 +52,7 @@ class FeatureManager extends Manager
     protected function createDriver($driver)
     {
         return new DriverDecorator(
+            $driver,
             parent::createDriver($driver),
             $this->container[Factory::class]
         );

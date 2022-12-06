@@ -8,6 +8,13 @@ namespace Laravel\Feature;
 class DriverDecorator
 {
     /**
+     * The driver name.
+     *
+     * @var string
+     */
+    public $name;
+
+    /**
      * The driver being decorated.
      *
      * @var \Laravel\Feature\Drivers\ArrayDriver
@@ -24,11 +31,14 @@ class DriverDecorator
     /**
      * Create a new Driver Decorator instance.
      *
+     * @param  string  $name
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
      */
-    public function __construct($driver, $auth)
+    public function __construct($name, $driver, $auth)
     {
+        $this->name = $name;
+
         $this->driver = $driver;
 
         $this->auth = $auth;
@@ -43,7 +53,7 @@ class DriverDecorator
      */
     public function register($feature, $resolver)
     {
-        $this->toBaseDriver()->register($feature, $resolver);
+        $this->driver()->register($feature, $resolver);
     }
 
     /**
@@ -54,7 +64,7 @@ class DriverDecorator
      */
     public function load($features)
     {
-        $this->toBaseDriver()->load($features);
+        $this->driver()->load($features);
     }
 
     /**
@@ -65,7 +75,7 @@ class DriverDecorator
      */
     public function loadMissing($features)
     {
-        $this->toBaseDriver()->loadMissing($features);
+        $this->driver()->loadMissing($features);
     }
 
     /**
@@ -73,9 +83,19 @@ class DriverDecorator
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver
      */
-    public function toBaseDriver()
+    public function driver()
     {
         return $this->driver;
+    }
+
+    /**
+     * Get the Authentication factory.
+     *
+     * @return \Illuminate\Contracts\Auth\Factory
+     */
+    public function auth()
+    {
+        return $this->auth;
     }
 
     /**
@@ -87,6 +107,6 @@ class DriverDecorator
      */
     public function __call($name, $parameters)
     {
-        return (new PendingScopedFeatureInteraction($this->driver, $this->auth))->{$name}(...$parameters);
+        return (new PendingScopedFeatureInteraction($this))->{$name}(...$parameters);
     }
 }
