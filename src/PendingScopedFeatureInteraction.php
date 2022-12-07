@@ -71,7 +71,7 @@ class PendingScopedFeatureInteraction
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->every(function ($bits) {
-                return $this->driver()->isActive(...$bits);
+                return $this->wrapper->get(...$bits);
             });
     }
 
@@ -86,7 +86,7 @@ class PendingScopedFeatureInteraction
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->every(function ($bits) {
-                return ! $this->driver()->isActive(...$bits);
+                return ! $this->driver()->get(...$bits);
             });
     }
 
@@ -101,7 +101,7 @@ class PendingScopedFeatureInteraction
         Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->each(function ($bits) {
-                $this->driver()->activate(...$bits);
+                $this->wrapper->set($bits[0], $bits[1], true);
             });
     }
 
@@ -116,7 +116,7 @@ class PendingScopedFeatureInteraction
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->each(function ($bits) {
-                $this->driver()->deactivate(...$bits);
+                $this->wrapper->set($bits[0], $bits[1], false);
             });
     }
 

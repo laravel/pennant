@@ -24,16 +24,19 @@ class ArrayDriver
      *
      * @var array<string, (callable(mixed $scope): mixed)>
      */
-    protected $featureStateResolvers = [];
+    protected $featureStateResolvers;
 
     /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
-    public function __construct(Dispatcher $events)
+    public function __construct(Dispatcher $events, $featureStateResolvers = [])
     {
         $this->events = $events;
+
+        $this->featureStateResolvers = $featureStateResolvers;
     }
 
     /**
@@ -46,11 +49,13 @@ class ArrayDriver
     public function isActive($feature, $scope)
     {
         if ($this->missingResolver($feature)) {
+            // rename event to "retrieving unknown feature"
             $this->events->dispatch(new CheckingUnknownFeature($feature, $scope));
 
             return false;
         }
 
+        // rename event to "retrieving known feature"
         $this->events->dispatch(new CheckingKnownFeature($feature, $scope));
 
         return $this->resolveFeatureState($feature, $scope);
@@ -67,6 +72,7 @@ class ArrayDriver
     {
         $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
 
+        // TODO: this comparison needs to be handled elsewhere and allow for configuration.
         $this->register($feature, fn ($s) => $scope === $s ? true : $existing($s));
     }
 
@@ -82,9 +88,7 @@ class ArrayDriver
         $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
 
         // TODO: this comparison needs to be handled elsewhere and allow for configuration.
-        $this->register($feature, fn ($s) => $scope === $s
-            ? false
-            : $existing($scope));
+        $this->register($feature, fn ($s) => $scope === $s ? false : $existing($scope));
     }
 
     /**
@@ -102,23 +106,18 @@ class ArrayDriver
     /**
      * Eagerly load the feature state into memory.
      *
-     * @param  string|array<string|int, array<int, mixed>|string>  $features
-     * @return void
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>  $features
      */
     public function load($features)
     {
-        Collection::wrap($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key) ? [$value => []] : [$key => $value])
-            ->flatMap(fn ($scope, $feature) => $this->resolve([$feature], $scope))
-            ->each(function ($resolved) {
-                ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
-
-                if ($this->missingResolver($name)) {
-                    return;
-                }
-
-                $this->cache[$key] = $this->resolveFeatureState($name, $scope);
-            });
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => [null]]
+                : [$key => ($value ?: [null])])
+            ->map(function ($scopes, $feature) {
+                return array_map(fn ($scope) => $this->isActive($feature, $scope), $scopes);
+            })->all();
     }
 
     /**
