@@ -1,6 +1,8 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Feature\Concerns;
+
+use Laravel\Feature\Feature;
 
 trait HasFeature
 {

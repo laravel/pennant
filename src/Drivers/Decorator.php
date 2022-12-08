@@ -1,15 +1,16 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Feature\Drivers;
 
 use Illuminate\Support\Collection;
+use Laravel\Feature\Contracts\Driver as DriverContract;
 use Laravel\Feature\Contracts\FeatureScopeable;
-
+use Laravel\Feature\PendingScopedFeatureInteraction;
 
 /**
  * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
  */
-class DriverDecorator
+class Decorator implements DriverContract
 {
     /**
      * The driver name.
@@ -21,7 +22,7 @@ class DriverDecorator
     /**
      * The driver being decorated.
      *
-     * @var \Laravel\Feature\Drivers\ArrayDriver
+     * @var \Laravel\Feature\Contracts\Driver
      */
     protected $driver;
 
@@ -35,7 +36,7 @@ class DriverDecorator
     /**
      * Feature state cache.
      *
-     * @var \Illuminate\Support\Collection{ feature: string, scope: mixed, value: mixed }
+     * @var \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>
      */
     protected $cache;
 
@@ -43,7 +44,7 @@ class DriverDecorator
      * Create a new Driver Decorator instance.
      *
      * @param  string  $name
-     * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
+     * @param  \Laravel\Feature\Contracts\Driver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
@@ -71,10 +72,10 @@ class DriverDecorator
     }
 
     /**
-     * Eagerly load the feature state into memory.
+     * Eagerly load mutliple flag values.
      *
-     * @param  string|array<string|int, array<int, mixed>|string>  $features
-     * @return void
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
      */
     public function load($features)
     {
@@ -86,13 +87,15 @@ class DriverDecorator
                 ->zip($results[$key])
                 ->map(fn ($scopes) => $scopes->push($key)))
             ->each(fn ($value) => $this->remember($value[2], $value[0], $value[1]));
+
+        return $results;
     }
 
     /**
-     * Eagerly load the missing feature state into memory.
+     * Eagerly load mutliple missing flag values.
      *
-     * @param  string|array<string|int, array<int, mixed>|string>  $features
-     * @return void
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
      */
     public function loadMissing($features)
     {
@@ -103,7 +106,7 @@ class DriverDecorator
             ->reject(fn ($scopes) => $scopes === [])
             ->all();
 
-        $this->load($features);
+        return $this->load($features);
     }
 
     /**
@@ -130,7 +133,7 @@ class DriverDecorator
             return $item['value'];
         }
 
-        return tap($this->driver()->isActive($feature, $scope), function ($value) use ($feature, $scope) {
+        return tap($this->driver()->get($feature, $scope), function ($value) use ($feature, $scope) {
             $this->remember($feature, $scope, $value);
         });
     }
@@ -151,11 +154,7 @@ class DriverDecorator
             ? $scope->toFeatureScopeIdentifier($this->name)
             : $scope;
 
-        if ($value !== false) {
-            $this->driver->activate($feature, $scope);
-        } else {
-            $this->driver->deactivate($feature, $scope);
-        }
+        $this->driver->set($feature, $scope, $value);
 
         $this->remember($feature, $scope, $value);
     }
@@ -163,7 +162,7 @@ class DriverDecorator
     /**
      * Get the decorated driver.
      *
-     * @return \Laravel\Feature\Drivers\ArrayDriver
+     * @return \Laravel\Feature\Contracts\Driver
      */
     public function driver()
     {
@@ -219,7 +218,7 @@ class DriverDecorator
      * Normalize features to load.
      *
      * @param  string|array<int|string, mixed>  $features
-     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, mixed>>
+     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
      */
     protected function normalizeFeaturesToLoad($features)
     {
@@ -243,6 +242,6 @@ class DriverDecorator
      */
     public function __call($name, $parameters)
     {
-        return (new PendingScopedFeatureInteraction($this))->{$name}(...$parameters);
+        return (new PendingScopedFeatureInteraction($this, []))->{$name}(...$parameters);
     }
 }

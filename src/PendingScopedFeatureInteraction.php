@@ -12,7 +12,7 @@ class PendingScopedFeatureInteraction
     /**
      * The feature driver.
      *
-     * @var \Laravel\Feature\DriverDecorator
+     * @var \Laravel\Feature\Drivers\Decorator
      */
     protected $driver;
 
@@ -26,10 +26,10 @@ class PendingScopedFeatureInteraction
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
-     * @param  \Laravel\Feature\DriverDecorator  $driver
+     * @param  \Laravel\Feature\Drivers\Decorator  $driver
      * @param  array<mixed>  $scope
      */
-    public function __construct($driver, $scope = [])
+    public function __construct($driver, $scope)
     {
         $this->driver = $driver;
 
@@ -64,6 +64,23 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Get the value of the flag.
+     *
+     * @param  string|array<string>  $feature
+     * @return mixed
+     */
+    public function value($feature)
+    {
+        if (count($this->scope) < 2 && is_string($feature)) {
+            return $this->driver->get($feature, $this->scope[0] ?? null);
+        }
+
+        return Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->map(fn ($bits) => $this->driver->get(...$bits));
+    }
+
+    /**
      * Determine if the feature is active.
      *
      * @param  string|array<string>  $feature
@@ -73,7 +90,7 @@ class PendingScopedFeatureInteraction
     {
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => $this->driver->get(...$bits));
+            ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
     }
 
     /**
@@ -86,7 +103,7 @@ class PendingScopedFeatureInteraction
     {
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => ! $this->driver->get(...$bits));
+            ->every(fn ($bits) => ! $this->driver->get(...$bits) === false);
     }
 
     /**
@@ -118,7 +135,7 @@ class PendingScopedFeatureInteraction
     /**
      * Load the feature into memory.
      *
-     * @param  string|array<string>  $feature
+     * @param  string|array<int, string>  $feature
      * @return void
      */
     public function load($feature)

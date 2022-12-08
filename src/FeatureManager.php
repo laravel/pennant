@@ -6,10 +6,11 @@ use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
 use Laravel\Feature\Drivers\DatabaseDriver;
+use Laravel\Feature\Drivers\Decorator;
 
 /**
- * @method \Laravel\Feature\DriverDecorator driver(?string $driver)
- * @mixin \Laravel\Feature\DriverDecorator
+ * @method \Laravel\Feature\Drivers\Decorator driver(?string $driver)
+ * @mixin \Laravel\Feature\Drivers\Decorator
  */
 class FeatureManager extends Manager
 {
@@ -26,7 +27,7 @@ class FeatureManager extends Manager
     /**
      * Create an instance of the Datbase driver.
      *
-     * @return \Laravel\Feature\Drivers\ArrayDriver
+     * @return \Laravel\Feature\Drivers\DatabaseDriver
      */
     public function createDatabaseDriver()
     {
@@ -47,11 +48,11 @@ class FeatureManager extends Manager
      * Create a new driver instance.
      *
      * @param  string  $driver
-     * @return \Laravel\Feature\DriverDecorator
+     * @return \Laravel\Feature\Drivers\Decorator
      */
     protected function createDriver($driver)
     {
-        return new DriverDecorator(
+        return new Decorator(
             $driver,
             parent::createDriver($driver),
             $this->container[Factory::class]

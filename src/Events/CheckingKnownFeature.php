@@ -23,15 +23,25 @@ class CheckingKnownFeature
     public $scope;
 
     /**
+     * The scope of the feature check.
+     *
+     * @var mixed
+     */
+    public $value;
+
+    /**
      * Create a new event instance.
      *
      * @param  string  $feature
      * @param  mixed  $scope
+     * @param  mixed  $value
      */
-    public function __construct($feature, $scope)
+    public function __construct($feature, $scope, $value)
     {
         $this->feature = $feature;
 
         $this->scope = $scope;
+
+        $this->value = $value;
     }
 }
