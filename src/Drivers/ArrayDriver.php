@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
 use Laravel\Feature\Events\RetrievingKnownFeature;
+use Laravel\Feature\FeatureManager;
 
 class ArrayDriver implements Driver
 {
@@ -25,14 +26,23 @@ class ArrayDriver implements Driver
     protected $featureStateResolvers;
 
     /**
+     * The scope comparator.
+     *
+     * @var (callable(mixed, mixed): bool)|null
+     */
+    protected $scopeComparator;
+
+    /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
-    public function __construct(Dispatcher $events, $featureStateResolvers = [])
+    public function __construct(Dispatcher $events, $scopeComparator, $featureStateResolvers)
     {
         $this->events = $events;
+
+        $this->scopeComparator = $scopeComparator;
 
         $this->featureStateResolvers = $featureStateResolvers;
     }
@@ -69,7 +79,7 @@ class ArrayDriver implements Driver
     {
         $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
 
-        $this->register($feature, fn ($s) => $scope === $s ? $value : $existing($s)); // TODO: this comparison needs to be handled elsewhere and allow for configuration.
+        $this->register($feature, fn ($s) => ($this->scopeComparator)($scope, $s) ? $value : $existing($s));
     }
 
     /**
