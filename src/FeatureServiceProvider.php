@@ -13,14 +13,12 @@ class FeatureServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (! $this->app->runningInConsole()) {
-            return;
+        if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+
+            $this->publishes([
+                __DIR__.'/../database/migrations' => database_path('migrations'),
+            ], 'laravel-feature-migrations');
         }
-
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-
-        $this->publishes([
-            __DIR__.'/../database/migrations' => database_path('migrations'),
-        ], 'laravel-feature-migrations');
     }
 }

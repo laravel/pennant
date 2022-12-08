@@ -65,18 +65,33 @@ class PendingScopedFeatureInteraction
     /**
      * Get the value of the flag.
      *
-     * @param  string|array<string>  $feature
+     * @param  string  $feature
      * @return mixed
      */
     public function value($feature)
     {
-        if (count($this->scope) < 2 && is_string($feature)) {
-            return $this->driver->get($feature, $this->scope[0] ?? null);
+        if (count($this->scope()) > 1) {
+            throw new RuntimeException('To retrieve the value for mutliple scopes, use the `values` method instead.');
         }
 
+        return $this->driver->get($feature, $this->scope()[0]);
+    }
+
+    /**
+     * Get the values of the flag.
+     *
+     * @param  string|array<string>  $feature
+     * @return array<string, array<mixed>>
+     */
+    public function values($feature)
+    {
         return Collection::wrap($feature)
-            ->crossJoin($this->scope())
-            ->map(fn ($bits) => $this->driver->get(...$bits));
+            ->mapWithKeys(fn ($feature) => [
+                $feature => Collection::make($this->scope())
+                    ->map(fn ($scope) => $this->driver->get($feature, $scope))
+                    ->all(),
+            ])
+            ->all();
     }
 
     /**
@@ -102,7 +117,7 @@ class PendingScopedFeatureInteraction
     {
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => ! $this->driver->get(...$bits) === false);
+            ->every(fn ($bits) => $this->driver->get(...$bits) === false);
     }
 
     /**

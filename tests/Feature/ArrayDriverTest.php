@@ -8,6 +8,7 @@ use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 use Laravel\Feature\Feature;
+use RuntimeException;
 use Tests\TestCase;
 
 class ArrayDriverTest extends TestCase
@@ -98,15 +99,26 @@ class ArrayDriverTest extends TestCase
 
     public function test_non_false_registered_values_are_considered_active()
     {
+        Feature::register('true', fn () => true);
+        Feature::register('false', fn () => false);
         Feature::register('one', fn () => 1);
         Feature::register('zero', fn () => 0);
         Feature::register('null', fn () => null);
         Feature::register('empty-string', fn () => '');
 
+        $this->assertTrue(Feature::isActive('true'));
+        $this->assertFalse(Feature::isActive('false'));
         $this->assertTrue(Feature::isActive('one'));
         $this->assertTrue(Feature::isActive('zero'));
         $this->assertTrue(Feature::isActive('null'));
         $this->assertTrue(Feature::isActive('empty-string'));
+
+       $this->assertFalse(Feature::isInactive('true'));
+        $this->assertTrue(Feature::isInactive('false'));
+        $this->assertFalse(Feature::isInactive('one'));
+        $this->assertFalse(Feature::isInactive('zero'));
+        $this->assertFalse(Feature::isInactive('null'));
+        $this->assertFalse(Feature::isInactive('empty-string'));
     }
 
     public function test_it_can_programatically_activate_and_deativate_features()
@@ -497,5 +509,37 @@ class ArrayDriverTest extends TestCase
         Feature::for([2])->isActive('bar');
         $this->assertSame(4, $called['foo']);
         $this->assertSame(2, $called['bar']);
+    }
+
+    public function test_it_throws_when_calling_value_with_multiple_scope()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('To retrieve the value for mutliple scopes, use the `values` method instead.');
+
+        Feature::for([1, 2, 3])->value('foo');
+    }
+
+    public function test_it_can_retrive_value_for_multiple_scopes()
+    {
+        Feature::register('foo', fn ($scope) => $scope);
+
+        $values = Feature::for([1, 2, 3])->values('foo');
+
+        $this->assertSame([
+            'foo' => [1, 2, 3]
+        ], $values);
+    }
+
+    public function test_it_can_retrive_value_for_multiple_scopes_and_features()
+    {
+        Feature::register('foo', fn ($scope) => $scope);
+        Feature::register('bar', fn ($scope) => $scope * 2);
+
+        $values = Feature::for([1, 2, 3])->values(['foo', 'bar']);
+
+        $this->assertSame([
+            'foo' => [1, 2, 3],
+            'bar' => [2, 4, 6],
+        ], $values);
     }
 }
