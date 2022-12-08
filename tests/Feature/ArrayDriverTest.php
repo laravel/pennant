@@ -385,8 +385,54 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_load_against_scope()
     {
-        Feature::for($tim)->load('foo');
-        Feature::for($tim)->load(['foo', 'bar']);
+        $called = ['foo' => 0, 'bar' => 0];
+        Feature::register('foo', function ($scope) use (&$called) {
+            $called['foo']++;
+        });
+        Feature::register('bar', function () use (&$called) {
+            $called['bar']++;
+        });
+
+        $this->assertSame(0, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->load(['foo']);
+        $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->isActive('foo');
+        $this->assertSame(1, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->load('foo');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->isActive('foo');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(0, $called['bar']);
+
+        Feature::for('loaded')->load('bar');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        Feature::for('loaded')->isActive('bar');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(1, $called['bar']);
+
+        Feature::for('noloaded')->isActive('bar');
+        $this->assertSame(2, $called['foo']);
+        $this->assertSame(2, $called['bar']);
+
+        Feature::for([1, 2, 3])->load(['foo']);
+        Feature::for(2)->load(['bar']);
+        $this->assertSame(5, $called['foo']);
+        $this->assertSame(3, $called['bar']);
+
+        Feature::for([1, 2, 3])->isActive('foo');
+        Feature::for([2])->isActive('bar');
+        $this->assertSame(5, $called['foo']);
+        $this->assertSame(3, $called['bar']);
     }
 
     public function test_it_can_load_missing_feature_state_into_memory()

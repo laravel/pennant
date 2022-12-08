@@ -5,6 +5,17 @@
 ```php
 <?php
 
+Feature::value('foo'); // single value
+Feature::for($tim)->value('foo'); // single value
+Feature::value(['foo', 'bar']); // array of values
+Feature::for([$tim, $james]->value('foo'); // array of values
+Feature::for([$tim, $james]->value(['foo', 'bar']); // array of values
+
+Feature::for($tim)->load('foo');
+Feature::for($tim)->load(['foo']);
+Feature::for([$tim, $james])->load(['foo']);
+Feature::load(['asdf' => 'asdf'])
+
 // Determine if a feature is active...
 
 if (Feature::isActive('foo')) {
