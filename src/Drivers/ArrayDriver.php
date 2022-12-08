@@ -3,11 +3,8 @@
 namespace Laravel\Feature\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
 use Laravel\Feature\Contracts\Driver;
-use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\CheckingKnownFeature;
 use Laravel\Feature\Events\CheckingUnknownFeature;
 
@@ -23,7 +20,7 @@ class ArrayDriver implements Driver
     /**
      * The feature state resolvers.
      *
-     * @var array<string, (callable(mixed $scope): mixed)>
+     * @var array<string, (callable(mixed): mixed)>
      */
     protected $featureStateResolvers;
 

@@ -160,7 +160,6 @@ class DatabaseDriver
     //        ]);
     //    });
 
-
     //    //
     //    // cache.
     //    // $this->cache = $this->cache->merge(
@@ -222,7 +221,6 @@ class DatabaseDriver
     //        ]);
     //    });
     //}
-
 
     ///**
     // * Register an initial feature state resolver.

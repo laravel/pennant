@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Laravel\Feature\Contracts\FeatureScopeable;
@@ -54,6 +53,31 @@ class ArrayDriverTest extends TestCase
         $this->assertFalse($false);
     }
 
+    public function test_it_can_register_complex_values()
+    {
+        Feature::register('config', fn () => [
+            'color' => 'red',
+            'default' => 'api',
+        ]);
+
+        $isActive = Feature::isActive('config');
+        $value = Feature::value('config');
+
+        $this->assertTrue($isActive);
+        $this->assertSame([
+            'color' => 'red',
+            'default' => 'api',
+        ], $value);
+
+        Feature::for('tim')->activate('new-api', 'foo');
+
+        $isActive = Feature::for('tim')->isActive('new-api');
+        $value = Feature::for('tim')->value('new-api');
+
+        $this->assertTrue($isActive);
+        $this->assertSame('foo', $value);
+    }
+
     public function test_it_caches_state_after_resolving()
     {
         $called = 0;
@@ -97,22 +121,18 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::isActive('foo'));
     }
 
-    public function test_it_dispatches_events_when_checking_known_features()
+    public function test_it_dispatches_events_when_resolving_feature_into_memory()
     {
         Event::fake([CheckingKnownFeature::class]);
         Feature::register('foo', fn () => true);
-        // Feature::deactivate('bar');
 
         Feature::isActive('foo');
-        // Feature::isActive('bar');
+        Feature::isActive('foo');
 
         Event::assertDispatchedTimes(CheckingKnownFeature::class, 1);
         Event::assertDispatched(function (CheckingKnownFeature $event) {
             return $event->feature === 'foo' && $event->scope === null;
         });
-        // Event::assertDispatched(function (CheckingKnownFeature $event) {
-        //     return $event->feature === 'bar' && $event->scope === null;
-        // });
     }
 
     public function test_it_can_activate_and_deactivate_several_features_at_once()

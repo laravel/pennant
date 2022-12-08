@@ -27,4 +27,15 @@ trait HasFeature
     {
         return Feature::for($this)->isInactive($feature);
     }
+
+    /**
+     * Get the value of the feature.
+     *
+     * @param  string  $feature
+     * @return mixed
+     */
+    public function featureValue($feature)
+    {
+        return Feature::for($this)->value($feature);
+    }
 }

@@ -4,7 +4,6 @@ namespace Laravel\Feature;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
-use Laravel\Feature\Contracts\FeatureScopeable;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
@@ -110,13 +109,14 @@ class PendingScopedFeatureInteraction
      * Activate the feature.
      *
      * @param  string|array<string>  $feature
+     * @param  mixed  $value
      * @return void
      */
-    public function activate($feature)
+    public function activate($feature, $value = true)
     {
         Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], true));
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], $value));
     }
 
     /**
