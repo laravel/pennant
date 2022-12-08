@@ -4,7 +4,7 @@ namespace Laravel\Feature\Events;
 
 use Illuminate\Queue\SerializesModels;
 
-class CheckingKnownFeature
+class RetrievingKnownFeature
 {
     use SerializesModels;
 

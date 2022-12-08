@@ -5,7 +5,7 @@ namespace Laravel\Feature\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Collection;
-use Laravel\Feature\Events\CheckingUnknownFeature;
+use Laravel\Feature\Events\RetrievingUnknownFeature;
 
 class DatabaseDriver
 {

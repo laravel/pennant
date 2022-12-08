@@ -5,8 +5,8 @@ namespace Laravel\Feature\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
-use Laravel\Feature\Events\CheckingKnownFeature;
-use Laravel\Feature\Events\CheckingUnknownFeature;
+use Laravel\Feature\Events\RetrievingUnknownFeature;
+use Laravel\Feature\Events\RetrievingKnownFeature;
 
 class ArrayDriver implements Driver
 {
@@ -47,13 +47,13 @@ class ArrayDriver implements Driver
     public function get($feature, $scope)
     {
         if ($this->missingResolver($feature)) {
-            $this->events->dispatch(new CheckingUnknownFeature($feature, $scope)); // rename event to "retrieving unknown feature"
+            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
 
             return false;
         }
 
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new CheckingKnownFeature($feature, $scope, $value)); // rename event to "retrieving known feature"
+            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
         });
     }
 
