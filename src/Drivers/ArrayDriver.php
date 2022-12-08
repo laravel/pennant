@@ -121,28 +121,6 @@ class ArrayDriver
     }
 
     /**
-     * Eagerly load the missing feature state into memory.
-     *
-     * @param  string|array<string|int, array<int, mixed>|string>  $features
-     * @return void
-     */
-    public function loadMissing($features)
-    {
-        Collection::make($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key) ? [$value => []] : [$key => $value])
-            ->flatMap(fn ($scope, $feature) => $this->resolve([$feature], $scope))
-            ->each(function ($resolved) {
-                ['scope' => $scope, 'key' => $key, 'name' => $name] = $resolved;
-
-                if ($this->missingResolver($name)) {
-                    return;
-                }
-
-                $this->cache[$key] ??= $this->resolveFeatureState($name, $scope);
-            });
-    }
-
-    /**
      * Resolve a features state.
      *
      * @param  string  $feature

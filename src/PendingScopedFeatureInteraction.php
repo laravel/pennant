@@ -10,27 +10,30 @@ use RuntimeException;
 class PendingScopedFeatureInteraction
 {
     /**
-     * The feature driver wrapper.
+     * The feature driver.
      *
      * @var \Laravel\Feature\DriverDecorator
      */
-    protected $wrapper;
+    protected $driver;
 
     /**
      * The feature interaction scope.
      *
      * @var array<mixed>
      */
-    protected $scope = [];
+    protected $scope;
 
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
-     * @param  \Laravel\Feature\DriverDecorator  $wrapper
+     * @param  \Laravel\Feature\DriverDecorator  $driver
+     * @param  array<mixed>  $scope
      */
-    public function __construct($wrapper)
+    public function __construct($driver, $scope = [])
     {
-        $this->wrapper = $wrapper;
+        $this->driver = $driver;
+
+        $this->scope = $scope;
     }
 
     /**
@@ -53,11 +56,11 @@ class PendingScopedFeatureInteraction
      */
     public function forTheAuthenticatedUser()
     {
-        if (! $this->wrapper->auth()->guard()->check()) {
+        if (! $this->driver->auth()->guard()->check()) {
             throw new RuntimeException('There is no user currently authenticated.');
         }
 
-        return $this->for($this->wrapper->auth()->guard()->user());
+        return $this->for($this->driver->auth()->guard()->user());
     }
 
     /**
@@ -70,24 +73,20 @@ class PendingScopedFeatureInteraction
     {
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->every(function ($bits) {
-                return $this->wrapper->get(...$bits);
-            });
+            ->every(fn ($bits) => $this->driver->get(...$bits));
     }
 
     /**
      * Determine if the feature is inactive.
      *
-     * @param  string  $feature
+     * @param  string|array<string>  $feature
      * @return bool
      */
     public function isInactive($feature)
     {
         return Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->every(function ($bits) {
-                return ! $this->driver()->get(...$bits);
-            });
+            ->every(fn ($bits) => ! $this->driver->get(...$bits));
     }
 
     /**
@@ -100,9 +99,7 @@ class PendingScopedFeatureInteraction
     {
         Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(function ($bits) {
-                $this->wrapper->set($bits[0], $bits[1], true);
-            });
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], true));
     }
 
     /**
@@ -113,33 +110,33 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        return Collection::wrap($feature)
+        Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(function ($bits) {
-                $this->wrapper->set($bits[0], $bits[1], false);
-            });
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], false));
     }
 
     /**
-     * The scope for the feature check.
+     * Load the feature into memory.
      *
-     * @return \Illuminate\Support\Collection
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function load($feature)
+    {
+        $features = Collection::wrap($feature)
+            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
+            ->all();
+
+        $this->driver->load($features);
+    }
+
+    /**
+     * The scope to pass to the driver.
+     *
+     * @return array<mixed>
      */
     protected function scope()
     {
-        return Collection::make($this->scope ?: [null])
-            ->map(fn ($scope) => $scope instanceof FeatureScopeable
-                ? $scope->toFeatureScopeIdentifier($this->wrapper->name)
-                : $scope);
-    }
-
-    /**
-     * The underlying driver.
-     *
-     * @return \Laravel\Feature\Drivers\ArrayDriver
-     */
-    protected function driver()
-    {
-        return $this->wrapper->driver();
+        return $this->scope ?: [null];
     }
 }

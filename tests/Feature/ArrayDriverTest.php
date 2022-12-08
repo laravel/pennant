@@ -383,6 +383,12 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(3, $called['bar']);
     }
 
+    public function test_it_can_load_against_scope()
+    {
+        Feature::for($tim)->load('foo');
+        Feature::for($tim)->load(['foo', 'bar']);
+    }
+
     public function test_it_can_load_missing_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];

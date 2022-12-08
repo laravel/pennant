@@ -3,6 +3,7 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\Collection;
+use Laravel\Feature\Contracts\FeatureScopeable;
 
 
 /**
@@ -15,7 +16,7 @@ class DriverDecorator
      *
      * @var string
      */
-    public $name;
+    protected $name;
 
     /**
      * The driver being decorated.
@@ -34,7 +35,7 @@ class DriverDecorator
     /**
      * Feature state cache.
      *
-     * @var array{ feature: string, scope: mixed, value: mixed }
+     * @var \Illuminate\Support\Collection{ feature: string, scope: mixed, value: mixed }
      */
     protected $cache;
 
@@ -44,9 +45,9 @@ class DriverDecorator
      * @param  string  $name
      * @param  \Laravel\Feature\Drivers\ArrayDriver  $driver
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
-     * @param  array{ feature: string, scope: mixed, value: mixed }  $cache
+     * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
-    public function __construct($name, $driver, $auth, $cache = [])
+    public function __construct($name, $driver, $auth, $cache = new Collection)
     {
         $this->name = $name;
 
@@ -77,29 +78,32 @@ class DriverDecorator
      */
     public function load($features)
     {
-        // TODO map to toFeatureScopeIdentifier()
-        $features = Collection::wrap($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key)
-                ? [$value => [null]]
-                : [$key => ($value ?: [null])])
+        $features = $this->normalizeFeaturesToLoad($features);
+
+        $results = $this->driver()->load($features->all());
+
+        $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+                ->zip($results[$key])
+                ->map(fn ($scopes) => $scopes->push($key)))
+            ->each(fn ($value) => $this->remember($value[2], $value[0], $value[1]));
+    }
+
+    /**
+     * Eagerly load the missing feature state into memory.
+     *
+     * @param  string|array<string|int, array<int, mixed>|string>  $features
+     * @return void
+     */
+    public function loadMissing($features)
+    {
+        $features = $this->normalizeFeaturesToLoad($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->reject(fn ($scope) => $this->isCached($feature, $scope))
+                ->all())
+            ->reject(fn ($scopes) => $scopes === [])
             ->all();
 
-        $result = $this->driver()->load($features);
-
-        Collection::make($features)
-            ->flatMap(fn ($value, $key) => collect($value)
-                ->zip($result[$key])
-                ->map(fn ($value) => collect(['scope', 'value', 'feature'])->combine($value->push($key))))
-            ->each(function ($value) {
-                $position = Collection::make($this->cache)
-                    ->search(fn ($v) => $v['feature'] === $value['feature'] && $v['scope'] === $value['scope']);
-
-                if ($position === false) {
-                    $this->cache[] = $value;
-                } else {
-                    $this->cache[$position] = $value;
-                }
-            });
+        $this->load($features);
     }
 
     /**
@@ -113,7 +117,11 @@ class DriverDecorator
      */
     public function get($feature, $scope)
     {
-        $item = Collection::make($this->cache)
+        $scope = $scope instanceof FeatureScopeable
+            ? $scope->toFeatureScopeIdentifier($this->name)
+            : $scope;
+
+        $item = $this->cache
             ->whereStrict('scope', $scope)
             ->whereStrict('feature', $feature)
             ->first();
@@ -123,11 +131,7 @@ class DriverDecorator
         }
 
         return tap($this->driver()->isActive($feature, $scope), function ($value) use ($feature, $scope) {
-            $this->cache[] = [
-                'value' => $value,
-                'scope' => $scope,
-                'feature' => $feature,
-            ];
+            $this->remember($feature, $scope, $value);
         });
     }
 
@@ -143,32 +147,17 @@ class DriverDecorator
      */
     public function set($feature, $scope, $value)
     {
-        if ($value) {
+        $scope = $scope instanceof FeatureScopeable
+            ? $scope->toFeatureScopeIdentifier($this->name)
+            : $scope;
+
+        if ($value !== false) {
             $this->driver->activate($feature, $scope);
         } else {
             $this->driver->deactivate($feature, $scope);
         }
 
-        $position = Collection::make($this->cache)->search(fn ($v) => $v['feature'] === $feature && $v['scope'] === $scope);
-
-        $value = ['feature' => $feature, 'scope' => $scope, 'value' => $value];
-
-        if ($position === false) {
-            $this->cache[] = $value;
-        } else {
-            $this->cache[$position] = $value;
-        }
-    }
-
-    /**
-     * Eagerly load the missing feature state into memory.
-     *
-     * @param  string|array<string|int, array<int, mixed>|string>  $features
-     * @return void
-     */
-    public function loadMissing($features)
-    {
-        $this->driver()->loadMissing($features);
+        $this->remember($feature, $scope, $value);
     }
 
     /**
@@ -189,6 +178,60 @@ class DriverDecorator
     public function auth()
     {
         return $this->auth;
+    }
+
+    /**
+     * Put the feature value into the cache.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $value
+     * @return void
+     */
+    protected function remember($feature, $scope, $value)
+    {
+        $position = $this->cache->search(
+            fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
+        );
+
+        if ($position === false) {
+            $this->cache[] = ['feature' => $feature, 'scope' => $scope, 'value' => $value];
+        } else {
+            $this->cache[$position] = ['feature' => $feature, 'scope' => $scope, 'value' => $value];
+        }
+    }
+
+    /**
+     * Determine if a feature is in the cache.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return bool
+     */
+    protected function isCached($feature, $scope)
+    {
+        return $this->cache->search(
+            fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
+        ) !== false;
+    }
+
+    /**
+     * Normalize features to load.
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<int, mixed>>
+     */
+    protected function normalizeFeaturesToLoad($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => Collection::make([null])]
+                : [$key => Collection::wrap($value ?: [null])])
+            ->map(fn ($scopes) => $scopes
+                ->map(fn ($scope) => $scope instanceof FeatureScopeable
+                    ? $scope->toFeatureScopeIdentifier($this->name)
+                    : $scope)
+                ->all());
     }
 
     /**
