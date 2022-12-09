@@ -9,7 +9,7 @@ interface Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return bool
+     * @return mixed
      */
     public function get($feature, $scope);
 
