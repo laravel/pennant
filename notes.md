@@ -48,7 +48,7 @@ Feature::register('foo', function (mixed $scope): mixed {
 
 ### The scope passed in
 
-The Closure will receive the "scope" for the feature check being performed. The scope may be `null`. We will learn more about scope later.
+The Closure will receive the "scope" for the feature check being performed. The scope may be `null`, and eloquent model, a `string` or something else entirely. We will learn more about scope values later.
 
 ### The returned state
 
@@ -62,6 +62,20 @@ Lotteries are a first party citizen. Because they are callable, they may be pass
 <?php
 
 Feature::register('foo', Lottery::odds(1 / 1000));
+```
+
+or they may be returned from the Closure..
+
+```php
+<?php
+
+Feature::register('foo', function ($user) {
+    if ($user->isAdmin) {
+        return true;
+    }
+
+    return Lottery::odds(1 / 1000);
+});
 ```
 
 ## Feature values
