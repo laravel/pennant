@@ -78,6 +78,17 @@ Feature::register('foo', function ($user) {
 });
 ```
 
+### Static values
+
+You may also pass a static value as the argument, such as a config option that is reading from the ENV.
+
+```php
+<?php
+
+Feature::register('new-cron-job-provisioning', config('features.new-cron-job-provisioning'));
+Feature::register('new-foo-provisioning', config('features.new-foo-provisioning'));
+```
+
 ### Fallback values
 
 Our first party drivers fallback to `false` for unknown features i.e. if we try to access a feature with no resolver, the result will always be `false`.
@@ -226,6 +237,11 @@ Feature::for($jess)->isActive('foo');
 
 - Provide a `Feature::flushCache()` method to clear the cache when needed.
 - Consider if we need to manually clear the cache for Octane / Queue workers.
+
+## Eager loading
+
+- load / loadmissing
+- with scope
 
 ## Scope
 
