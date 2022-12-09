@@ -409,7 +409,7 @@ Note that changing the state of feature flags has not been optimized for bulk at
 - Database driver needs to handle eloquent model.
 - How do we feel about serialize? Could be dicey.
 - Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
-- Nice api for 'remember' vs 'register'?
+- Can we provide a nice api for 'remember' vs 'register' to support in-memory only features for Jetstream et. al.
 - `whenActive` on the decorator.
 - Allow only a class to be registered. Feature::register(Foo::class);
 - Ability to get all features for given scope.
