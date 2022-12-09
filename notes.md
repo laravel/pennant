@@ -240,8 +240,31 @@ Feature::for($jess)->isActive('foo');
 
 ## Eager loading
 
-- load / loadmissing
-- with scope
+One thing that is important is offering the ability for drivers to optimize the loading of feature flag values. This is done via a `load` and `loadMissing` method.
+
+You can invoke the load method against a pending feature interaction OR directly against the Facade.
+
+```php
+<?php
+
+Feature::for([$tim, $jess])->load([
+    'foo', 'bar', 'baz',
+]);
+```
+
+Alternatively, you may just pass an array directly to the load method...
+
+```php
+<?php
+
+Feature::load([
+    'foo' => [$tim, $jess], 
+    'bar' => $tim,
+    'baz',
+]);
+```
+
+The `loadMissing` method will only attempt to load values that are not already in memory. Note that drivers do not implement this method and we handle everything for them, including normalising the data into a single known format.
 
 ## Scope
 
