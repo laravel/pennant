@@ -404,6 +404,7 @@ Note that changing the state of feature flags has not been optimized for bulk at
     - etc.
 
 ## Misc TODO
+- decorator needs to use comparator,
 - Do we want a way to detect if the feature has been set yet?
 - Database driver needs to use the scope comparator.
 - Database driver needs to handle eloquent model.
