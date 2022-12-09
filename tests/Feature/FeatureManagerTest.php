@@ -50,7 +50,6 @@ class FeatureManagerTest extends TestCase
         $this->assertFalse(Feature::for('misc')->isActive('foo'));
         $this->assertTrue(Feature::forTheAuthenticatedUser()->isActive('foo'));
         $this->assertTrue(Feature::for($user)->isActive('foo'));
-        $this->assertTrue(Feature::for('eloquent_model:Tests\Feature\User:2')->isActive('foo'));
     }
 
     public function test_it_throws_if_there_is_no_authenticated_user()
