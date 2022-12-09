@@ -34,6 +34,54 @@ if ($user->featureIsActive('new-api')) {
 }
 ```
 
+## Caching
+
+//
+
+## Scope
+
+//
+
+## Events
+
+There are currently 2 events that are triggered by the package:
+
+- `RetrievingKnownFeature`
+- `RetrievingUnknownFeature`
+
+Triggering these events is up to the drivers themselves, as how to detect this will be different for each driver.
+
+For the database driver, the `RetrievingKnownFeature` is triggered when the feature is present in the DB or if there is
+a registered "resolver" for the feature.
+
+`RetrievingUnknownFeature` is triggered if there is no value in the DB and there is no resolver.
+
+```php
+<?php
+
+Feature::register('foo', fn () => true);
+
+Feature::isActive('bar');
+// RetrievingUnknownFeature triggered.
+
+Feature::isActive('foo');
+// RetrievingKnownFeature triggered.
+
+// Due to our in-memory caching wrapper, the event for a single feature+scope
+// combo should only be triggered once per request. Calling these now will not
+// trigger the events again (we could trigger another event though).
+
+Feature::isActive('foo');
+Feature::isActive('bar');
+// Nothing triggered.
+```
+
+This allows users to keep track of what features are being used / not used, or when they are trying to resolve features that do not exist.
+
+
+### TODO
+
+- Offer a "Feature::throwOnUnkownFeature()" which throws an exception when trying to resolve a feature that does not exist.
 
 ## API
 
