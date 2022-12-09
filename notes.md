@@ -56,7 +56,7 @@ The feature resolver should return whatever the value of the feature should be w
 
 ### Lotteries
 
-Lotteries are a first party citizen. Because they are callable, they may be passed as the closure...
+Lotteries are a first party citizen. Because they are callable, they may be passed as an argument...
 
 ```php
 <?php
@@ -64,7 +64,7 @@ Lotteries are a first party citizen. Because they are callable, they may be pass
 Feature::register('foo', Lottery::odds(1 / 1000));
 ```
 
-or they may be returned from the Closure..
+Lotteries may also be returned from the Closure...
 
 ```php
 <?php
@@ -77,6 +77,25 @@ Feature::register('foo', function ($user) {
     return Lottery::odds(1 / 1000);
 });
 ```
+
+### Fallback values
+
+Our first party drivers fallback to `false` for unknown features i.e. if we try to access a feature with no resolver, the result will always be `false`.
+
+```php
+<?php
+
+Feature::for($tim)->isActive('random-misspelt-feature');
+// false
+```
+
+However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
+
+### Other drivers
+
+It is possible that some drivers may just throw an exception when trying to "register" a feature, as that process is handled completely on their end.
+
+Take something like LaunchDarkly. Their driver / docs may tell developers that they do not need to "register" features as that is all handled in their dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a "feature".
 
 ## Feature values
 
