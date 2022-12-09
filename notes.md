@@ -34,6 +34,38 @@ if ($user->featureIsActive('new-api')) {
 }
 ```
 
+## Registering feature resolvers
+
+In your service provider, middleware, etc, you may register a feature resolver.
+
+```php
+<?php
+
+Feature::register('foo', function (mixed $scope): mixed {
+    // return ...
+});
+```
+
+### The scope passed in
+
+The Closure will receive the "scope" for the feature check being performed. The scope may be `null`. We will learn more about scope later.
+
+### The returned state
+
+The feature resolver should return whatever the value of the feature should be when not already persisted by the driver. Generally a `boolean` would be returned, however the package also supports complex values. We will learn more about the supported values later.
+
+### Lotteries
+
+Lotteries are a first party citizen. Because they are callable, they may be passed as the closure...
+
+```php
+<?php
+
+Feature::register('foo', Lottery::odds(1 / 1000));
+```
+
+## Feature values
+
 ## Caching
 
 To reduce complexity for driver implementations, we provide the drivers with an in-memory cache of resolved feature states. The drivers are not aware of this cache.
@@ -72,6 +104,7 @@ Feature::for($jess)->isActive('foo');
 
 ## Scope
 
+`toFeatureScopeable`
 //
 
 ## Events
