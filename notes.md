@@ -42,6 +42,8 @@ This means that a feature + scope combination will only be resolved from the dri
 
 Imagine changing the `"new-design"` flag on a user part way through the request. It would lead to a half-half visual design.
 
+It also means, that if you don't call "load" to eagerly load beforehand, you won't have to hit the DB / service multiple times for the same feature, just like Eloquent relations cache on the model.
+
 ```php
 <?php
 
