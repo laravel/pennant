@@ -274,10 +274,51 @@ The `loadMissing` method will only attempt to load values that are not already i
 
 ## Scope
 
-- global
+As mentioned, scope may be anything. It may be an eloquent model, an email, a number, etc. We really don't care _what_ it is. However we do need to be able to store the scope, and we also want to make it easy for other drivers to work with scope.
 
-`toFeatureScopeable`
-//
+It is possible to register a feature that doesn't care about scope. This is useful for things like Jetstream's feature system.
+
+```php
+<?php
+
+Feature::register('eu-tax', fn () => false);
+
+Feature::isActive('eu-tax');
+// false
+
+Feature::for($tim)->isActive('eu-tax');
+// false
+```
+
+It may also be the case that you want to pass through a Eloquent model, but allow it be converted into identifiers for other drivers. Take the LaunchDarkly service. It will want an `LDUser`. Objects may implement the `FeatureScopeable` interface.
+
+```php
+<?php
+
+class Foo extends Model implements FeatureScopeable
+{
+    /**
+     * The value to use when checking features against the instance.
+     *
+     * @param  string  $driver
+     * @return mixed
+     */
+    public function toFeatureScopeIdentifier($driver)
+    {
+        if ($driver === 'launchdarkly') {
+            return new LDUser(/* ... */);
+        }
+
+        return $this;
+    }
+}
+```
+
+The drivers do not need to worry about this interface, as the decorator takes care of converting the objects.
+
+### TODO
+
+- Determine how we want to serialize these. We will need to serialize models properly.
 
 ## Events
 
