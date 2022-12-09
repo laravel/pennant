@@ -1,9 +1,14 @@
 ## Basic usage
 
-Register an initial state resolver. This is used to determine the value of the
-feature flag if it is not yet set in storage.
+The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against.
+
+Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc.
 
 ```php
+<?php
+
+// Service provider, middleware, etc.
+
 Feature::register('new-api', function ($user) {
     if ($user->isInternal()) {
         return true;
@@ -11,6 +16,18 @@ Feature::register('new-api', function ($user) {
 
     return Lottery::odds(1 / 1000);
 });
+
+// Application usage via Facade.
+
+if (Feature::for($user)->isActive('new-api')) {
+    //
+}
+
+// Via an object using the provided `HasFeatures` trait.
+
+if ($user->featureIsActive('new-api')) {
+    //
+}
 ```
 
 

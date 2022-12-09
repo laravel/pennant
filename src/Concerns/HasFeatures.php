@@ -4,7 +4,7 @@ namespace Laravel\Feature\Concerns;
 
 use Laravel\Feature\Feature;
 
-trait HasFeature
+trait HasFeatures
 {
     /**
      * Determine if the feature is active.
