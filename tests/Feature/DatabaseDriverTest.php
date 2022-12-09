@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
@@ -357,13 +358,18 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_serializes_eloquent_models()
     {
-        $user = new User(['id' => 1]);
+        $this->markTestSkipped('TODO');
+        Schema::create('users', function ($table) {
+            $table->id();
+            $table->timestamps();
+        });
+        // $user = User::create();
 
-        Feature::for($user)->activate('foo');
+        // Feature::for($user)->activate('foo');
 
-        $this->assertTrue(Feature::for($user)->isActive('foo'));
-        $this->assertTrue(Feature::for('eloquent_model:Tests\Feature\User:1')->isActive('foo'));
-        $this->assertFalse(Feature::for('eloquent_model:user:1')->isActive('foo'));
+        // dd(DB::table('features')->get());
+
+        // $this->assertTrue(Feature::for($user)->isActive('foo'));
         // $this->assertCount(4, DB::getQueryLog());
     }
 
