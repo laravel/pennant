@@ -63,11 +63,15 @@ class Decorator implements DriverContract
      * Register an initial feature state resolver.
      *
      * @param  string  $feature
-     * @param  (callable(mixed $scope): mixed)  $resolver
+     * @param  mixed  $resolver
      * @return void
      */
     public function register($feature, $resolver)
     {
+        if (is_string($resolver) || ! is_callable($resolver)) {
+            $resolver = fn () => $resolver;
+        }
+
         $this->driver()->register($feature, $resolver);
     }
 
@@ -86,7 +90,7 @@ class Decorator implements DriverContract
         $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
                 ->zip($results[$key])
                 ->map(fn ($scopes) => $scopes->push($key)))
-            ->each(fn ($value) => $this->remember($value[2], $value[0], $value[1]));
+            ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
 
         return $results;
     }
@@ -134,7 +138,7 @@ class Decorator implements DriverContract
         }
 
         return tap($this->driver()->get($feature, $scope), function ($value) use ($feature, $scope) {
-            $this->remember($feature, $scope, $value);
+            $this->putInCache($feature, $scope, $value);
         });
     }
 
@@ -156,7 +160,7 @@ class Decorator implements DriverContract
 
         $this->driver->set($feature, $scope, $value);
 
-        $this->remember($feature, $scope, $value);
+        $this->putInCache($feature, $scope, $value);
     }
 
     /**
@@ -187,7 +191,7 @@ class Decorator implements DriverContract
      * @param  mixed  $value
      * @return void
      */
-    protected function remember($feature, $scope, $value)
+    protected function putInCache($feature, $scope, $value)
     {
         $position = $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope

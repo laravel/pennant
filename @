@@ -114,7 +114,6 @@ class DatabaseDriver implements Driver
      */
     public function load($features)
     {
-        $inserts = new Collection;
         $query = $this->db->table('features');
 
         $features = Collection::make($features)
@@ -123,12 +122,14 @@ class DatabaseDriver implements Driver
 
         $records = $query->get();
 
-        $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
+        $inserts = [];
+
+        $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, &$inserts) {
             if ($records->where('name', $feature)->where('scope', $scope)->isNotEmpty()) {
                 return unserialize($records->where('name', $feature)->where('scope', $scope)->value('value'));
             }
 
-            return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+            return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, &$inserts) {
                 $inserts[] = [
                     'name' => $feature,
                     'scope' => $scope,
@@ -137,9 +138,9 @@ class DatabaseDriver implements Driver
             });
         })->all())->all();
 
-        if ($inserts->isNotEmpty()) {
-            $this->db->table('features')->insert($inserts->all());
-        }
+        dump($inserts);
+
+        // TODO inserts
 
         return $results;
     }

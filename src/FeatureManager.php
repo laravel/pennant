@@ -54,7 +54,12 @@ class FeatureManager extends Manager
      */
     public function createDatabaseDriver()
     {
-        return $this->container[DatabaseDriver::class];
+        return new DatabaseDriver(
+            $this->container['db.connection'],
+            $this->container['events'],
+            $this->scopeComparator('database'),
+            []
+        );
     }
 
     /**

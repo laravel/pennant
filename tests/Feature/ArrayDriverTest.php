@@ -542,4 +542,13 @@ class ArrayDriverTest extends TestCase
             'bar' => [2, 4, 6],
         ], $values);
     }
+
+    public function test_it_may_register_shorthand_feature_values()
+    {
+        Feature::register('foo', 'value');
+
+        $value = Feature::value('foo');
+
+        $this->assertSame('value', $value);
+    }
 }

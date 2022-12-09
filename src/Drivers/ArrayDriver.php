@@ -36,6 +36,7 @@ class ArrayDriver implements Driver
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  (callable(mixed, mixed, string): bool)  $scopeComparator
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
     public function __construct(Dispatcher $events, $scopeComparator, $featureStateResolvers)
