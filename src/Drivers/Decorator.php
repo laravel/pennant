@@ -175,6 +175,8 @@ class Decorator implements DriverContract
     /**
      * Get the decorated driver.
      *
+     * @internal
+     *
      * @return \Laravel\Feature\Contracts\Driver
      */
     public function driver()
@@ -184,6 +186,8 @@ class Decorator implements DriverContract
 
     /**
      * Get the Authentication factory.
+     *
+     * @internal
      *
      * @return \Illuminate\Contracts\Auth\Factory
      */
