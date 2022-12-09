@@ -1,5 +1,12 @@
 ## API
 
+Do we want a way to detect if the feature has been set yet?
+
+Database driver needs to use the scope comparator.
+Database driver needs to handle eloquent model.
+How do we feel about serialize? Could be dicey.
+Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
+
 ### Retrieving state
 
 ```php
@@ -320,3 +327,4 @@ Feature::for(Lottery::odds(1, 100))->deactivate('foo'))
          ////
          ////        Feature::globally()->activate('foo')->flushingExisting();
          ////        Feature::globally()->activate('foo')->rememberExisting();
+

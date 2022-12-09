@@ -11,7 +11,7 @@ use Laravel\Feature\Drivers\DatabaseDriver;
 use Laravel\Feature\Drivers\Decorator;
 
 /**
- * @method \Laravel\Feature\Drivers\Decorator driver(?string $driver)
+ * @method \Laravel\Feature\Drivers\Decorator driver(string|null $driver = null)
  * @mixin \Laravel\Feature\Drivers\Decorator
  */
 class FeatureManager extends Manager
@@ -22,16 +22,6 @@ class FeatureManager extends Manager
      * @var (callable(mixed, mixed, string): bool)|null
      */
     protected $scopeComparator;
-
-    /**
-     * Create a new manager instance.
-     *
-     * @param  \Illuminate\Contracts\Container\Container  $container
-     */
-    public function __construct(Container $container)
-    {
-        parent::__construct($container);
-    }
 
     /**
      * Create an instance of the Array driver.
@@ -100,7 +90,9 @@ class FeatureManager extends Manager
                 return ($this->scopeComparator)($a, $b, $driver);
             }
 
-            return $a instanceof Model && $b instanceof Model ? $a->is($b) : $a === $b;
+            return $a instanceof Model && $b instanceof Model
+                ? $a->is($b)
+                : $a === $b;
         };
     }
 
