@@ -43,7 +43,7 @@ class PendingScopedFeatureInteraction
      */
     public function for($scope)
     {
-        $this->scope = array_merge($this->scope, Arr::wrap($scope));
+        $this->scope = array_merge($this->scope, Collection::wrap($scope)->all());
 
         return $this;
     }

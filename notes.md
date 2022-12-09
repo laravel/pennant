@@ -230,6 +230,24 @@ Feature::for($tim)->activate('foo', [
 ]);
 ```
 
+It is possible to activate / deactivate several features with one method call.
+
+```php
+<?php
+
+Feature::for($tim)->activate(['foo', 'bar']);
+```
+
+It is also possible to pass multiple scope through....
+```php
+<?php
+
+Feature::for([$tim, $jess])->activate(['foo', 'bar']);
+
+Feature::for($circle->members)->activate(['foo', 'bar']);
+```
+
+Note that changing the state of feature flags has not been optimized for bulk at the driver level. The driver API will always receive one feature + once scope to activate at a time.
 
 ### TODO
 
