@@ -209,10 +209,35 @@ Feature::isActive('bar');
 
 This allows users to keep track of what features are being used / not used, or when they are trying to resolve features that do not exist.
 
-
 ### TODO
 
 - Offer a `Feature::throwOnUnknownFeature()` which throws an exception when trying to resolve a feature that does not exist.
+
+## Programmatically changing feature flag values
+
+If you want to manipulate the persisted state of a feature flag, you may use the `activate` and `deactivate` methods.
+
+```php
+<?php
+
+// Turn on / off.
+Feature::for($tim)->activate('foo');
+Feature::for($jess)->deactivate('bar');
+
+// Set a complex value.
+Feature::for($tim)->activate('foo', [
+    'my' => 'value',
+]);
+```
+
+
+### TODO
+
+- Provide artisan commands to manipulate the state of things:
+    - For everyone: `php artisan feature:activate new-api`
+    - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
+    - etc.
+
 
 ## API
 
