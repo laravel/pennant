@@ -99,6 +99,39 @@ Take something like LaunchDarkly. Their driver / docs may tell developers that t
 
 ## Feature values
 
+As previously stated, generally feature flags are "on" or "off". However, it can often be useful to store more "complex" values as a flag. "complex" really meaning things like a string, array of JSON, etc.
+
+Take the example of a new button design. We may be trialling 3 different button colours.
+
+```php
+<?php
+
+// Register the feature...
+
+Feature::register('buy-now-button-color', function (): string {
+    return Arr::random(['green', 'blue', 'black']);
+});
+
+
+// Use the feature in Blade...
+
+@if(Feature::for($user)->value('buy-now-button-color') === 'green')
+    <GreenButton />
+@elseif(Feature::for($user)->value('buy-now-button-color') === 'blue')
+    <BlueButton />
+@else
+    <BlackButton />
+@endif
+```
+
+This is a feature that is important for supporting 3rd party vendors as most (all the ones I've looked at) support this kind of behaviour.
+
+This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false`.
+
+### TODO
+
+- Decide how to serialize the value. Currently throwing `serialize` at the problem, but we should probably use `json_encode`.
+
 ## Caching
 
 To reduce complexity for driver implementations, we provide the drivers with an in-memory cache of resolved feature states. The drivers are not aware of this cache.
