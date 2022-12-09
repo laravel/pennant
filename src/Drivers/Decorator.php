@@ -3,6 +3,7 @@
 namespace Laravel\Feature\Drivers;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Lottery;
 use Laravel\Feature\Contracts\Driver as DriverContract;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\PendingScopedFeatureInteraction;
@@ -71,6 +72,14 @@ class Decorator implements DriverContract
         if (is_string($resolver) || ! is_callable($resolver)) {
             $resolver = fn () => $resolver;
         }
+
+        $resolver = function ($scope) use ($resolver) {
+            $value = $resolver($scope);
+
+            return $value instanceof Lottery
+                ?  $value()
+                : $value;
+        };
 
         $this->driver()->register($feature, $resolver);
     }

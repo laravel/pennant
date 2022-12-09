@@ -1,3 +1,19 @@
+## Basic usage
+
+Register an initial state resolver. This is used to determine the value of the
+feature flag if it is not yet set in storage.
+
+```php
+Feature::register('new-api', function ($user) {
+    if ($user->isInternal()) {
+        return true;
+    }
+
+    return Lottery::odds(1 / 1000);
+});
+```
+
+
 ## API
 
 Do we want a way to detect if the feature has been set yet?
@@ -6,6 +22,7 @@ Database driver needs to use the scope comparator.
 Database driver needs to handle eloquent model.
 How do we feel about serialize? Could be dicey.
 Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
+Nice api for 'remember' vs 'register'?
 
 ### Retrieving state
 

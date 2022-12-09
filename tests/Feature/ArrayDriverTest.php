@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Lottery;
 use Laravel\Feature\Contracts\FeatureScopeable;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
@@ -550,5 +551,16 @@ class ArrayDriverTest extends TestCase
         $value = Feature::value('foo');
 
         $this->assertSame('value', $value);
+    }
+
+    public function test_it_can_use_lottery()
+    {
+        Feature::register('foo', Lottery::odds(1, 1));
+        Feature::register('bar', Lottery::odds(0, 1));
+        Feature::register('baz', fn () => Lottery::odds(0, 1));
+
+        $this->assertTrue(Feature::value('foo'));
+        $this->assertFalse(Feature::value('bar'));
+        $this->assertFalse(Feature::value('baz'));
     }
 }
