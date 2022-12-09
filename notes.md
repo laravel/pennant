@@ -36,7 +36,37 @@ if ($user->featureIsActive('new-api')) {
 
 ## Caching
 
-//
+To reduce complexity for driver implementations, we provide the drivers with an in-memory cache of resolved feature states. The drivers are not aware of this cache.
+
+This means that a feature + scope combination will only be resolved from the driver once per request. This is important as allow the state of the feature flag to change throughout a request could result in strange behaviour.
+
+Imagine changing the `"new-design"` flag on a user part way through the request. It would lead to a half-half visual design.
+
+```php
+<?php
+
+Feature::register('foo', new Lottery(1 / 1000));
+
+// resolved from the driver (hits the DB / feature flag service) and the result is cached in-memory.
+Feature::for($taylor)->isActive('foo');
+
+// resolved from the in-memory cache. Does not invoke the driver at all.
+Feature::for($taylor)->isActive('foo');
+Feature::for($taylor)->isActive('foo');
+Feature::for($taylor)->isActive('foo');
+
+// Because we are passing through new "scope", this will be resolved from the driver (hits the DB / feature flag service) and the result is cached in-memory.
+Feature::for($jess)->isActive('foo');
+
+// resolved from the in-memory cache. Does not invoke the driver at all.
+Feature::for($jess)->isActive('foo');
+Feature::for($jess)->isActive('foo');
+```
+
+### TODO
+
+- Provide a `Feature::flushCache()` method to clear the cache when needed.
+- Consider if we need to manually clear the cache for Octane / Queue workers.
 
 ## Scope
 
@@ -81,7 +111,7 @@ This allows users to keep track of what features are being used / not used, or w
 
 ### TODO
 
-- Offer a "Feature::throwOnUnkownFeature()" which throws an exception when trying to resolve a feature that does not exist.
+- Offer a `Feature::throwOnUnknownFeature()` which throws an exception when trying to resolve a feature that does not exist.
 
 ## API
 
