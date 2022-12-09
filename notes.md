@@ -157,6 +157,36 @@ This is a feature that is important for supporting 3rd party vendors as most (al
 
 This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false`.
 
+Unlike `isActive` / `isInactive`, the `value` method only accepts a single feature and only works against 0 or 1 scope items.
+
+```php
+<?php
+
+// Throws an exception.
+Feature::for([$tim, $jess])->value('foo');
+```
+
+To retrieve the value for multiple scopes at once or multiple features, you may use the `values` method.
+
+```php
+<?php
+
+Feature::for($tim)->activate('foo');
+Feature::for($tim)->deactivate('bar');
+
+Feature::for($jess)->deactivate('foo');
+Feature::for($jess)->activate('bar');
+
+Feature::for([$tim, $jess])->values(['foo', 'bar']);
+
+// [
+//     'foo' => [true, false],
+//     'bar' => [false, true],
+// ]
+```
+
+The return format of this might feel weird, but I think this method is really an edge-case and is just in place for completeness.
+
 ### TODO
 
 - Decide how to serialize the value. Currently throwing `serialize` at the problem, but we should probably use `json_encode`.
