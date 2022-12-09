@@ -28,7 +28,7 @@ class Decorator implements DriverContract
     protected $driver;
 
     /**
-     * The authenticate factory.
+     * The authentication factory.
      *
      * @var \Illuminate\Contracts\Auth\Factory
      */
