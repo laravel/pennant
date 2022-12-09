@@ -18,7 +18,7 @@ Feature::register('new-api', function ($user) {
 });
 
 /*
- * Check if the feature is active throughout the application usage, via the Facade...
+ * Check if the feature is active throughout the application usage, via the Facade.
  */
 
 if (Feature::for($user)->isActive('new-api')) {
@@ -26,7 +26,7 @@ if (Feature::for($user)->isActive('new-api')) {
 }
 
 /*
- * or check via an object using the provided `HasFeatures` trait.
+ * Or check via an object using the provided `HasFeatures` trait.
  */
 
 if ($user->featureIsActive('new-api')) {
