@@ -97,6 +97,35 @@ It is possible that some drivers may just throw an exception when trying to "reg
 
 Take something like LaunchDarkly. Their driver / docs may tell developers that they do not need to "register" features as that is all handled in their dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a "feature".
 
+## Check feature state
+
+To check if a feature is active or inactive, we provide the following APIs:
+
+```php
+<?php
+
+Feature::for($tim)->isActive('foo');
+Feature::for($tim)->isInactive('foo');
+```
+
+It is possible to check if multiple values are active in one method call...
+
+```php
+<?php
+
+Feature::for($tim)->isActive(['foo', 'bar']);
+Feature::for($tim)->isInactive(['foo', 'bar']);
+```
+
+It is also possible to check against multiple scope at once...
+
+```php
+<?php
+
+// true is $tim and $jess have both `foo` and `bar` active.
+Feature::for([$tim, $jess])->isActive(['foo', 'bar']);
+```
+
 ## Feature values
 
 As previously stated, generally feature flags are "on" or "off". However, it can often be useful to store more "complex" values as a flag. "complex" really meaning things like a string, array of JSON, etc.
@@ -169,6 +198,8 @@ Feature::for($jess)->isActive('foo');
 - Consider if we need to manually clear the cache for Octane / Queue workers.
 
 ## Scope
+
+- global
 
 `toFeatureScopeable`
 //
