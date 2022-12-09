@@ -1,13 +1,13 @@
 ## Basic usage
 
-The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against.
-
-Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc.
+The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against.  Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
 
 ```php
 <?php
 
-// Service provider, middleware, etc.
+/*
+ * Register the feature resolver in a service provider, middleware, etc.
+ */
 
 Feature::register('new-api', function ($user) {
     if ($user->isInternal()) {
@@ -17,13 +17,17 @@ Feature::register('new-api', function ($user) {
     return Lottery::odds(1 / 1000);
 });
 
-// Application usage via Facade.
+/*
+ * Check if the feature is active throughout the application usage, via the Facade...
+ */
 
 if (Feature::for($user)->isActive('new-api')) {
     //
 }
 
-// Via an object using the provided `HasFeatures` trait.
+/*
+ * or check via an object using the provided `HasFeatures` trait.
+ */
 
 if ($user->featureIsActive('new-api')) {
     //
