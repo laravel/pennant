@@ -153,6 +153,8 @@ Feature::register('buy-now-button-color', function (): string {
     return Arr::random(['green', 'blue', 'black']);
 });
 
+Feature::for($user)->value('buy-now-button-color'); // 'green'|'blue'|'black'
+
 
 // Use the feature in Blade...
 
