@@ -91,28 +91,15 @@ Feature::register('new-cron-job-provisioning', config('features.new-cron-job-pro
 Feature::register('new-foo-provisioning', config('features.new-foo-provisioning'));
 ```
 
-### Fallback values
-
-Our first party drivers fallback to `false` for unknown features i.e. if we try to access a feature with no resolver, the result will always be `false`.
-
-```php
-<?php
-
-Feature::for($tim)->isActive('random-misspelt-feature');
-// false
-```
-
-However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
-
 ### Other drivers
 
-It is possible that some drivers may just throw an exception when trying to "register" a feature, as that process is handled completely on their end.
+It is possible that some drivers may throw an exception when trying to "register" a feature, as that process is handled completely on their end.
 
-Take something like LaunchDarkly. Their driver / docs may tell developers that they do not need to "register" features as that is all handled in their dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a "feature".
+Take something like LaunchDarkly. Their driver may tell developers that they do not need to "register" features as that is all handled in their first party dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a "feature".
 
-Alternatively, they may still get you to register features and the result of that could be used in "offline" mode when LaunchDarkly is not available.
+Alternatively, they may still get you to register features and the result of that could be used in "offline" mode when the service is down for maintenance or otherwise unavailable.
 
-## Check feature state
+## Checking a feature
 
 To check if a feature is active or inactive, we provide the following APIs:
 
@@ -123,14 +110,25 @@ Feature::for($tim)->isActive('foo');
 Feature::for($tim)->isInactive('foo');
 ```
 
-It is possible to check if multiple values are active in one method call...
+It is possible to check if multiple values are all active in one method call...
 
 ```php
 <?php
 
-Feature::for($tim)->isActive(['foo', 'bar']);
-Feature::for($tim)->isInactive(['foo', 'bar']);
+Feature::for($tim)->allAreActive(['foo', 'bar']);
+Feature::for($tim)->allAreInactive(['foo', 'bar']);
 ```
+
+It is possible to check if any given values are active in one method call...
+
+```php
+<?php
+
+Feature::for($tim)->anyAreActive(['foo', 'bar']);
+Feature::for($tim)->anyAreInactive(['foo', 'bar']);
+```
+
+Note: `all` vs `any`
 
 It is also possible to check against multiple scope at once...
 
@@ -138,7 +136,8 @@ It is also possible to check against multiple scope at once...
 <?php
 
 // true is $tim and $jess have both `foo` and `bar` active.
-Feature::for([$tim, $jess])->isActive(['foo', 'bar']);
+Feature::for([$tim, $jess])->isActive('foo');
+Feature::for([$tim, $jess])->allAreActive(['foo', 'bar']);
 ```
 
 ## Feature values
@@ -400,6 +399,19 @@ Note that changing the state of feature flags has not been optimized for bulk at
     - For everyone: `php artisan feature:activate new-api`
     - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
     - etc.
+
+## Fallback values
+
+Our first party drivers fallback to `false` for unknown features i.e. if we try to access a feature with no resolver, the result will always be `false`.
+
+```php
+<?php
+
+Feature::for($tim)->isActive('random-misspelt-feature');
+// false
+```
+
+However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
 
 ## Misc TODO
 - Ability to retrieve the features for a user? or just all available users? Will this resolve the features state?
