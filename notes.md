@@ -1,10 +1,8 @@
-This doc outlines a fair few features, but it would be good to go an checkout the actual contract for implementing a driver. It is really small. The features come from our decorator.
-
-Also, it may seem like there is a bit of magic going on here, but the whole codebase is understood by PHPStan because of the way it has all been implemented (read: it isn't _that_ magic)
+This doc outlines the features, but it would be good to go an checkout the actual contract for implementing a driver. It is rather small. Most of the features come from our decorator.
 
 ## Basic usage
 
-The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against.  Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
+The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against. Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
 
 ```php
 <?php
@@ -50,15 +48,15 @@ Feature::register('foo', function (mixed $scope): mixed {
 });
 ```
 
-### The scope passed in
+### The `$scope` parameter
 
-The Closure will receive the "scope" for the feature check being performed. The scope may be `null`, and eloquent model, a `string` or something else entirely. We will learn more about scope values later.
+The Closure will receive the "scope" for the feature check being performed. The scope may be `null` (used to indicate that no scope was given which can be useful for anonymous / global feature flags), an eloquent model, a `string` or something else entirely. We will learn more about scope values later.
 
-### The returned state
+### Returned value
 
-The feature resolver should return whatever the value of the feature should be when not already persisted by the driver. Generally a `boolean` would be returned, however the package also supports complex values. We will learn more about the supported values later.
+The feature resolver should return the value of the feature flag. Generally a `boolean` would be returned, however the package also supports complex values (such as strings or arrays). We will learn more about the supported values later.
 
-### Lotteries
+### Returning a lottery
 
 Lotteries are a first party citizen. Because they are callable, they may be passed as an argument...
 
@@ -68,7 +66,7 @@ Lotteries are a first party citizen. Because they are callable, they may be pass
 Feature::register('foo', Lottery::odds(1 / 1000));
 ```
 
-Lotteries may also be returned from the Closure...
+Lotteries may also be returned from the Closure to compose more complex resolution rules...
 
 ```php
 <?php
