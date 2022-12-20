@@ -172,6 +172,7 @@ class DatabaseDriver implements Driver
      */
     protected function insert($feature, $scope, $value)
     {
+        // TODO will need to serialize the scope in a good way.
         return $this->db->table('features')->insert([
             'name' => $feature,
             'scope' => $scope,

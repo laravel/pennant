@@ -216,7 +216,7 @@ Feature::for([$tim, $jess])->load([
 ]);
 ```
 
-Alternatively, you may just pass an array directly to the load method...
+Alternatively, you may pass an array directly to the load method...
 
 ```php
 <?php
@@ -228,7 +228,7 @@ Feature::load([
 ]);
 ```
 
-The `loadMissing` method will only attempt to load values that are not already in memory. Note that drivers do not implement this method and we handle everything for them, including normalising the data into a single known format.
+The `loadMissing` method will only load values that are not already in memory. Note that drivers do not implement this method and we handle everything for them, including normalising the data into a single known format.
 
 ## Scope
 
@@ -264,19 +264,15 @@ class Foo extends Model implements FeatureScopeable
     public function toFeatureScopeIdentifier($driver)
     {
         if ($driver === 'launchdarkly') {
-            return new LDUser(/* ... */);
+            return new LDUser($this->id);
         }
 
-        return $this;
+        return $this->id;
     }
 }
 ```
 
 The drivers do not need to worry about this interface, as the decorator takes care of converting the objects.
-
-### TODO
-
-- Determine how we want to serialize these. We will need to serialize models properly.
 
 ## Events
 
