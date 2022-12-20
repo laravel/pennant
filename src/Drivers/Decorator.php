@@ -35,7 +35,7 @@ class Decorator implements DriverContract
     protected $auth;
 
     /**
-     * Feature state cache.
+     * The in-memory feature state cache.
      *
      * @var \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>
      */
@@ -49,7 +49,7 @@ class Decorator implements DriverContract
      * @param  \Illuminate\Contracts\Auth\Factory  $auth
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
-    public function __construct($name, $driver, $auth, $cache = new Collection)
+    public function __construct($name, $driver, $auth, $cache)
     {
         $this->name = $name;
 
@@ -61,7 +61,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Register an initial feature state resolver.
+     * Register an initial flag state resolver.
      *
      * @param  string  $feature
      * @param  mixed  $resolver
@@ -85,7 +85,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Eagerly load mutliple flag values.
+     * Eagerly preload mutliple flags values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -123,7 +123,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Get the value of the feature flag.
+     * Retrieve the flags value.
      *
      * @internal
      *
@@ -152,7 +152,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Set the value of the feature flag.
+     * Set the flags value.
      *
      * @internal
      *

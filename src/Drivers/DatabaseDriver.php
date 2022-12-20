@@ -67,7 +67,7 @@ class DatabaseDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return bool
+     * @return mixed
      */
     public function get($feature, $scope)
     {
@@ -148,7 +148,7 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Retrieve the value in storage.
+     * Retrieve the value from storage.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -163,7 +163,7 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Insert the value in storage.
+     * Insert the value into storage.
      *
      * @param  string  $feature
      * @param  mixed  $scope

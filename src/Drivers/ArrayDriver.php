@@ -28,7 +28,7 @@ class ArrayDriver implements Driver
     /**
      * The scope comparator.
      *
-     * @var (callable(mixed, mixed): bool)|null
+     * @var callable(mixed, mixed): bool
      */
     protected $scopeComparator;
 
@@ -36,7 +36,7 @@ class ArrayDriver implements Driver
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  (callable(mixed, mixed, string): bool)  $scopeComparator
+     * @param  (callable(mixed, mixed): bool)  $scopeComparator
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
     public function __construct(Dispatcher $events, $scopeComparator, $featureStateResolvers)
@@ -53,7 +53,7 @@ class ArrayDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return bool
+     * @return mixed
      */
     public function get($feature, $scope)
     {
@@ -69,7 +69,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Activate the feature.
+     * Set the flags value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -84,7 +84,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Register an initial feature state resolver.
+     * Register an initial flag state resolver.
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
@@ -96,7 +96,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Eagerly load the feature state into memory.
+     * Retrieve mutliple flags values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -111,7 +111,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Determine if the feature has no resolver available.
+     * Determine if the feature does not have a resolver available.
      *
      * @param  string  $feature
      * @return bool

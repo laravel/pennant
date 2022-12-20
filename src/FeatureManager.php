@@ -5,6 +5,7 @@ namespace Laravel\Feature;
 use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
 use Laravel\Feature\Drivers\DatabaseDriver;
@@ -73,7 +74,8 @@ class FeatureManager extends Manager
         return new Decorator(
             $driver,
             parent::createDriver($driver),
-            $this->container[Factory::class]
+            $this->container[Factory::class],
+            new Collection
         );
     }
 

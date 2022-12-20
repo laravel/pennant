@@ -5,7 +5,7 @@ namespace Laravel\Feature\Contracts;
 interface FeatureScopeable
 {
     /**
-     * The value to use when checking features against the instance.
+     * Cast the object to an identifier for the given driver.
      *
      * @param  string  $driver
      * @return mixed

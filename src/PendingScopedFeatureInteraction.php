@@ -36,7 +36,7 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Scope the feature interaction.
+     * Add scope to the feature interaction.
      *
      * @param  mixed|array<mixed>  $scope
      * @return $this
@@ -49,7 +49,7 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Scope the feature interaction to the authenticated user.
+     * Add the authenticated user as scope to the feature interaction.
      *
      * @return $this
      */
@@ -97,14 +97,38 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if the feature is active.
      *
-     * @param  string|array<string>  $feature
+     * @param  string  $feature
      * @return bool
      */
     public function isActive($feature)
     {
-        return Collection::wrap($feature)
+        return $this->allAreActive([$feature]);
+    }
+
+    /**
+     * Determine if all the features are active.
+     *
+     * @param  array<string>  $feature
+     * @return bool
+     */
+    public function allAreActive($features)
+    {
+        return Collection::make($feature)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
+    }
+
+    /**
+     * Determine if any of the features are active.
+     *
+     * @param  array<string>  $feature
+     * @return bool
+     */
+    public function anyAreActive($features)
+    {
+        return Collection::make($feature)
+            ->crossJoin($this->scope())
+            ->some(fn ($bits) => $this->driver->get(...$bits) !== false);
     }
 
     /**
@@ -115,9 +139,33 @@ class PendingScopedFeatureInteraction
      */
     public function isInactive($feature)
     {
-        return Collection::wrap($feature)
+        return $this->allAreInactive([$feature]);
+    }
+
+    /**
+     * Determine if all the features are inactive.
+     *
+     * @param  array<string>  $features
+     * @return bool
+     */
+    public function allAreInactive($features)
+    {
+        return Collection::make($feature)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) === false);
+    }
+
+    /**
+     * Determine if any of the features are inactive.
+     *
+     * @param  array<string>  $features
+     * @return bool
+     */
+    public function allAreInactive($features)
+    {
+        return Collection::make($feature)
+            ->crossJoin($this->scope())
+            ->some(fn ($bits) => $this->driver->get(...$bits) === false);
     }
 
     /**
