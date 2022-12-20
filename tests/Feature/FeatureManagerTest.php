@@ -12,18 +12,6 @@ use Tests\TestCase;
 
 class FeatureManagerTest extends TestCase
 {
-    public function test_default_driver_is_array_driver()
-    {
-        $this->assertInstanceOf(ArrayDriver::class, Feature::driver()->driver());
-    }
-
-    public function test_it_checks_config_for_driver()
-    {
-        Config::set('features.default', 'database');
-
-        $this->assertInstanceOf(DatabaseDriver::class, Feature::driver()->driver());
-    }
-
     public function test_it_can_chain_scope_additions()
     {
         Feature::for('tim@laravel.com')->for('jess@laravel.com')->activate('foo');

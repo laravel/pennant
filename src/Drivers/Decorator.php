@@ -73,15 +73,13 @@ class Decorator implements DriverContract
             $resolver = fn () => $resolver;
         }
 
-        $resolver = function ($scope) use ($resolver) {
+        $this->driver->register($feature, function ($scope) use ($resolver) {
             $value = $resolver($scope);
 
             return $value instanceof Lottery
                 ?  $value()
                 : $value;
-        };
-
-        $this->driver()->register($feature, $resolver);
+        });
     }
 
     /**
@@ -94,14 +92,12 @@ class Decorator implements DriverContract
     {
         $features = $this->normalizeFeaturesToLoad($features);
 
-        $results = $this->driver()->load($features->all());
-
-        $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+        return tap($this->driver->load($features->all()), function ($results) use ($features) {
+            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
                 ->zip($results[$key])
                 ->map(fn ($scopes) => $scopes->push($key)))
-            ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
-
-        return $results;
+                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
+        });
     }
 
     /**
@@ -112,14 +108,12 @@ class Decorator implements DriverContract
      */
     public function loadMissing($features)
     {
-        $features = $this->normalizeFeaturesToLoad($features)
+        return $this->normalizeFeaturesToLoad($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
                 ->reject(fn ($scope) => $this->isCached($feature, $scope))
                 ->all())
             ->reject(fn ($scopes) => $scopes === [])
-            ->all();
-
-        return $this->load($features);
+            ->pipe(fn ($features) => $this->load($features->all()));
     }
 
     /**
@@ -146,7 +140,7 @@ class Decorator implements DriverContract
             return $item['value'];
         }
 
-        return tap($this->driver()->get($feature, $scope), function ($value) use ($feature, $scope) {
+        return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
             $this->putInCache($feature, $scope, $value);
         });
     }
@@ -170,18 +164,6 @@ class Decorator implements DriverContract
         $this->driver->set($feature, $scope, $value);
 
         $this->putInCache($feature, $scope, $value);
-    }
-
-    /**
-     * Get the decorated driver.
-     *
-     * @internal
-     *
-     * @return \Laravel\Feature\Contracts\Driver
-     */
-    public function driver()
-    {
-        return $this->driver;
     }
 
     /**

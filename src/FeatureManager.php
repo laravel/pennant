@@ -2,7 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Contracts\Auth\Factory;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -74,7 +73,7 @@ class FeatureManager extends Manager
         return new Decorator(
             $driver,
             parent::createDriver($driver),
-            $this->container[Factory::class],
+            $this->container['auth'],
             new Collection
         );
     }
@@ -83,7 +82,7 @@ class FeatureManager extends Manager
      * Get the feature scope comparator.
      *
      * @param  string  $driver
-     * @return (callable(mixed, mixed, string): bool)|null
+     * @return callable(mixed, mixed): bool
      */
     protected function scopeComparator($driver)
     {

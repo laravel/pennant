@@ -197,15 +197,15 @@ class DatabaseDriverTest extends TestCase
     {
         Feature::activate(['foo', 'bar']);
 
-        $this->assertTrue(Feature::isActive(['foo']));
-        $this->assertTrue(Feature::isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+        $this->assertTrue(Feature::allAreActive(['foo']));
+        $this->assertTrue(Feature::allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar', 'baz']));
 
         Feature::deactivate('baz');
 
-        $this->assertTrue(Feature::isActive(['foo']));
-        $this->assertTrue(Feature::isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+        $this->assertTrue(Feature::allAreActive(['foo']));
+        $this->assertTrue(Feature::allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar', 'baz']));
 
         $this->assertCount(7, DB::getQueryLog());
     }
@@ -289,14 +289,14 @@ class DatabaseDriverTest extends TestCase
 
         Feature::for([$first, $second])->activate(['foo', 'bar']);
 
-        $this->assertFalse(Feature::isActive(['foo', 'bar']));
-        $this->assertTrue(Feature::for($first)->isActive(['foo', 'bar']));
-        $this->assertTrue(Feature::for($second)->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for($third)->isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($first)->allAreActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($second)->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for($third)->allAreActive(['foo', 'bar']));
 
-        $this->assertTrue(Feature::for([$first, $second])->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for([$second, $third])->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for([$first, $second, $third])->isActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for([$first, $second])->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$second, $third])->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$first, $second, $third])->allAreActive(['foo', 'bar']));
 
         $this->assertCount(12, DB::getQueryLog());
     }
@@ -418,7 +418,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        Feature::isActive(['foo', 'bar']);
+        Feature::allAreActive(['foo', 'bar']);
         $this->assertSame(1, $called['foo']);
         $this->assertSame(1, $called['bar']);
 

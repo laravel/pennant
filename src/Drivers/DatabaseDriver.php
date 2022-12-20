@@ -39,7 +39,7 @@ class DatabaseDriver implements Driver
     /**
      * The scope comparator.
      *
-     * @var (callable(mixed, mixed, string): bool)
+     * @var (callable(mixed, mixed): bool)
      */
     protected $scopeComparator;
 
@@ -48,7 +48,7 @@ class DatabaseDriver implements Driver
      *
      * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  (callable(mixed, mixed, string): bool)  $scopeComparator
+     * @param  (callable(mixed, mixed): bool)  $scopeComparator
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
     public function __construct(Connection $db, Dispatcher $events, $scopeComparator, $featureStateResolvers)
@@ -71,9 +71,7 @@ class DatabaseDriver implements Driver
      */
     public function get($feature, $scope)
     {
-        $record = $this->retrieve($feature, $scope);
-
-        if ($record !== null) {
+        if (($record = $this->retrieve($feature, $scope)) !== null) {
             return unserialize($record->value);
         }
 
@@ -214,8 +212,6 @@ class DatabaseDriver implements Driver
 
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
             $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
-
-            return $value;
         });
     }
 }

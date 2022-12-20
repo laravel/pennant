@@ -404,6 +404,7 @@ Note that changing the state of feature flags has not been optimized for bulk at
     - etc.
 
 ## Misc TODO
+- Ability to retrieve the features for a user? or just all available users? Will this resolve the features state?
 - decorator needs to use comparator,
 - Do we want a way to detect if the feature has been set yet?
 - Database driver needs to use the scope comparator.

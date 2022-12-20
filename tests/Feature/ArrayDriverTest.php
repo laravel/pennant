@@ -173,15 +173,15 @@ class ArrayDriverTest extends TestCase
     {
         Feature::activate(['foo', 'bar']);
 
-        $this->assertTrue(Feature::isActive(['foo']));
-        $this->assertTrue(Feature::isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+        $this->assertTrue(Feature::allAreActive(['foo']));
+        $this->assertTrue(Feature::allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar', 'baz']));
 
         Feature::deactivate('baz');
 
-        $this->assertTrue(Feature::isActive(['foo']));
-        $this->assertTrue(Feature::isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::isActive(['foo', 'bar', 'baz']));
+        $this->assertTrue(Feature::allAreActive(['foo']));
+        $this->assertTrue(Feature::allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar', 'baz']));
     }
 
     public function test_it_can_scope_features()
@@ -255,14 +255,14 @@ class ArrayDriverTest extends TestCase
 
         Feature::for([$first, $second])->activate(['foo', 'bar']);
 
-        $this->assertFalse(Feature::isActive(['foo', 'bar']));
-        $this->assertTrue(Feature::for($first)->isActive(['foo', 'bar']));
-        $this->assertTrue(Feature::for($second)->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for($third)->isActive(['foo', 'bar']));
+        $this->assertFalse(Feature::allAreActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($first)->allAreActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for($second)->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for($third)->allAreActive(['foo', 'bar']));
 
-        $this->assertTrue(Feature::for([$first, $second])->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for([$second, $third])->isActive(['foo', 'bar']));
-        $this->assertFalse(Feature::for([$first, $second, $third])->isActive(['foo', 'bar']));
+        $this->assertTrue(Feature::for([$first, $second])->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$second, $third])->allAreActive(['foo', 'bar']));
+        $this->assertFalse(Feature::for([$first, $second, $third])->allAreActive(['foo', 'bar']));
     }
 
     public function test_null_is_same_as_global()
@@ -357,7 +357,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(3, $called['foo']);
         $this->assertSame(3, $called['bar']);
 
-        Feature::isActive(['foo', 'bar']);
+        Feature::allAreActive(['foo', 'bar']);
         $this->assertSame(3, $called['foo']);
         $this->assertSame(3, $called['bar']);
     }

@@ -78,6 +78,7 @@ class ArrayDriver implements Driver
      */
     public function set($feature, $scope, $value)
     {
+        // TODO: are we worried about memory leaks here?
         $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
 
         $this->register($feature, fn ($s) => ($this->scopeComparator)($scope, $s) ? $value : $existing($s));

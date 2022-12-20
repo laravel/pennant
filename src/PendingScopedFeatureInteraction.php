@@ -108,12 +108,12 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if all the features are active.
      *
-     * @param  array<string>  $feature
+     * @param  array<string>  $features
      * @return bool
      */
     public function allAreActive($features)
     {
-        return Collection::make($feature)
+        return Collection::make($features)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
     }
@@ -121,12 +121,12 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if any of the features are active.
      *
-     * @param  array<string>  $feature
+     * @param  array<string>  $features
      * @return bool
      */
     public function anyAreActive($features)
     {
-        return Collection::make($feature)
+        return Collection::make($features)
             ->crossJoin($this->scope())
             ->some(fn ($bits) => $this->driver->get(...$bits) !== false);
     }
@@ -134,7 +134,7 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if the feature is inactive.
      *
-     * @param  string|array<string>  $feature
+     * @param  string  $feature
      * @return bool
      */
     public function isInactive($feature)
@@ -150,7 +150,7 @@ class PendingScopedFeatureInteraction
      */
     public function allAreInactive($features)
     {
-        return Collection::make($feature)
+        return Collection::make($features)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) === false);
     }
@@ -161,9 +161,9 @@ class PendingScopedFeatureInteraction
      * @param  array<string>  $features
      * @return bool
      */
-    public function allAreInactive($features)
+    public function anyAreInactive($features)
     {
-        return Collection::make($feature)
+        return Collection::make($features)
             ->crossJoin($this->scope())
             ->some(fn ($bits) => $this->driver->get(...$bits) === false);
     }
@@ -190,7 +190,9 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        $this->activate($feature, false);
+        Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], false));
     }
 
     /**
@@ -201,11 +203,9 @@ class PendingScopedFeatureInteraction
      */
     public function load($feature)
     {
-        $features = Collection::wrap($feature)
+        Collection::wrap($feature)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
-            ->all();
-
-        $this->driver->load($features);
+            ->pipe(fn ($features) => $this->driver->load($features->all()));
     }
 
     /**
