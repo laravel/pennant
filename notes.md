@@ -350,13 +350,6 @@ Feature::for($circle->members)->activate(['foo', 'bar']);
 
 Note that changing the state of feature flags has not been optimized for bulk at the driver level. The driver API will always receive one feature + once scope to activate at a time.
 
-### TODO
-
-- Provide artisan commands to manipulate the state of things:
-    - For everyone: `php artisan feature:activate new-api`
-    - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
-    - etc.
-
 ## Fallback values
 
 Our first party drivers fallback to `false` for unknown features i.e. if we try to access a feature with no resolver, the result will always be `false`.
@@ -370,19 +363,20 @@ Feature::for($tim)->isActive('random-misspelt-feature');
 
 However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
 
-## Misc TODO
+### TODO
+
+- Provide artisan commands to manipulate the state of things:
+    - For everyone: `php artisan feature:activate new-api`
+    - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
+    - etc.
 - Ability to retrieve the features for a user? or just all available users? Will this resolve the features state?
 - decorator needs to use comparator,
 - Do we want a way to detect if the feature has been set yet?
 - Database driver needs to use the scope comparator.
 - Database driver needs to handle eloquent model.
-- How do we feel about serialize? Could be dicey.
 - Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
-- Can we provide a nice api for 'remember' vs 'register' to support in-memory only features for Jetstream et. al.
-- `whenActive` on the decorator.
 - Allow only a class to be registered. Feature::register(Foo::class);
 - Ability to get all features for given scope.
-- Ability to register "remembered" and always "in-memory" features. i.e. ones that re-evaluate each time.
 
 ```php
 <?php
