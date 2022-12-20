@@ -167,37 +167,7 @@ Feature::register('buy-now-button-color', function (): string {
 
 This is a feature that is nice for supporting 3rd party vendors as most (all the ones I've looked at) support this kind of behaviour.
 
-This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false`.
-
-Unlike `isActive` / `isInactive`, the `value` method only accepts a single feature and only works against 0 or 1 scope items.
-
-```php
-<?php
-
-// Throws an exception.
-Feature::for([$tim, $jess])->value('foo');
-```
-
-To retrieve the value for multiple scopes at once or multiple features, you may use the `values` method.
-
-```php
-<?php
-
-Feature::for($tim)->activate('foo');
-Feature::for($tim)->deactivate('bar');
-
-Feature::for($jess)->deactivate('foo');
-Feature::for($jess)->activate('bar');
-
-Feature::for([$tim, $jess])->values(['foo', 'bar']);
-
-// [
-//     'foo' => [true, false],
-//     'bar' => [false, true],
-// ]
-```
-
-The return format of this might feel weird, but I think this method is really an edge-case and is just in place for completeness.
+This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false` - everything else is considered active.
 
 ### TODO
 
