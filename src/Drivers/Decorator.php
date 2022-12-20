@@ -117,6 +117,17 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Flush the in-memory cache.
+     *
+     * @return void
+     */
+    public function flushCache()
+    {
+        // TODO do we need to manually flush for Octane / queue workers?
+        $this->cache = new Collection;
+    }
+
+    /**
      * Retrieve the flags value.
      *
      * @internal

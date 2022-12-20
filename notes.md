@@ -202,11 +202,6 @@ Feature::for($jess)->isActive('foo');
 Feature::for($jess)->isActive('foo');
 ```
 
-### TODO
-
-- Provide a `Feature::flushCache()` method to clear the cache when needed.
-- Consider if we need to manually clear the cache for Octane / Queue workers.
-
 ## Eager loading
 
 One thing that is important is offering the ability for drivers to optimize the loading of feature flag values. This is done via a `load` and `loadMissing` method.
