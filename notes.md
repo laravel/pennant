@@ -156,16 +156,16 @@ Feature::register('buy-now-button-color', function (): string {
 
 // Use the feature in Blade...
 
-@if(Feature::for($user)->value('buy-now-button-color') === 'green')
+@if(request()->user()->featureValue('buy-now-button-color') === 'green')
     <GreenButton />
-@elseif(Feature::for($user)->value('buy-now-button-color') === 'blue')
+@elseif(request()->user()->featureValue('buy-now-button-color') === 'blue')
     <BlueButton />
 @else
     <BlackButton />
 @endif
 ```
 
-This is a feature that is important for supporting 3rd party vendors as most (all the ones I've looked at) support this kind of behaviour.
+This is a feature that is nice for supporting 3rd party vendors as most (all the ones I've looked at) support this kind of behaviour.
 
 This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false`.
 
