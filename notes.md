@@ -2,7 +2,7 @@ This doc outlines the features, but it would be good to go an checkout the actua
 
 ## Basic usage
 
-The following feature flag expects there to be "scope". Scope is the thing we are checking the feature against. Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
+The following feature flag expects there to be scope. Scope is the thing we are checking the feature against. Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
 
 ```php
 <?php
@@ -50,7 +50,7 @@ Feature::register('foo', function (mixed $scope): mixed {
 
 ### The `$scope` parameter
 
-The Closure will receive the "scope" for the feature check being performed. The scope may be `null` (used to indicate that no scope was given which can be useful for anonymous / global feature flags), an eloquent model, a `string` or something else entirely. We will learn more about scope values later.
+The Closure will receive the scope for the feature check being performed. The scope may be `null` (used to indicate that no scope was given which can be useful for anonymous / global feature flags), an eloquent model, a `string` or something else entirely. We will learn more about scope values later.
 
 ### Returned value
 
@@ -93,9 +93,9 @@ Feature::register('new-foo-provisioning', config('features.new-foo-provisioning'
 
 ### Other drivers
 
-It is possible that some drivers may throw an exception when trying to "register" a feature, as that process is handled completely on their end.
+It is possible that some drivers may throw an exception when trying to register a feature, as that process is handled completely on their end.
 
-Take something like LaunchDarkly. Their driver may tell developers that they do not need to "register" features as that is all handled in their first party dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a "feature".
+Take something like LaunchDarkly. Their driver may tell developers that they do not need to register features as that is all handled in their first party dashboard. That is no trouble and I've tried to build this in a way to facilitate that as a feature.
 
 Alternatively, they may still get you to register features and the result of that could be used in "offline" mode when the service is down for maintenance or otherwise unavailable.
 
@@ -135,14 +135,12 @@ It is also possible to check against multiple scope at once...
 ```php
 <?php
 
-// true is $tim and $jess have both `foo` and `bar` active.
-Feature::for([$tim, $jess])->isActive('foo');
 Feature::for([$tim, $jess])->allAreActive(['foo', 'bar']);
 ```
 
 ## Feature values
 
-As previously stated, generally feature flags are "on" or "off". However, it can often be useful to store more "complex" values as a flag. "complex" really meaning things like a string, array of JSON, etc.
+As previously stated, generally feature flags are on or off and represented by `boolean` values. However, it can often be useful to store more complex values as a flag. "Complex" meaning things like a string, array of JSON, etc.
 
 Take the example of a new button design. We may be trialling 3 different button colours.
 
