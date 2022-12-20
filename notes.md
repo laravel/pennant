@@ -171,10 +171,6 @@ This is a feature that is nice for supporting 3rd party vendors as most (all the
 
 This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false` - everything else is considered active.
 
-### TODO
-
-- Decide how to serialize the value. Currently throwing `serialize` at the problem, but we should probably use `json_encode`.
-
 ## Caching
 
 To reduce complexity for driver implementations, we provide the drivers with an in-memory cache of resolved feature states. The drivers are not aware of this cache.

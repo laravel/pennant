@@ -597,32 +597,32 @@ class DatabaseDriverTest extends TestCase
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'tim@laravel.com',
-            'value' => serialize(1),
+            'value' => "1"
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'jess@laravel.com',
-            'value' => serialize(1),
+            'value' => "1"
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'taylor@laravel.com',
-            'value' => serialize(99),
+            'value' => "99"
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'tim@laravel.com',
-            'value' => serialize(2),
+            'value' => "2"
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'jess@laravel.com',
-            'value' => serialize(2),
+            'value' => "2"
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'taylor@laravel.com',
-            'value' => serialize(2),
+            'value' => "2"
         ]);
     }
 }

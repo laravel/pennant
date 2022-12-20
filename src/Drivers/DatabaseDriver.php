@@ -72,7 +72,7 @@ class DatabaseDriver implements Driver
     public function get($feature, $scope)
     {
         if (($record = $this->retrieve($feature, $scope)) !== null) {
-            return unserialize($record->value);
+            return json_decode($record->value, flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
         }
 
         return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
@@ -126,14 +126,16 @@ class DatabaseDriver implements Driver
 
         $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
             if ($records->where('name', $feature)->where('scope', $scope)->isNotEmpty()) {
-                return unserialize($records->where('name', $feature)->where('scope', $scope)->value('value'));
+                $value = $records->where('name', $feature)->where('scope', $scope)->value('value');
+
+                return json_decode($value, flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
             }
 
             return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
                 $inserts[] = [
                     'name' => $feature,
                     'scope' => $scope,
-                    'value' => serialize($value),
+                    'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 ];
             });
         })->all())->all();
@@ -173,7 +175,7 @@ class DatabaseDriver implements Driver
         return $this->db->table('features')->insert([
             'name' => $feature,
             'scope' => $scope,
-            'value' => serialize($value),
+            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
         ]);
     }
 
@@ -191,7 +193,7 @@ class DatabaseDriver implements Driver
             ->where('name', $feature)
             ->where('scope', $scope)
             ->update([
-                'value' => serialize($value),
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             ]) > 0;
     }
 
