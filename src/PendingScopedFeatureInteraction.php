@@ -38,7 +38,7 @@ class PendingScopedFeatureInteraction
     /**
      * Add scope to the feature interaction.
      *
-     * @param  mixed|array<mixed>  $scope
+     * @param  mixed|array<mixed>|\Illuminate\Support\Collection<int, mixed>  $scope
      * @return $this
      */
     public function for($scope)

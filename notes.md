@@ -264,7 +264,11 @@ class Foo extends Model implements FeatureScopeable
     public function toFeatureScopeIdentifier($driver)
     {
         if ($driver === 'launchdarkly') {
-            return new LDUser($this->id);
+            return new LDUser(
+                key: $this->id,
+                name: $this->name,
+                email: $this->email,
+            );
         }
 
         return $this->id;
@@ -308,11 +312,7 @@ Feature::isActive('bar');
 // Nothing triggered.
 ```
 
-This allows users to keep track of what features are being used / not used, or when they are trying to resolve features that do not exist.
-
-### TODO
-
-- Offer a `Feature::throwOnUnknownFeature()` which throws an exception when trying to resolve a feature that does not exist.
+This allows users to keep track of what features are being used / not used, or when they are trying to resolve features that do not exist. These events should be triggered by drivers as they could handle things differently.
 
 ## Programmatically changing feature flag values
 
