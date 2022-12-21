@@ -104,7 +104,10 @@ class DatabaseDriver implements Driver
      */
     public function clear($feature, $scope)
     {
-        //
+        return $this->db->table('features')
+            ->where('name', '=', $feature)
+            ->where('scope', '=', $scope)
+            ->delete();
     }
 
     /**
