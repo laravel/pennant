@@ -61,7 +61,7 @@ The feature resolver should return the value of the feature flag. Generally a `b
 
 ### Returning a lottery
 
-Lotteries are a first party citizen. Because they are callable, they may be passed as an argument...
+As a convenience, lotteries are a first party citizen. Because they are callable, they may be passed as an argument without the need for a closure...
 
 ```php
 <?php
@@ -85,7 +85,7 @@ Feature::register('foo', function ($user) {
 
 ### Static values
 
-You may also pass a static value as the argument, such as a config option that is reading from the ENV.
+You may also pass a static value as the argument. This is useful if you are creating feature flags only based on the ENV.
 
 ```php
 <?php
@@ -139,6 +139,13 @@ It is also possible to check against multiple scope at once...
 <?php
 
 Feature::for([$tim, $jess])->allAreActive(['foo', 'bar']);
+```
+
+As already mentioned, the currently authenticated user is the default scope, so for most application usage, the `for` call won't be required.
+
+```php
+Feature::isActive('foo');
+Feature::isInactive('foo');
 ```
 
 ## Feature values
