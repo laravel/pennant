@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('features', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->text('scope')->nullable();
+            $table->string('scope')->nullable();
             $table->text('value');
             $table->timestamps();
 
