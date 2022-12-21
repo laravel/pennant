@@ -281,22 +281,19 @@ class Foo extends Model implements FeatureScopeable
      * @param  string  $driver
      * @return mixed
      */
-    public function toFeatureScopeIdentifier($driver)
+    public function toFeatureIdentifier($driver)
     {
-        if ($driver === 'launchdarkly') {
-            return new LDUser(
-                key: $this->id,
-                name: $this->name,
-                email: $this->email,
-            );
-        }
-
-        return $this->id;
+        return match ($driver) {
+            'launchdarkly' => new LDUser($this->id),
+            default => "user:{$this->id}",
+        };
     }
 }
 ```
 
 The drivers do not need to worry about this interface, as the decorator takes care of converting the objects.
+
+Eloquent models do not have to implement this feature. We utilise the queue's model serializing trait to help out here, although an Eloquent model can implement this if they want control.
 
 ## Events
 
