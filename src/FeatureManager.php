@@ -59,7 +59,7 @@ class FeatureManager extends Manager
      */
     public function getDefaultDriver()
     {
-        return $this->container['config']->get('features.default', 'array');
+        return $this->container['config']->get('features.default', 'database');
     }
 
     /**

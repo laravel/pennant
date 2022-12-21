@@ -197,15 +197,17 @@ class Decorator implements DriverContract
     /**
      * Clear the flags value.
      *
+     * @internal
+     *
      * @param  string  $feature
      * @param  mixed  $scope
      * @return void
      */
-    public function clear($feature, $scope)
+    public function delete($feature, $scope)
     {
-        $this->removeFromCache($feature, $scope);
+        $this->driver->delete($feature, $scope);
 
-        $this->driver->clear($feature, $scope);
+        $this->removeFromCache($feature, $scope);
     }
 
     /**

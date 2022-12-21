@@ -24,13 +24,13 @@ interface Driver
     public function set($feature, $scope, $value);
 
     /**
-     * Clear the flags value.
+     * Delete the flags value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
      * @return void
      */
-    public function clear($feature, $scope);
+    public function delete($feature, $scope);
 
     /**
      * Delete any feature flags that are no longer registered.

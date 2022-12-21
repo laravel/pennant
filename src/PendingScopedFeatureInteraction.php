@@ -210,7 +210,7 @@ class PendingScopedFeatureInteraction
     {
         return Collection::wrap($features)
             ->crossJoin($this->scope())
-            ->each(fn ($bits) => $this->driver->clear(...$bits));
+            ->each(fn ($bits) => $this->driver->delete(...$bits));
     }
 
     /**

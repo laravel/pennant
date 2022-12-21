@@ -102,7 +102,7 @@ class DatabaseDriver implements Driver
      * @param  mixed  $scope
      * @return void
      */
-    public function clear($feature, $scope)
+    public function delete($feature, $scope)
     {
         return $this->db->table('features')
             ->where('name', '=', $feature)

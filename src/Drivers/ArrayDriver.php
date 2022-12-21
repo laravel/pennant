@@ -91,7 +91,7 @@ class ArrayDriver implements Driver
      * @param  mixed  $scope
      * @return void
      */
-    public function clear($feature, $scope)
+    public function delete($feature, $scope)
     {
         //
     }
