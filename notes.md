@@ -442,10 +442,38 @@ Feature::for($jess)->forget(['foo']);
 Feature::for([$jess, $tim])->forget(['foo', 'bar']);
 ```
 
+## Configuring the default scope
 
-### TODO
+The authenticated user is, by default, used as the "scope" when no scope is specified.
 
-- Allow 
+It is however possible to configure this functionality. This is useful for a few reasons:
+
+1. You might want to use the current session ID for unauthenticated users.
+2. The authenticated user might not make sense in your application (maybe features are always global)
+3. It gives you ability to specify a "global" / "unauthenticated" user key.
+
+```php
+<?php
+
+Feature::setDefaultScopeResolver(function ($driver) {
+    return Auth::user() ?? 'guest';
+});
+
+// This...
+Feature::isActive('foo');
+
+// is the same as...
+Feature::for('guest')->isActive('foo');
+
+
+Auth::login($tim);
+
+// This...
+Feature::isActive('foo');
+
+// is the same as...
+Feature::for($tim)->isActive('foo');
+```
 
 ```php
 <?php
