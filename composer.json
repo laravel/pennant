@@ -45,7 +45,7 @@
                 "Laravel\\Feature\\FeatureServiceProvider"
             ],
             "aliases": {
-                "Feature": "Larave\\Feature\\Feature"
+                "Feature": "Laravel\\Feature\\Feature"
             }
         }
     },
