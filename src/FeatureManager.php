@@ -88,10 +88,12 @@ class FeatureManager extends Manager
      */
     public function defaultScopeResolver($driver)
     {
-        if ($this->defaultScopeResolver !== null) {
-            return fn () => ($this->defaultScopeResolver)($driver);
-        }
+        return function () use ($driver) {
+            if ($this->defaultScopeResolver !== null) {
+                return ($this->defaultScopeResolver)($driver);
+            }
 
-        return fn () => $this->container['auth']->guard()->user();
+            return $this->container['auth']->guard()->user();
+        };
     }
 }

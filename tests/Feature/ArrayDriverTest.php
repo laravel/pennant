@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
@@ -647,6 +648,43 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_customise_default_scope()
     {
+        $scopes = [];
+        Feature::register('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+        });
+
+        Feature::isActive('foo');
+
+        Auth::login($user = new User());
+        Feature::isActive('foo');
+
+        Feature::setDefaultScopeResolver(fn () => 'bar');
+        Feature::isActive('foo');
+
+        $this->assertSame([
+            null,
+            $user,
+            'bar',
+        ], $scopes);
+    }
+
+    public function test_it_doesnt_include_default_scope_when_null()
+    {
+        $scopes = [];
+        Feature::register('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+        });
+
+        Feature::isActive('foo');
+
+        Auth::login($user = new User());
+
+        Feature::isActive('foo');
+
+        $this->assertSame([
+            null,
+            $user
+        ], $scopes);
 
     }
 }
