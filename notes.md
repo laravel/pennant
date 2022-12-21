@@ -338,17 +338,21 @@ If you want to manipulate the persisted state of a feature flag, you may use the
 ```php
 <?php
 
-// Turn on / off.
+// Turn on / off for the currently authenticated user (or `null`)
+Feature::activate('foo');
+Feature::deactivate('bar');
+
+// Turn on / off for $tim
 Feature::for($tim)->activate('foo');
-Feature::for($jess)->deactivate('bar');
+Feature::for($tim)->deactivate('bar');
 
 // Set a complex value.
-Feature::for($tim)->activate('foo', [
+Feature::activate('foo', [
     'my' => 'value',
 ]);
 ```
 
-It is possible to activate / deactivate several features with one method call.
+It is possible to activate / deactivate several features with one method call...
 
 ```php
 <?php
@@ -381,9 +385,6 @@ Feature::for($tim)->isActive('random-misspelt-feature');
 However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
 
 ### TODO
-
-- decorator needs to use comparator,
-- Database driver needs to use the scope comparator.
 
 ```php
 <?php
