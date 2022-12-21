@@ -262,6 +262,10 @@ class Decorator implements DriverContract
      */
     public function __call($name, $parameters)
     {
-        return (new PendingScopedFeatureInteraction($this, []))->{$name}(...$parameters);
+        return tap(new PendingScopedFeatureInteraction($this), function ($interaction) use ($name) {
+            if ($name !== 'for' && $this->auth->guard()->check()) {
+                $interaction->for($this->auth->guard()->user());
+            }
+        })->{$name}(...$parameters);
     }
 }

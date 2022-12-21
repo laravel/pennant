@@ -27,24 +27,16 @@ class FeatureManagerTest extends TestCase
         $this->assertTrue(Feature::for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));
     }
 
-    public function test_it_can_add_the_authenicated_user_to_scope()
+    public function test_the_authenticated_user_is_the_default_scope()
     {
         $user = new User(['id' => 2]);
         Auth::login($user);
 
-        Feature::forTheAuthenticatedUser()->activate('foo');
+        Feature::activate('foo');
 
-        $this->assertFalse(Feature::isActive('foo'));
         $this->assertFalse(Feature::for('misc')->isActive('foo'));
-        $this->assertTrue(Feature::forTheAuthenticatedUser()->isActive('foo'));
+        $this->assertTrue(Feature::isActive('foo'));
         $this->assertTrue(Feature::for($user)->isActive('foo'));
-    }
-
-    public function test_it_throws_if_there_is_no_authenticated_user()
-    {
-        $this->expectExceptionMessage('There is no user currently authenticated.');
-
-        Feature::forTheAuthenticatedUser();
     }
 
     public function test_it_can_return_lottery_as_value()

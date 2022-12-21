@@ -594,7 +594,7 @@ class ArrayDriverTest extends TestCase
         Feature::register('foo', fn () => true);
         Feature::register('bar', fn () => false);
 
-        $all = Feature::values(Feature::registered());
+        $all = Feature::all();
 
         $this->assertSame([
             'foo' => true,

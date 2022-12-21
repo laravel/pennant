@@ -20,19 +20,16 @@ class PendingScopedFeatureInteraction
      *
      * @var array<mixed>
      */
-    protected $scope;
+    protected $scope = [];
 
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
      * @param  \Laravel\Feature\Drivers\Decorator  $driver
-     * @param  array<mixed>  $scope
      */
-    public function __construct($driver, $scope)
+    public function __construct($driver)
     {
         $this->driver = $driver;
-
-        $this->scope = $scope;
     }
 
     /**
@@ -46,20 +43,6 @@ class PendingScopedFeatureInteraction
         $this->scope = array_merge($this->scope, Collection::wrap($scope)->all());
 
         return $this;
-    }
-
-    /**
-     * Add the authenticated user as scope to the feature interaction.
-     *
-     * @return $this
-     */
-    public function forTheAuthenticatedUser()
-    {
-        if (! $this->driver->auth()->guard()->check()) {
-            throw new RuntimeException('There is no user currently authenticated.');
-        }
-
-        return $this->for($this->driver->auth()->guard()->user());
     }
 
     /**
@@ -90,6 +73,11 @@ class PendingScopedFeatureInteraction
                 $feature => $this->driver->get($feature, $this->scope()[0])
             ])
             ->all();
+    }
+
+    public function all()
+    {
+        return $this->values($this->driver->registered());
     }
 
     /**
