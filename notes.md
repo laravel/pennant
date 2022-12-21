@@ -183,7 +183,7 @@ Feature::value('buy-now-button-color'); // 'green'|'blue'|'black'
 
 This is a feature that is nice for supporting 3rd party vendors as most (all the ones I've looked at) support this kind of behaviour.
 
-This raises the question, what does "active" vs "inactive" mean when using rich values. An inactive feature is any feature that is explicitly set to `false` - everything else is considered active.
+This raises the question, what does "active" vs "inactive" mean when using rich values: an inactive feature is any feature that is explicitly set to `false` - everything else is considered active.
 
 ## Caching
 
