@@ -10,5 +10,5 @@ interface FeatureScopeable
      * @param  string  $driver
      * @return mixed
      */
-    public function toFeatureScopeIdentifier($driver);
+    public function toFeatureIdentifier($driver);
 }

@@ -366,16 +366,9 @@ However, once checked this feature will be persisted to storage. I think this ma
 
 ### TODO
 
-- Provide artisan commands to manipulate the state of things:
-    - For everyone: `php artisan feature:activate new-api`
-    - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
-    - etc.
 - decorator needs to use comparator,
-- Do we want a way to detect if the feature has been set yet?
 - Database driver needs to use the scope comparator.
 - Database driver needs to handle eloquent model.
-- Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
-- Allow only a class to be registered. Feature::register(Foo::class);
 
 ```php
 <?php

@@ -33,6 +33,13 @@ interface Driver
     public function clear($feature, $scope);
 
     /**
+     * Delete any feature flags that are no longer registered.
+     *
+     * @return void
+     */
+    public function prune();
+
+    /**
      * Register an initial flag state resolver.
      *
      * @param  string  $feature

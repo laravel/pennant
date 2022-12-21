@@ -156,7 +156,7 @@ class Decorator implements DriverContract
     public function get($feature, $scope)
     {
         $scope = $scope instanceof FeatureScopeable
-            ? $scope->toFeatureScopeIdentifier($this->name)
+            ? $scope->toFeatureIdentifier($this->name)
             : $scope;
 
         $item = $this->cache
@@ -186,7 +186,7 @@ class Decorator implements DriverContract
     public function set($feature, $scope, $value)
     {
         $scope = $scope instanceof FeatureScopeable
-            ? $scope->toFeatureScopeIdentifier($this->name)
+            ? $scope->toFeatureIdentifier($this->name)
             : $scope;
 
         $this->driver->set($feature, $scope, $value);
@@ -206,6 +206,16 @@ class Decorator implements DriverContract
         $this->removeFromCache($feature, $scope);
 
         $this->driver->clear($feature, $scope);
+    }
+
+    /**
+     * Delete any feature flags that are no longer registered.
+     *
+     * @return void
+     */
+    public function prune()
+    {
+        $this->driver->prune();
     }
 
     /**
@@ -234,7 +244,6 @@ class Decorator implements DriverContract
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @param  mixed  $value
      * @return void
      */
     protected function removeFromCache($feature, $scope)
@@ -276,7 +285,7 @@ class Decorator implements DriverContract
                 : [$key => Collection::wrap($value ?: [null])])
             ->map(fn ($scopes) => $scopes
                 ->map(fn ($scope) => $scope instanceof FeatureScopeable
-                    ? $scope->toFeatureScopeIdentifier($this->name)
+                    ? $scope->toFeatureIdentifier($this->name)
                     : $scope)
                 ->all());
     }
