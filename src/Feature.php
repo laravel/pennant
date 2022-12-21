@@ -27,7 +27,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array<string, mixed> all()
  * @method static bool isActive(string $feature)
  * @method static bool allAreActive(array<string> $features)
- * @method static bool anyAreActive(array<string> $features)
+ * @method static bool someAreActive(array<string> $features)
  * @method static bool isInactive(string $feature)
  * @method static bool allAreInactive(array<string> $features)
  * @method static bool anyAreInactive(array<string> $features)

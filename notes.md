@@ -145,11 +145,11 @@ It is possible to check if any given values are active in one method call...
 ```php
 <?php
 
-Feature::for($tim)->anyAreActive(['foo', 'bar']);
-Feature::for($tim)->anyAreInactive(['foo', 'bar']);
+Feature::for($tim)->someAreActive(['foo', 'bar']);
+Feature::for($tim)->someAreInactive(['foo', 'bar']);
 ```
 
-Note: `all` vs `any`
+Note: `some` vs `any`
 
 It is also possible to check against multiple scope at once...
 
