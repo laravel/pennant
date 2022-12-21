@@ -1,5 +1,7 @@
 This doc outlines the features, but it would be good to go an checkout the actual contract for implementing a driver. It is rather small. Most of the features come from our decorator.
 
+By default, the feature is checked against the currently authenticated user. This removes the need to specify the user in the most common scenarios.
+
 ## Basic usage
 
 ```php
@@ -9,8 +11,8 @@ This doc outlines the features, but it would be good to go an checkout the actua
  * Register the feature resolver in a service provider, middleware, etc.
  */
 
-Feature::register('new-api', function (User $user): mixed {
-    if ($user->isInternal()) {
+Feature::register('new-api', function (?User $user): mixed {
+    if ($user?->isInternal()) {
         return true;
     }
 
@@ -51,11 +53,11 @@ Feature::register('foo', function (mixed $scope): mixed {
 
 ### The `$scope` parameter
 
-The Closure will receive the scope for the feature check being performed. The scope may be `null` (used to indicate that no scope was given which can be useful for anonymous / global feature flags), an eloquent model, a `string` or something else entirely. We will learn more about scope values later.
+The Closure will receive the scope for the feature check being performed. The scope may be `null` (used to indicate that no scope was given which can be useful for anonymous / global feature flags), an eloquent model, a `string` or something else entirely. We will learn more about scope values later, but just remember it is what you are checking the feature against.
 
 ### Returned value
 
-The feature resolver should return the value of the feature flag. Generally a `boolean` would be returned, however the package also supports complex values (such as strings or arrays). We will learn more about the supported values later.
+The feature resolver should return the value of the feature flag. Generally a `boolean` would be returned indicating that a feature is "active" or "inactive", however the package also supports complex values (such as strings or arrays). We will learn more about the supported values later.
 
 ### Returning a lottery
 
