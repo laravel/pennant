@@ -189,10 +189,10 @@ class PendingScopedFeatureInteraction
     /**
      * Load the feature into memory.
      *
-     * @param  string|array<int, string>  $feature
+     * @param  string|array<int, string>  $features
      * @return void
      */
-    public function load($feature)
+    public function load($features)
     {
         Collection::wrap($feature)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
