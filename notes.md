@@ -475,6 +475,10 @@ Feature::isActive('foo');
 Feature::for($tim)->isActive('foo');
 ```
 
+## Todo
+
+- Potentially build out a UI
+- We might want an API similar to the following...
 ```php
 <?php
 
