@@ -610,6 +610,17 @@ class ArrayDriverTest extends TestCase
 
         $this->assertSame('shared-123', $value);
     }
+
+    public function test_it_can_reevaluate_feature_state()
+    {
+        Feature::register('foo', fn () => false);
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+
+        Feature::for('tim')->clear('foo');
+
+        Feature::register('foo', fn () => true);
+        $this->assertTrue(Feature::for('tim')->value('foo'));
+    }
 }
 
 class MyFeature

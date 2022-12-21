@@ -195,6 +195,20 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Clear the flags value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return void
+     */
+    public function clear($feature, $scope)
+    {
+        $this->removeFromCache($feature, $scope);
+
+        $this->driver->clear($feature, $scope);
+    }
+
+    /**
      * Put the feature value into the cache.
      *
      * @param  string  $feature
@@ -212,6 +226,25 @@ class Decorator implements DriverContract
             $this->cache[] = ['feature' => $feature, 'scope' => $scope, 'value' => $value];
         } else {
             $this->cache[$position] = ['feature' => $feature, 'scope' => $scope, 'value' => $value];
+        }
+    }
+
+    /**
+     * Remove the feature value from the cache.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $value
+     * @return void
+     */
+    protected function removeFromCache($feature, $scope)
+    {
+        $position = $this->cache->search(
+            fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
+        );
+
+        if ($position !== false) {
+            unset($this->cache[$position]);
         }
     }
 

@@ -24,6 +24,15 @@ interface Driver
     public function set($feature, $scope, $value);
 
     /**
+     * Clear the flags value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return void
+     */
+    public function clear($feature, $scope);
+
+    /**
      * Register an initial flag state resolver.
      *
      * @param  string  $feature

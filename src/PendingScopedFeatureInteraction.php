@@ -200,6 +200,20 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Clear the flags value.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $scope
+     * @return void
+     */
+    public function clear($features)
+    {
+        return Collection::wrap($features)
+            ->crossJoin($this->scope())
+            ->each(fn ($bits) => $this->driver->clear(...$bits));
+    }
+
+    /**
      * The scope to pass to the driver.
      *
      * @return array<mixed>
