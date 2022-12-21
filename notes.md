@@ -478,6 +478,7 @@ Feature::for($tim)->isActive('foo');
 ## Todo
 
 - Potentially build out a UI
+- Artisan commands?
 - We might want an API similar to the following...
 ```php
 <?php
