@@ -148,6 +148,16 @@ class DatabaseDriver implements Driver
     }
 
     /**
+     * Retrieve the registered features.
+     *
+     * @return array<string>
+     */
+    public function registered()
+    {
+        return array_keys($this->featureStateResolvers);
+    }
+
+    /**
      * Retrieve the value from storage.
      *
      * @param  string  $feature

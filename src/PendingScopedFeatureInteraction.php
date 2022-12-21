@@ -70,26 +70,24 @@ class PendingScopedFeatureInteraction
      */
     public function value($feature)
     {
-        if (count($this->scope()) > 1) {
-            throw new RuntimeException('To retrieve the value for mutliple scopes, use the `values` method instead.');
-        }
-
-        return $this->driver->get($feature, $this->scope()[0]);
+        return $this->values([$feature])[$feature];
     }
 
     /**
      * Get the values of the flag.
      *
-     * @param  string|array<string>  $feature
-     * @return array<string, array<mixed>>
+     * @param  array<string>  $features
+     * @return array<string, mixed>
      */
-    public function values($feature)
+    public function values($features)
     {
-        return Collection::wrap($feature)
+        if (count($this->scope()) > 1) {
+            throw new RuntimeException('It is not possible to retrieve the values for mutliple scopes.');
+        }
+
+        return Collection::make($features)
             ->mapWithKeys(fn ($feature) => [
-                $feature => Collection::make($this->scope())
-                    ->map(fn ($scope) => $this->driver->get($feature, $scope))
-                    ->all(),
+                $feature => $this->driver->get($feature, $this->scope()[0])
             ])
             ->all();
     }

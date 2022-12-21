@@ -112,6 +112,16 @@ class ArrayDriver implements Driver
     }
 
     /**
+     * Retrieve the registered features.
+     *
+     * @return array<string>
+     */
+    public function registered()
+    {
+        return array_keys($this->featureStateResolvers);
+    }
+
+    /**
      * Determine if the feature does not have a resolver available.
      *
      * @param  string  $feature

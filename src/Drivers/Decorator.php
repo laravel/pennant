@@ -117,6 +117,16 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Retrieve the registered features.
+     *
+     * @return array<string>
+     */
+    public function registered()
+    {
+        return $this->driver->registered();
+    }
+
+    /**
      * Flush the in-memory cache.
      *
      * @return void

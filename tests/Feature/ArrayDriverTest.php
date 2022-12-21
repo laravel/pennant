@@ -515,7 +515,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_throws_when_calling_value_with_multiple_scope()
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('To retrieve the value for mutliple scopes, use the `values` method instead.');
+        $this->expectExceptionMessage('It is not possible to retrieve the values for mutliple scopes.');
 
         Feature::for([1, 2, 3])->value('foo');
     }
@@ -524,10 +524,10 @@ class ArrayDriverTest extends TestCase
     {
         Feature::register('foo', fn ($scope) => $scope);
 
-        $values = Feature::for([1, 2, 3])->values('foo');
+        $values = Feature::for(1)->values(['foo']);
 
         $this->assertSame([
-            'foo' => [1, 2, 3]
+            'foo' => 1,
         ], $values);
     }
 
@@ -536,11 +536,11 @@ class ArrayDriverTest extends TestCase
         Feature::register('foo', fn ($scope) => $scope);
         Feature::register('bar', fn ($scope) => $scope * 2);
 
-        $values = Feature::for([1, 2, 3])->values(['foo', 'bar']);
+        $values = Feature::for(2)->values(['foo', 'bar']);
 
         $this->assertSame([
-            'foo' => [1, 2, 3],
-            'bar' => [2, 4, 6],
+            'foo' => 2,
+            'bar' => 4,
         ], $values);
     }
 
@@ -562,5 +562,43 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::value('foo'));
         $this->assertFalse(Feature::value('bar'));
         $this->assertFalse(Feature::value('baz'));
+    }
+
+    public function test_it_can_retrieve_registered_features()
+    {
+        Feature::register('foo', fn () => true);
+        Feature::register('bar', fn () => false);
+        Feature::register('baz', fn () => false);
+
+        $registered = Feature::registered();
+
+        $this->assertSame(['foo', 'bar', 'baz'], $registered);
+    }
+
+    public function test_it_can_clear_the_cache()
+    {
+        $called = 0;
+        Feature::register('foo', function () use (&$called) {
+            $called++;
+        });
+
+        Feature::isActive('foo');
+        Feature::flushCache();
+        Feature::isActive('foo');
+
+        $this->assertSame(2, $called);
+    }
+
+    public function test_it_can_get_all_features()
+    {
+        Feature::register('foo', fn () => true);
+        Feature::register('bar', fn () => false);
+
+        $all = Feature::values(Feature::registered());
+
+        $this->assertSame([
+            'foo' => true,
+            'bar' => false,
+        ], $all);
     }
 }

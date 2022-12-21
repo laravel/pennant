@@ -39,4 +39,11 @@ interface Driver
      * @return array<string, array<int, mixed>>
      */
     public function load($features);
+
+    /**
+     * Retrieve the registered features.
+     *
+     * @return array<string>
+     */
+    public function registered();
 }

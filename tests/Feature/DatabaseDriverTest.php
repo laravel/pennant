@@ -625,4 +625,27 @@ class DatabaseDriverTest extends TestCase
             'value' => "2"
         ]);
     }
+
+    public function test_it_can_retrieve_registered_features()
+    {
+        Feature::register('foo', fn () => true);
+        Feature::register('bar', fn () => false);
+        Feature::register('baz', fn () => false);
+
+        $registered = Feature::registered();
+
+        $this->assertSame(['foo', 'bar', 'baz'], $registered);
+        $this->assertCount(0, DB::getQueryLog());
+    }
+
+    public function test_it_can_clear_the_cache()
+    {
+        Feature::register('foo', fn () => true);
+
+        Feature::isActive('foo');
+        Feature::flushCache();
+        Feature::isActive('foo');
+
+        $this->assertCount(3, DB::getQueryLog());
+    }
 }
