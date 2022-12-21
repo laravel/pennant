@@ -30,7 +30,7 @@ class Decorator implements DriverContract
     /**
      * The default scope resolver.
      *
-     * @var callable(string): mixed
+     * @var callable(): mixed
      */
     protected $defaultScopeResolver;
 
@@ -53,7 +53,7 @@ class Decorator implements DriverContract
      *
      * @param  string  $name
      * @param  \Laravel\Feature\Contracts\Driver  $driver
-     * @param  (callable(string): mixed)  $defaultScopeResolver
+     * @param  (callable(): mixed)  $defaultScopeResolver
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
@@ -94,7 +94,7 @@ class Decorator implements DriverContract
             $value = $resolver($scope);
 
             return $value instanceof Lottery
-                ?  $value()
+                ? $value()
                 : $value;
         });
     }
@@ -307,7 +307,7 @@ class Decorator implements DriverContract
      *
      * @param  string  $name
      * @param  array<mixed>  $parameters
-     * @return \Laravel\Feature\PendingScopedFeatureInteraction
+     * @return mixed
      */
     public function __call($name, $parameters)
     {

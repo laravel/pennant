@@ -7,7 +7,6 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
@@ -64,7 +63,7 @@ class DatabaseDriver implements Driver
     public function get($feature, $scope)
     {
         if (($record = $this->retrieve($feature, $scope)) !== null) {
-            return json_decode($record->value, flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
+            return json_decode($record->value, flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
         }
 
         return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
@@ -147,7 +146,7 @@ class DatabaseDriver implements Driver
             $filtered = $records->where('name', $feature)->where('scope', $this->serializeScope($scope));
 
             if ($filtered->isNotEmpty()) {
-                return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
+                return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
             return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {

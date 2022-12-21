@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -129,7 +130,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::isActive('null'));
         $this->assertTrue(Feature::isActive('empty-string'));
 
-       $this->assertFalse(Feature::isInactive('true'));
+        $this->assertFalse(Feature::isInactive('true'));
         $this->assertTrue(Feature::isInactive('false'));
         $this->assertFalse(Feature::isInactive('one'));
         $this->assertFalse(Feature::isInactive('zero'));
@@ -172,7 +173,6 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_activate_and_deactivate_several_features_at_once()
     {
         Feature::activate(['foo', 'bar']);
-
 
         $this->assertTrue(Feature::isActive('foo'));
         $this->assertTrue(Feature::isActive('bar'));
@@ -589,36 +589,36 @@ class DatabaseDriverTest extends TestCase
         Feature::for('taylor@laravel.com')->activate('foo', 99);
         Feature::for(['tim@laravel.com', 'jess@laravel.com', 'taylor@laravel.com'])->load(['foo', 'bar']);
 
-        $this->assertCount(4,DB::getQueryLog());
+        $this->assertCount(4, DB::getQueryLog());
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'tim@laravel.com',
-            'value' => "1"
+            'value' => '1',
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'jess@laravel.com',
-            'value' => "1"
+            'value' => '1',
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'foo',
             'scope' => 'taylor@laravel.com',
-            'value' => "99"
+            'value' => '99',
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'tim@laravel.com',
-            'value' => "2"
+            'value' => '2',
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'jess@laravel.com',
-            'value' => "2"
+            'value' => '2',
         ]);
         $this->assertDatabaseHas('features', [
             'name' => 'bar',
             'scope' => 'taylor@laravel.com',
-            'value' => "2"
+            'value' => '2',
         ]);
     }
 
@@ -690,5 +690,42 @@ class DatabaseDriverTest extends TestCase
             'foo' => false,
             'bar' => 2,
         ], $result);
+    }
+
+    public function test_it_can_customise_default_scope()
+    {
+        $scopes = [];
+        Feature::register('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+        });
+
+        Feature::isActive('foo');
+
+        Auth::login($user = new User());
+        Feature::isActive('foo');
+
+        Feature::setDefaultScopeResolver(fn () => 'bar');
+        Feature::isActive('foo');
+
+        $this->assertSame([
+            null,
+            $user,
+            'bar',
+        ], $scopes);
+    }
+
+    public function test_it_doesnt_include_default_scope_when_null()
+    {
+        $scopes = [];
+        Feature::register('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+        });
+
+        Feature::setDefaultScopeResolver(fn () => null);
+        Feature::isActive('foo');
+
+        $this->assertSame([
+            null,
+        ], $scopes);
     }
 }

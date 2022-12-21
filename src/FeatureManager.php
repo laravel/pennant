@@ -2,8 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Contracts\Container\Container;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
@@ -73,7 +71,7 @@ class FeatureManager extends Manager
     /**
      * Set the default scope resolver.
      *
-     * @param  callable(string): mixed  $resolver
+     * @param  (callable(string): mixed)  $resolver
      * @return void
      */
     public function setDefaultScopeResolver($resolver)
@@ -84,9 +82,10 @@ class FeatureManager extends Manager
     /**
      * The default scope resolver.
      *
+     * @param  string  $driver
      * @return callable(): mixed
      */
-    public function defaultScopeResolver($driver)
+    protected function defaultScopeResolver($driver)
     {
         return function () use ($driver) {
             if ($this->defaultScopeResolver !== null) {

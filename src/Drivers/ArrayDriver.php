@@ -6,9 +6,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
-use Laravel\Feature\Events\RetrievingUnknownFeature;
 use Laravel\Feature\Events\RetrievingKnownFeature;
-use Laravel\Feature\FeatureManager;
+use Laravel\Feature\Events\RetrievingUnknownFeature;
 
 class ArrayDriver implements Driver
 {
@@ -74,7 +73,7 @@ class ArrayDriver implements Driver
 
         $this->register($feature, function ($s) use ($scope, $value, $existing) {
             if ($s instanceof Model && $scope instanceof Model) {
-                 return $s->is($scope) ? $value : $existing($s);
+                return $s->is($scope) ? $value : $existing($s);
             }
 
             return $s === $scope ? $value : $existing($s);

@@ -115,7 +115,7 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::isActive('null'));
         $this->assertTrue(Feature::isActive('empty-string'));
 
-       $this->assertFalse(Feature::isInactive('true'));
+        $this->assertFalse(Feature::isInactive('true'));
         $this->assertTrue(Feature::isInactive('false'));
         $this->assertFalse(Feature::isInactive('one'));
         $this->assertFalse(Feature::isInactive('zero'));
@@ -675,17 +675,12 @@ class ArrayDriverTest extends TestCase
             $scopes[] = $scope;
         });
 
-        Feature::isActive('foo');
-
-        Auth::login($user = new User());
-
+        Feature::setDefaultScopeResolver(fn () => null);
         Feature::isActive('foo');
 
         $this->assertSame([
             null,
-            $user
         ], $scopes);
-
     }
 }
 

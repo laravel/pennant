@@ -4,10 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Lottery;
-use Laravel\Feature\Drivers\ArrayDriver;
-use Laravel\Feature\Drivers\DatabaseDriver;
 use Laravel\Feature\Feature;
 use Tests\TestCase;
 

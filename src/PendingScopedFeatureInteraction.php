@@ -2,7 +2,6 @@
 
 namespace Laravel\Feature;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use RuntimeException;
 
@@ -35,7 +34,7 @@ class PendingScopedFeatureInteraction
     /**
      * Add scope to the feature interaction.
      *
-     * @param  mixed|array<mixed>|\Illuminate\Support\Collection<int, mixed>  $scope
+     * @param  mixed  $scope
      * @return $this
      */
     public function for($scope)
@@ -70,7 +69,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($features)
             ->mapWithKeys(fn ($feature) => [
-                $feature => $this->driver->get($feature, $this->scope()[0])
+                $feature => $this->driver->get($feature, $this->scope()[0]),
             ])
             ->all();
     }
@@ -202,8 +201,7 @@ class PendingScopedFeatureInteraction
     /**
      * Forget the flags value.
      *
-     * @param  string|array<string>  $feature
-     * @param  mixed  $scope
+     * @param  string|array<string>  $features
      * @return void
      */
     public function forget($features)
