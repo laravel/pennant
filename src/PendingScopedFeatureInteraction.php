@@ -75,6 +75,11 @@ class PendingScopedFeatureInteraction
             ->all();
     }
 
+    /**
+     * Retrieve all the features and their values.
+     *
+     * @return array<string, mixed>
+     */
     public function all()
     {
         return $this->values($this->driver->registered());

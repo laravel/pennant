@@ -601,4 +601,23 @@ class ArrayDriverTest extends TestCase
             'bar' => false,
         ], $all);
     }
+
+    public function test_it_can_register_feature_via_class()
+    {
+        Feature::register(MyFeature::class);
+
+        $value = Feature::for('shared')->value('my-feature');
+
+        $this->assertSame('shared-123', $value);
+    }
+}
+
+class MyFeature
+{
+    public $name = 'my-feature';
+
+    public function __invoke($scope)
+    {
+        return "{$scope}-123";
+    }
 }

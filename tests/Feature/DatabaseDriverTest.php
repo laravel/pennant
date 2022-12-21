@@ -648,4 +648,17 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertCount(3, DB::getQueryLog());
     }
+
+    public function test_it_can_get_all_features()
+    {
+        Feature::register('foo', fn () => true);
+        Feature::register('bar', fn () => false);
+
+        $all = Feature::all();
+
+        $this->assertSame([
+            'foo' => true,
+            'bar' => false,
+        ], $all);
+    }
 }

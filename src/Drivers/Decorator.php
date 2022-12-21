@@ -28,11 +28,11 @@ class Decorator implements DriverContract
     protected $driver;
 
     /**
-     * The authentication factory.
+     * The container.
      *
-     * @var \Illuminate\Contracts\Auth\Factory
+     * @var \Illuminate\Contracts\Container\Container
      */
-    protected $auth;
+    protected $container;
 
     /**
      * The in-memory feature state cache.
@@ -46,16 +46,16 @@ class Decorator implements DriverContract
      *
      * @param  string  $name
      * @param  \Laravel\Feature\Contracts\Driver  $driver
-     * @param  \Illuminate\Contracts\Auth\Factory  $auth
+     * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
-    public function __construct($name, $driver, $auth, $cache)
+    public function __construct($name, $driver, $container, $cache)
     {
         $this->name = $name;
 
         $this->driver = $driver;
 
-        $this->auth = $auth;
+        $this->container = $container;
 
         $this->cache = $cache;
     }
@@ -63,12 +63,19 @@ class Decorator implements DriverContract
     /**
      * Register an initial flag state resolver.
      *
-     * @param  string  $feature
+     * @param  string|class-string  $feature
      * @param  mixed  $resolver
      * @return void
      */
-    public function register($feature, $resolver)
+    public function register($feature, $resolver = null)
     {
+        if (func_num_args() === 1) {
+            [$feature, $resolver] = with($this->container[$feature], fn ($instance) => [
+                $instance->name,
+                fn ($scope) => $instance($scope),
+            ]);
+        }
+
         if (is_string($resolver) || ! is_callable($resolver)) {
             $resolver = fn () => $resolver;
         }
@@ -188,18 +195,6 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Get the Authentication factory.
-     *
-     * @internal
-     *
-     * @return \Illuminate\Contracts\Auth\Factory
-     */
-    public function auth()
-    {
-        return $this->auth;
-    }
-
-    /**
      * Put the feature value into the cache.
      *
      * @param  string  $feature
@@ -263,8 +258,8 @@ class Decorator implements DriverContract
     public function __call($name, $parameters)
     {
         return tap(new PendingScopedFeatureInteraction($this), function ($interaction) use ($name) {
-            if ($name !== 'for' && $this->auth->guard()->check()) {
-                $interaction->for($this->auth->guard()->user());
+            if ($name !== 'for' && $this->container['auth']->guard()->check()) {
+                $interaction->for($this->container['auth']->guard()->user());
             }
         })->{$name}(...$parameters);
     }

@@ -2,8 +2,6 @@ This doc outlines the features, but it would be good to go an checkout the actua
 
 ## Basic usage
 
-The following feature flag expects there to be scope. Scope is the thing we are checking the feature against. Scope may be an Eloquent model, an email address, a country ('AU', 'US'), etc. Anything really.
-
 ```php
 <?php
 
@@ -11,7 +9,7 @@ The following feature flag expects there to be scope. Scope is the thing we are 
  * Register the feature resolver in a service provider, middleware, etc.
  */
 
-Feature::register('new-api', function ($user) {
+Feature::register('new-api', function (User $user): mixed {
     if ($user->isInternal()) {
         return true;
     }
@@ -19,20 +17,23 @@ Feature::register('new-api', function ($user) {
     return Lottery::odds(1 / 1000);
 });
 
+Auth::login($tim);
+
 /*
- * Check if the feature is active throughout the application usage, via the Facade.
+ * For convenience, the default behaviour is to check if the feature is active
+ * against the currently authenticated user, i.e. "$tim"
  */
 
-if (Feature::for($user)->isActive('new-api')) {
-    //
+if (Feature::isActive('new-api')) {
+    // Feature is active for $tim
 }
 
 /*
- * Or check via an object using the provided `HasFeatures` trait.
+ * If you want to check against another user, you may do the following...
  */
 
-if ($user->featureIsActive('new-api')) {
-    //
+if (Feature::for($james)->isActive('new-api')) {
+    // Feature is active for $james
 }
 ```
 
@@ -369,14 +370,12 @@ However, once checked this feature will be persisted to storage. I think this ma
     - For everyone: `php artisan feature:activate new-api`
     - For those it is currently inactive for: `php artisan feature:activate new-api --only-inactive`
     - etc.
-- Ability to retrieve the features for a user? or just all available users? Will this resolve the features state?
 - decorator needs to use comparator,
 - Do we want a way to detect if the feature has been set yet?
 - Database driver needs to use the scope comparator.
 - Database driver needs to handle eloquent model.
 - Events are only triggered when the feature is being resolved from the base driver. Generally this would be once per request.
 - Allow only a class to be registered. Feature::register(Foo::class);
-- Ability to get all features for given scope.
 
 ```php
 <?php

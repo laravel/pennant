@@ -73,7 +73,7 @@ class FeatureManager extends Manager
         return new Decorator(
             $driver,
             parent::createDriver($driver),
-            $this->container['auth'],
+            $this->container,
             new Collection
         );
     }
