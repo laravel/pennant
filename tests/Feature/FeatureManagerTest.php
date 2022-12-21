@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Lottery;
@@ -12,6 +13,8 @@ use Tests\TestCase;
 
 class FeatureManagerTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_it_can_chain_scope_additions()
     {
         Feature::for('tim@laravel.com')->for('jess@laravel.com')->activate('foo');
@@ -47,15 +50,19 @@ class FeatureManagerTest extends TestCase
 
         Feature::load('foo');
         $this->assertTrue(Feature::isActive('foo'));
+        Feature::clear('foo');
 
         Feature::load('foo');
         $this->assertTrue(Feature::isActive('foo'));
+        Feature::clear('foo');
 
         Feature::load(['foo']);
         $this->assertTrue(Feature::isActive('foo'));
+        Feature::clear('foo');
 
         Feature::load(['foo']);
         $this->assertTrue(Feature::isActive('foo'));
+        Feature::clear('foo');
 
         Feature::load(['foo']);
         $this->assertFalse(Feature::isActive('foo'));

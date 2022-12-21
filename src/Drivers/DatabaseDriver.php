@@ -4,12 +4,14 @@ namespace Laravel\Feature\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
+use RuntimeException;
 
 class DatabaseDriver implements Driver
 {
@@ -104,9 +106,9 @@ class DatabaseDriver implements Driver
      */
     public function delete($feature, $scope)
     {
-        return $this->db->table('features')
-            ->where('name', '=', $feature)
-            ->where('scope', '=', $scope)
+        $this->db->table('features')
+            ->where('name', $feature)
+            ->where('scope', $this->serializeScope($scope))
             ->delete();
     }
 
@@ -117,7 +119,7 @@ class DatabaseDriver implements Driver
      */
     public function prune()
     {
-        return $this->db->table('features')
+        $this->db->table('features')
             ->whereNotIn('name', $this->registered())
             ->delete();
     }
@@ -146,14 +148,14 @@ class DatabaseDriver implements Driver
 
         $features = Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->each(fn ($scope) => $query->orWhere(fn ($q) => $q->where('name', $feature)->where('scope', $scope))));
+                ->each(fn ($scope) => $query->orWhere(fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope)))));
 
         $records = $query->get();
         $inserts = new Collection;
 
         $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            if ($records->where('name', $feature)->where('scope', $scope)->isNotEmpty()) {
-                $value = $records->where('name', $feature)->where('scope', $scope)->value('value');
+            if ($records->where('name', $feature)->where('scope', $this->serializeScope($scope))->isNotEmpty()) {
+                $value = $records->where('name', $feature)->where('scope', $this->serializeScope($scope))->value('value');
 
                 return json_decode($value, flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
             }
@@ -161,7 +163,7 @@ class DatabaseDriver implements Driver
             return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
                 $inserts[] = [
                     'name' => $feature,
-                    'scope' => $scope,
+                    'scope' => $this->serializeScope($scope),
                     'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 ];
             });
@@ -194,8 +196,8 @@ class DatabaseDriver implements Driver
     protected function retrieve($feature, $scope)
     {
         return $this->db->table('features')
-            ->where('name', '=', $feature)
-            ->where('scope', '=', $scope)
+            ->where('name', $feature)
+            ->where('scope', $this->serializeScope($scope))
             ->first();
     }
 
@@ -209,10 +211,9 @@ class DatabaseDriver implements Driver
      */
     protected function insert($feature, $scope, $value)
     {
-        // TODO will need to serialize the scope in a good way.
         return $this->db->table('features')->insert([
             'name' => $feature,
-            'scope' => $scope,
+            'scope' => $this->serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
         ]);
     }
@@ -229,7 +230,7 @@ class DatabaseDriver implements Driver
     {
         return $this->db->table('features')
             ->where('name', $feature)
-            ->where('scope', $scope)
+            ->where('scope', $this->serializeScope($scope))
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             ]) > 0;
@@ -253,5 +254,32 @@ class DatabaseDriver implements Driver
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
             $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
         });
+    }
+
+    /**
+     * Serialize the scope for storage.
+     *
+     * @param  mixed  $scope
+     * @return string|null
+     */
+    protected function serializeScope($scope)
+    {
+        if ($scope === null) {
+            return null;
+        }
+
+        if (is_string($scope)) {
+            return $scope;
+        }
+
+        if (is_numeric($scope)) {
+            return (string) $scope;
+        }
+
+        if ($scope instanceof Model) {
+            return serialize($this->getSerializedPropertyValue($scope));
+        }
+
+        throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.');
     }
 }

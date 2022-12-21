@@ -194,7 +194,7 @@ class PendingScopedFeatureInteraction
      */
     public function load($features)
     {
-        Collection::wrap($feature)
+        Collection::wrap($features)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
             ->pipe(fn ($features) => $this->driver->load($features->all()));
     }
