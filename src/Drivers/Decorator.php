@@ -28,6 +28,13 @@ class Decorator implements DriverContract
     protected $driver;
 
     /**
+     * The default scope resolver.
+     *
+     * @var callable(string): mixed
+     */
+    protected $defaultScopeResolver;
+
+    /**
      * The container.
      *
      * @var \Illuminate\Contracts\Container\Container
@@ -46,14 +53,17 @@ class Decorator implements DriverContract
      *
      * @param  string  $name
      * @param  \Laravel\Feature\Contracts\Driver  $driver
+     * @param  (callable(string): mixed)  $defaultScopeResolver
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
-    public function __construct($name, $driver, $container, $cache)
+    public function __construct($name, $driver, $defaultScopeResolver, $container, $cache)
     {
         $this->name = $name;
 
         $this->driver = $driver;
+
+        $this->defaultScopeResolver = $defaultScopeResolver;
 
         $this->container = $container;
 
@@ -302,8 +312,8 @@ class Decorator implements DriverContract
     public function __call($name, $parameters)
     {
         return tap(new PendingScopedFeatureInteraction($this), function ($interaction) use ($name) {
-            if ($name !== 'for' && $this->container['auth']->guard()->check()) {
-                $interaction->for($this->container['auth']->guard()->user());
+            if ($name !== 'for' && ($this->defaultScopeResolver)() !== null) {
+                $interaction->for(($this->defaultScopeResolver)());
             }
         })->{$name}(...$parameters);
     }

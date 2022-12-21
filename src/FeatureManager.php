@@ -17,16 +17,20 @@ use Laravel\Feature\Drivers\Decorator;
 class FeatureManager extends Manager
 {
     /**
+     * The default scope resolver.
+     *
+     * @var (callable(string): mixed)|null
+     */
+    protected $defaultScopeResolver;
+
+    /**
      * Create an instance of the Array driver.
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver
      */
     public function createArrayDriver()
     {
-        return new ArrayDriver(
-            $this->container['events'],
-            []
-        );
+        return new ArrayDriver($this->container['events'], []);
     }
 
     /**
@@ -36,11 +40,7 @@ class FeatureManager extends Manager
      */
     public function createDatabaseDriver()
     {
-        return new DatabaseDriver(
-            $this->container['db.connection'],
-            $this->container['events'],
-            []
-        );
+        return new DatabaseDriver($this->container['db.connection'], $this->container['events'], []);
     }
 
     /**
@@ -50,7 +50,7 @@ class FeatureManager extends Manager
      */
     public function getDefaultDriver()
     {
-        return $this->container['config']->get('features.default', 'database');
+        return $this->container['config']->get('features.default') ?? 'database';
     }
 
     /**
@@ -64,8 +64,34 @@ class FeatureManager extends Manager
         return new Decorator(
             $driver,
             parent::createDriver($driver),
+            $this->defaultScopeResolver($driver),
             $this->container,
             new Collection
         );
+    }
+
+    /**
+     * Set the default scope resolver.
+     *
+     * @param  callable(string): mixed  $resolver
+     * @return void
+     */
+    public function setDefaultScopeResolver($resolver)
+    {
+        $this->defaultScopeResolver = $resolver;
+    }
+
+    /**
+     * The default scope resolver.
+     *
+     * @return callable(): mixed
+     */
+    public function defaultScopeResolver($driver)
+    {
+        if ($this->defaultScopeResolver !== null) {
+            return fn () => ($this->defaultScopeResolver)($driver);
+        }
+
+        return fn () => $this->container['auth']->guard()->user();
     }
 }

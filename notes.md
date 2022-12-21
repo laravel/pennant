@@ -94,6 +94,24 @@ Feature::register('new-cron-job-provisioning', config('features.new-cron-job-pro
 Feature::register('new-foo-provisioning', config('features.new-foo-provisioning'));
 ```
 
+### Class based feature resolvers
+
+It is possible to register class based resolvers. Constructor dependencies will be resolved via the container.
+
+```php
+class MyFeature
+{
+    public $name = 'my-feature';
+
+    public function __invoke($scope)
+    {
+        //
+    }
+}
+
+Feature::register(MyFeature::class);
+```
+
 ### Other drivers
 
 It is possible that some drivers may throw an exception when trying to register a feature, as that process is handled completely on their end.
@@ -384,7 +402,50 @@ Feature::for($tim)->isActive('random-misspelt-feature');
 
 However, once checked this feature will be persisted to storage. I think this makes sense, but is also something we should consider.
 
+## Getting all registered features
+
+It is possible to retrieve all registered features. A service like Launch Darkly might return an array of the all the features on their service for the given environment.
+
+```php
+<?php
+
+Feature::register('foo', fn () => false);
+Feature::register('bar', fn () => false);
+
+Feature::registered();
+// ['foo', 'bar']
+```
+
+## Pruning old features
+
+As you remove features from your system, they may still be in storage. You may prune all dangling features from storage with the prune method.
+
+```php
+<?php
+
+Feature::prune();
+```
+
+## Forgetting feature values
+
+It can be useful to forget the current value for a flag. To do this, you may use the "forget" method. This will only forget the feature for the current scope.
+
+```php
+<?php
+
+// Forget 'foo' for the currently authenticated user or `null`
+Feature::forget(['foo']);
+
+// Forget 'foo' for $jess
+Feature::for($jess)->forget(['foo']);
+// Forget 'foo' for $jess, $tim
+Feature::for([$jess, $tim])->forget(['foo', 'bar']);
+```
+
+
 ### TODO
+
+- Allow 
 
 ```php
 <?php
