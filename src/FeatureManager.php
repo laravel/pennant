@@ -17,13 +17,6 @@ use Laravel\Feature\Drivers\Decorator;
 class FeatureManager extends Manager
 {
     /**
-     * The scope comparator.
-     *
-     * @var (callable(mixed, mixed, string): bool)|null
-     */
-    protected $scopeComparator;
-
-    /**
      * Create an instance of the Array driver.
      *
      * @return \Laravel\Feature\Drivers\ArrayDriver
@@ -32,7 +25,6 @@ class FeatureManager extends Manager
     {
         return new ArrayDriver(
             $this->container['events'],
-            $this->scopeComparator('array'),
             []
         );
     }
@@ -47,7 +39,6 @@ class FeatureManager extends Manager
         return new DatabaseDriver(
             $this->container['db.connection'],
             $this->container['events'],
-            $this->scopeComparator('database'),
             []
         );
     }
@@ -76,37 +67,5 @@ class FeatureManager extends Manager
             $this->container,
             new Collection
         );
-    }
-
-    /**
-     * Get the feature scope comparator.
-     *
-     * @param  string  $driver
-     * @return callable(mixed, mixed): bool
-     */
-    protected function scopeComparator($driver)
-    {
-        return function ($a, $b) use ($driver) {
-            if ($this->scopeComparator !== null) {
-                return ($this->scopeComparator)($a, $b, $driver);
-            }
-
-            return $a instanceof Model && $b instanceof Model
-                ? $a->is($b)
-                : $a === $b;
-        };
-    }
-
-    /**
-     * Set the closure used to compare scopes.
-     *
-     * @param  callable(mixed, mixed, string): bool  $callback
-     * @return $this
-     */
-    public function compareScopeUsing($callback)
-    {
-        $this->scopeComparator = $callback;
-
-        return $this;
     }
 }

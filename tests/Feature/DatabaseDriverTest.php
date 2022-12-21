@@ -358,19 +358,15 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_serializes_eloquent_models()
     {
-        $this->markTestSkipped('TODO');
         Schema::create('users', function ($table) {
             $table->id();
             $table->timestamps();
         });
-        // $user = User::create();
+        Feature::for(User::create())->activate('foo');
 
-        // Feature::for($user)->activate('foo');
+        $scope = DB::table('features')->value('scope');
 
-        // dd(DB::table('features')->get());
-
-        // $this->assertTrue(Feature::for($user)->isActive('foo'));
-        // $this->assertCount(4, DB::getQueryLog());
+        $this->assertStringContainsString('ModelIdentifier', $scope);
     }
 
     public function test_it_can_load_feature_state_into_memory()
@@ -667,7 +663,7 @@ class DatabaseDriverTest extends TestCase
         Feature::register('foo', fn () => false);
         $this->assertFalse(Feature::for('tim')->value('foo'));
 
-        Feature::for('tim')->clear('foo');
+        Feature::for('tim')->forget('foo');
 
         Feature::register('foo', fn () => true);
         $this->assertTrue(Feature::for('tim')->value('foo'));

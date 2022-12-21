@@ -200,13 +200,13 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Clear the flags value.
+     * Forget the flags value.
      *
      * @param  string|array<string>  $feature
      * @param  mixed  $scope
      * @return void
      */
-    public function clear($features)
+    public function forget($features)
     {
         return Collection::wrap($features)
             ->crossJoin($this->scope())

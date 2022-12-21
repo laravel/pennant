@@ -616,7 +616,7 @@ class ArrayDriverTest extends TestCase
         Feature::register('foo', fn () => false);
         $this->assertFalse(Feature::for('tim')->value('foo'));
 
-        Feature::for('tim')->clear('foo');
+        Feature::for('tim')->forget('foo');
 
         Feature::register('foo', fn () => true);
         $this->assertTrue(Feature::for('tim')->value('foo'));

@@ -39,27 +39,17 @@ class DatabaseDriver implements Driver
     protected $featureStateResolvers;
 
     /**
-     * The scope comparator.
-     *
-     * @var (callable(mixed, mixed): bool)
-     */
-    protected $scopeComparator;
-
-    /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  (callable(mixed, mixed): bool)  $scopeComparator
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
-    public function __construct(Connection $db, Dispatcher $events, $scopeComparator, $featureStateResolvers)
+    public function __construct(Connection $db, Dispatcher $events, $featureStateResolvers)
     {
         $this->db = $db;
 
         $this->events = $events;
-
-        $this->scopeComparator = $scopeComparator;
 
         $this->featureStateResolvers = $featureStateResolvers;
     }
@@ -154,10 +144,10 @@ class DatabaseDriver implements Driver
         $inserts = new Collection;
 
         $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            if ($records->where('name', $feature)->where('scope', $this->serializeScope($scope))->isNotEmpty()) {
-                $value = $records->where('name', $feature)->where('scope', $this->serializeScope($scope))->value('value');
+            $filtered = $records->where('name', $feature)->where('scope', $this->serializeScope($scope));
 
-                return json_decode($value, flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
+            if ($filtered->isNotEmpty()) {
+                return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY|JSON_THROW_ON_ERROR);
             }
 
             return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {

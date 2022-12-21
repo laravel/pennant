@@ -50,19 +50,19 @@ class FeatureManagerTest extends TestCase
 
         Feature::load('foo');
         $this->assertTrue(Feature::isActive('foo'));
-        Feature::clear('foo');
+        Feature::forget('foo');
 
         Feature::load('foo');
         $this->assertTrue(Feature::isActive('foo'));
-        Feature::clear('foo');
+        Feature::forget('foo');
 
         Feature::load(['foo']);
         $this->assertTrue(Feature::isActive('foo'));
-        Feature::clear('foo');
+        Feature::forget('foo');
 
         Feature::load(['foo']);
         $this->assertTrue(Feature::isActive('foo'));
-        Feature::clear('foo');
+        Feature::forget('foo');
 
         Feature::load(['foo']);
         $this->assertFalse(Feature::isActive('foo'));

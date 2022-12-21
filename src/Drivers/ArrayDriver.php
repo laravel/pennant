@@ -3,6 +3,7 @@
 namespace Laravel\Feature\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
@@ -26,24 +27,14 @@ class ArrayDriver implements Driver
     protected $featureStateResolvers;
 
     /**
-     * The scope comparator.
-     *
-     * @var callable(mixed, mixed): bool
-     */
-    protected $scopeComparator;
-
-    /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  (callable(mixed, mixed): bool)  $scopeComparator
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      */
-    public function __construct(Dispatcher $events, $scopeComparator, $featureStateResolvers)
+    public function __construct(Dispatcher $events, $featureStateResolvers)
     {
         $this->events = $events;
-
-        $this->scopeComparator = $scopeComparator;
 
         $this->featureStateResolvers = $featureStateResolvers;
     }
@@ -81,7 +72,13 @@ class ArrayDriver implements Driver
         // TODO: are we worried about memory leaks here?
         $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
 
-        $this->register($feature, fn ($s) => ($this->scopeComparator)($scope, $s) ? $value : $existing($s));
+        $this->register($feature, function ($s) use ($scope, $value, $existing) {
+            if ($s instanceof Model && $scope instanceof Model) {
+                 return $s->is($scope) ? $value : $existing($s);
+            }
+
+            return $s === $scope ? $value : $existing($s);
+        });
     }
 
     /**

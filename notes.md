@@ -368,7 +368,6 @@ However, once checked this feature will be persisted to storage. I think this ma
 
 - decorator needs to use comparator,
 - Database driver needs to use the scope comparator.
-- Database driver needs to handle eloquent model.
 
 ```php
 <?php
