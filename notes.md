@@ -189,7 +189,7 @@ This raises the question, what does "active" vs "inactive" mean when using rich 
 
 To reduce complexity for driver implementations, we provide the drivers with an in-memory cache of resolved feature states. The drivers are not aware of this cache.
 
-This means that a feature + scope combination will only be resolved from the driver once per request. This is important as allow the state of the feature flag to change throughout a request could result in strange behaviour.
+This means that a feature + scope combination will only be resolved from the driver once per request. This is important as it ensures the state of the feature flag is consistent throughout a given request.
 
 Imagine changing the `"new-design"` flag on a user part way through the request. It would lead to a half-half visual design.
 
