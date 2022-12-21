@@ -150,7 +150,7 @@ Feature::isInactive('foo');
 
 ## Feature values
 
-As previously stated, generally feature flags are on or off and represented by `boolean` values. However, it can often be useful to store more complex values as a flag. "Complex" meaning things like a string, array of JSON, etc.
+Generally feature flags are on or off and represented by `boolean` values. However, it can be useful to store more complex values as a flag. "Complex" meaning things like a string, array of JSON, etc.
 
 Take the example of a new button design. We may be trialling 3 different button colours.
 
@@ -160,17 +160,21 @@ Take the example of a new button design. We may be trialling 3 different button 
 // Register the feature...
 
 Feature::register('buy-now-button-color', function (): string {
-    return Arr::random(['green', 'blue', 'black']);
+    return Arr::random([
+        'green',
+        'blue',
+        'black',
+    ]);
 });
 
-Feature::for($user)->value('buy-now-button-color'); // 'green'|'blue'|'black'
+Feature::value('buy-now-button-color'); // 'green'|'blue'|'black'
 
 
 // Use the feature in Blade...
 
-@if(request()->user()->featureValue('buy-now-button-color') === 'green')
+@if(Feature::value('buy-now-button-color') === 'green')
     <GreenButton />
-@elseif(request()->user()->featureValue('buy-now-button-color') === 'blue')
+@elseif(Feature::value('buy-now-button-color') === 'blue')
     <BlueButton />
 @else
     <BlackButton />
