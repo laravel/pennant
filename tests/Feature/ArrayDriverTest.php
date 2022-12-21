@@ -644,6 +644,11 @@ class ArrayDriverTest extends TestCase
             'bar' => 2,
         ], $result);
     }
+
+    public function test_it_can_customise_default_scope()
+    {
+
+    }
 }
 
 class MyFeature
