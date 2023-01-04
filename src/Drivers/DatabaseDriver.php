@@ -11,6 +11,7 @@ use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
 use RuntimeException;
+use stdClass;
 
 class DatabaseDriver implements Driver
 {
@@ -38,6 +39,13 @@ class DatabaseDriver implements Driver
     protected $featureStateResolvers;
 
     /**
+     * The sentinel value for unknown features.
+     *
+     * @var \stdClass
+     */
+    protected $unknownFeatureValue;
+
+    /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Database\Connection  $db
@@ -51,6 +59,8 @@ class DatabaseDriver implements Driver
         $this->events = $events;
 
         $this->featureStateResolvers = $featureStateResolvers;
+
+        $this->unknownFeatureValue = new stdClass;
     }
 
     /**
@@ -66,8 +76,14 @@ class DatabaseDriver implements Driver
             return json_decode($record->value, flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
         }
 
-        return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
+        return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
+            if ($value === $this->unknownFeatureValue) {
+                return false;
+            }
+
             $this->insert($feature, $scope, $value);
+
+            return $value;
         });
     }
 
@@ -237,7 +253,7 @@ class DatabaseDriver implements Driver
         if (! array_key_exists($feature, $this->featureStateResolvers)) {
             $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
 
-            return false;
+            return $this->unknownFeatureValue;
         }
 
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {

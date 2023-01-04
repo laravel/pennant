@@ -33,7 +33,7 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertFalse($result);
 
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(1, DB::getQueryLog());
     }
 
     public function test_it_dispatches_events_on_unknown_feature_checks()
@@ -50,7 +50,7 @@ class DatabaseDriverTest extends TestCase
             return true;
         });
 
-        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(1, DB::getQueryLog());
     }
 
     public function test_it_can_register_default_boolean_values()
@@ -241,7 +241,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($first)->isActive('foo'));
         $this->assertFalse(Feature::for($second)->isActive('foo'));
 
-        $this->assertCount(6, DB::getQueryLog());
+        $this->assertCount(4, DB::getQueryLog());
     }
 
     public function test_it_can_activate_and_deactivate_features_for_multiple_scope_at_once()
@@ -257,7 +257,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($second)->isActive('foo'));
         $this->assertFalse(Feature::for($third)->isActive('foo'));
 
-        $this->assertCount(8, DB::getQueryLog());
+        $this->assertCount(6, DB::getQueryLog());
     }
 
     public function test_it_can_activate_and_deactivate_multiple_features_for_multiple_scope_at_once()
@@ -278,7 +278,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($second)->isActive('bar'));
         $this->assertFalse(Feature::for($third)->isActive('bar'));
 
-        $this->assertCount(16, DB::getQueryLog());
+        $this->assertCount(12, DB::getQueryLog());
     }
 
     public function test_it_can_check_multiple_features_for_multiple_scope_at_once()
@@ -298,7 +298,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(Feature::for([$second, $third])->allAreActive(['foo', 'bar']));
         $this->assertFalse(Feature::for([$first, $second, $third])->allAreActive(['foo', 'bar']));
 
-        $this->assertCount(12, DB::getQueryLog());
+        $this->assertCount(10, DB::getQueryLog());
     }
 
     public function test_null_is_same_as_global()
@@ -324,7 +324,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(Feature::for(null)->isActive('bar'));
         $this->assertFalse(Feature::isActive('bar'));
 
-        $this->assertCount(8, DB::getQueryLog());
+        $this->assertCount(6, DB::getQueryLog());
     }
 
     public function test_scope_can_be_strings_like_email_addresses()
@@ -334,7 +334,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(Feature::for('james@laravel.com')->isActive('foo'));
         $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
 
-        $this->assertCount(4, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_it_can_handle_feature_scopeable_objects()
@@ -353,7 +353,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
         $this->assertTrue(Feature::for($scopeable())->isActive('foo'));
 
-        $this->assertCount(4, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_it_serializes_eloquent_models()
@@ -727,5 +727,15 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame([
             null,
         ], $scopes);
+    }
+
+    public function test_it_does_not_store_unknown_features()
+    {
+        Event::fake([RetrievingUnknownFeature::class]);
+
+        Feature::isActive('foo');
+        Feature::isActive('foo');
+
+        $this->assertSame(0, DB::table('features')->count());
     }
 }
