@@ -3,7 +3,7 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\ServiceProvider;
-use Laravel\Feature\Commands\PruneCommand;
+use Laravel\Feature\Commands\PurgeCommand;
 
 class FeatureServiceProvider extends ServiceProvider
 {
@@ -22,7 +22,7 @@ class FeatureServiceProvider extends ServiceProvider
             ], 'laravel-feature-migrations');
 
             $this->commands([
-                PruneCommand::class,
+                PurgeCommand::class,
             ]);
         }
     }

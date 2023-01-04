@@ -669,7 +669,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for('tim')->value('foo'));
     }
 
-    public function test_it_can_prune_flags()
+    public function test_it_can_purge_flags()
     {
         Feature::register('foo', true);
         Feature::register('bar', false);
@@ -680,16 +680,16 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        Feature::prune('foo');
+        Feature::purge('foo');
 
         $this->assertSame(1, DB::table('features')->count());
 
-        Feature::prune('bar');
+        Feature::purge('bar');
 
         $this->assertSame(0, DB::table('features')->count());
     }
 
-    public function test_it_can_prune_all_feature_flags()
+    public function test_it_can_purge_all_feature_flags()
     {
         Feature::register('foo', true);
         Feature::register('bar', false);
@@ -700,7 +700,7 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        Feature::prune();
+        Feature::purge();
 
         $this->assertSame(0, DB::table('features')->count());
     }

@@ -423,25 +423,25 @@ It is possible to remove entire features for all scope...
 ```php
 <?php
 
-Feature::prune('foo');
+Feature::purge('foo');
 ```
 
 There is also a provided artisan command...
 
 ```sh
-php artisan pennant:prune foo
+php artisan pennant:purge foo
 ```
 
-To prune *all* features, i.e. truncate, you may omit the feature name...
+To purge *all* features, i.e. truncate, you may omit the feature name...
 
 ```php
 <?php
 
-Feature::prune();
+Feature::purge();
 ```
 
 ```sh
-php artisan pennant:prune
+php artisan pennant:purge
 ```
 
 ## Forgetting feature values

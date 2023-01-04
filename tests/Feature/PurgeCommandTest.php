@@ -8,11 +8,11 @@ use Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use InvalidArgumentException;
 
-class PruneCommandTest extends TestCase
+class PurgeCommandTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_it_can_prune_flags()
+    public function test_it_can_purge_flags()
     {
         Feature::register('foo', true);
         Feature::register('bar', false);
@@ -23,16 +23,16 @@ class PruneCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:prune foo');
+        $this->artisan('pennant:purge foo');
 
         $this->assertSame(1, DB::table('features')->count());
 
-        $this->artisan('pennant:prune bar');
+        $this->artisan('pennant:purge bar');
 
         $this->assertSame(0, DB::table('features')->count());
     }
 
-    public function test_it_can_prune_all_feature_flags()
+    public function test_it_can_purge_all_feature_flags()
     {
         Feature::register('foo', true);
         Feature::register('bar', false);
@@ -43,7 +43,7 @@ class PruneCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:prune');
+        $this->artisan('pennant:purge');
 
         $this->assertSame(0, DB::table('features')->count());
     }
@@ -59,16 +59,16 @@ class PruneCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:prune --driver=array');
+        $this->artisan('pennant:purge --driver=array');
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:prune --driver=database');
+        $this->artisan('pennant:purge --driver=database');
 
         $this->assertSame(0, DB::table('features')->count());
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Driver [foo] not supported.');
-        $this->artisan('pennant:prune --driver=foo');
+        $this->artisan('pennant:purge --driver=foo');
     }
 }

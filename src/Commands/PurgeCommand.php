@@ -5,16 +5,16 @@ namespace Laravel\Feature\Commands;
 use Illuminate\Console\Command;
 use Laravel\Feature\FeatureManager;
 
-class PruneCommand extends Command
+class PurgeCommand extends Command
 {
     /**
      * The console command name.
      *
      * @var string
      */
-    protected $signature = 'pennant:prune
-                            {feature? : The feature to prune}
-                            {--driver= : The driver to prune the feature from}';
+    protected $signature = 'pennant:purge
+                            {feature? : The feature to purge}
+                            {--driver= : The driver to purge the feature from}';
 
     /**
      * Execute the console command.
@@ -24,7 +24,7 @@ class PruneCommand extends Command
      */
     public function handle(FeatureManager $manager)
     {
-        $manager->driver($this->option('driver'))->prune($this->argument('feature'));
+        $manager->driver($this->option('driver'))->purge($this->argument('feature'));
 
         $this->components->info("{$this->argument('feature')} successfully prunned.");
 

@@ -93,12 +93,12 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Prune the given feature.
+     * Purge the given feature.
      *
      * @param  string|null  $feature
      * @return void
      */
-    public function prune($feature = null)
+    public function purge($feature = null)
     {
         //
     }
