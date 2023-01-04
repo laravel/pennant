@@ -3,6 +3,7 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Feature\Commands\PruneCommand;
 
 class FeatureServiceProvider extends ServiceProvider
 {
@@ -19,6 +20,10 @@ class FeatureServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../database/migrations' => database_path('migrations'),
             ], 'laravel-feature-migrations');
+
+            $this->commands([
+                PruneCommand::class,
+            ]);
         }
     }
 }

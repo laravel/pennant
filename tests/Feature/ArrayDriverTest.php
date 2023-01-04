@@ -623,29 +623,6 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::for('tim')->value('foo'));
     }
 
-    public function test_it_can_prune_flags()
-    {
-        Feature::register('foo', fn () => 1);
-        Feature::register('bar', fn () => 2);
-
-        $result = Feature::for('tim')->values(['foo', 'bar']);
-        $this->assertSame([
-            'foo' => 1,
-            'bar' => 2,
-        ], $result);
-
-        Feature::forgetDrivers();
-        Feature::register('bar', fn () => 2);
-
-        Feature::prune();
-
-        $result = Feature::for('tim')->values(['foo', 'bar']);
-        $this->assertSame([
-            'foo' => false,
-            'bar' => 2,
-        ], $result);
-    }
-
     public function test_it_can_customise_default_scope()
     {
         $scopes = [];

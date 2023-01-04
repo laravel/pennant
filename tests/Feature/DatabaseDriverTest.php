@@ -671,25 +671,38 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_prune_flags()
     {
-        Feature::register('foo', fn () => 1);
-        Feature::register('bar', fn () => 2);
+        Feature::register('foo', true);
+        Feature::register('bar', false);
 
-        $result = Feature::for('tim')->values(['foo', 'bar']);
-        $this->assertSame([
-            'foo' => 1,
-            'bar' => 2,
-        ], $result);
+        Feature::for('tim')->isActive('foo');
+        Feature::for('taylor')->isActive('foo');
+        Feature::for('taylor')->isActive('bar');
 
-        Feature::forgetDrivers();
-        Feature::register('bar', fn () => 2);
+        $this->assertSame(3, DB::table('features')->count());
+
+        Feature::prune('foo');
+
+        $this->assertSame(1, DB::table('features')->count());
+
+        Feature::prune('bar');
+
+        $this->assertSame(0, DB::table('features')->count());
+    }
+
+    public function test_it_can_prune_all_feature_flags()
+    {
+        Feature::register('foo', true);
+        Feature::register('bar', false);
+
+        Feature::for('tim')->isActive('foo');
+        Feature::for('taylor')->isActive('foo');
+        Feature::for('taylor')->isActive('bar');
+
+        $this->assertSame(3, DB::table('features')->count());
 
         Feature::prune();
 
-        $result = Feature::for('tim')->values(['foo', 'bar']);
-        $this->assertSame([
-            'foo' => false,
-            'bar' => 2,
-        ], $result);
+        $this->assertSame(0, DB::table('features')->count());
     }
 
     public function test_it_can_customise_default_scope()

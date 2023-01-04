@@ -118,15 +118,20 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Delete any feature flags that are no longer registered.
+     * Prune the given feature.
      *
+     * @param  string|null  $feature
      * @return void
      */
-    public function prune()
+    public function prune($feature = null)
     {
-        $this->db->table('features')
-            ->whereNotIn('name', $this->registered())
-            ->delete();
+        if ($feature === null) {
+            $this->db->table('features')->delete();
+        } else {
+            $this->db->table('features')
+                ->where('name', $feature)
+                ->delete();
+        }
     }
 
     /**

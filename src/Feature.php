@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array<string, array<int, mixed>> loadMissing(array<string, array<int, mixed>> $features)
  * @method static array<string> registered()
  * @method static void flushCache()
- * @method static void prune()
+ * @method static void prune(string|null $feature = null)
  * @method static \Laravel\Feature\PendingScopedFeatureInteraction for(mixed $scope)
  * @method static mixed value(string $feature)
  * @method static array<string, mixed> values(array<string> $features)

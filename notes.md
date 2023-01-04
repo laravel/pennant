@@ -416,14 +416,32 @@ Feature::registered();
 // ['foo', 'bar']
 ```
 
-## Pruning old features
+## Pruning features
 
-As you remove features from your system, they may still be in storage. You may prune all dangling features from storage with the prune method.
+It is possible to remove entire features for all scope...
+
+```php
+<?php
+
+Feature::prune('foo');
+```
+
+There is also a provided artisan command...
+
+```sh
+php artisan pennant:prune foo
+```
+
+To prune *all* features, i.e. truncate, you may omit the feature name...
 
 ```php
 <?php
 
 Feature::prune();
+```
+
+```sh
+php artisan pennant:prune
 ```
 
 ## Forgetting feature values

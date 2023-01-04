@@ -221,13 +221,14 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Delete any feature flags that are no longer registered.
+     * Prune the given feature.
      *
+     * @param  string|null  $feature
      * @return void
      */
-    public function prune()
+    public function prune($feature = null)
     {
-        $this->driver->prune();
+        $this->driver->prune($feature);
     }
 
     /**
