@@ -50,8 +50,15 @@ class PurgeCommandTest extends TestCase
 
     public function test_it_can_specify_a_driver()
     {
+        Feature::extend('custom', fn () => new class {
+            public function purge() {
+                //
+            }
+        });
+
         Feature::driver('database')->register('foo', true);
         Feature::driver('database')->register('bar', false);
+
 
         Feature::for('tim')->isActive('foo');
         Feature::for('taylor')->isActive('foo');
@@ -59,7 +66,7 @@ class PurgeCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:purge --driver=array');
+        $this->artisan('pennant:purge --driver=custom');
 
         $this->assertSame(3, DB::table('features')->count());
 

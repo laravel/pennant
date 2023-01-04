@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
+use RuntimeException;
 
 class ArrayDriver implements Driver
 {
@@ -100,7 +101,7 @@ class ArrayDriver implements Driver
      */
     public function purge($feature = null)
     {
-        //
+        throw new RuntimeException('The array driver does not support purging.');
     }
 
     /**

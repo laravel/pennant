@@ -8,6 +8,15 @@ use Laravel\Feature\Commands\PurgeCommand;
 class FeatureServiceProvider extends ServiceProvider
 {
     /**
+     * The singletons to register into the container.
+     *
+     * @var array
+     */
+    public $singletons = [
+        FeatureManager::class,
+    ];
+
+    /**
      * Bootstrap any package services.
      *
      * @return void
