@@ -22,36 +22,6 @@ class FeatureManager extends Manager
     protected $defaultScopeResolver;
 
     /**
-     * Create an instance of the Array driver.
-     *
-     * @return \Laravel\Feature\Drivers\ArrayDriver
-     */
-    public function createArrayDriver()
-    {
-        return new ArrayDriver($this->container['events'], []);
-    }
-
-    /**
-     * Create an instance of the Datbase driver.
-     *
-     * @return \Laravel\Feature\Drivers\DatabaseDriver
-     */
-    public function createDatabaseDriver()
-    {
-        return new DatabaseDriver($this->container['db.connection'], $this->container['events'], []);
-    }
-
-    /**
-     * Get the default driver name.
-     *
-     * @return string
-     */
-    public function getDefaultDriver()
-    {
-        return $this->container['config']->get('features.default') ?? 'database';
-    }
-
-    /**
      * Create a new driver instance.
      *
      * @param  string  $driver
@@ -66,6 +36,26 @@ class FeatureManager extends Manager
             $this->container,
             new Collection
         );
+    }
+
+    /**
+     * Create an instance of the array driver.
+     *
+     * @return \Laravel\Feature\Drivers\ArrayDriver
+     */
+    public function createArrayDriver()
+    {
+        return new ArrayDriver($this->container['events'], []);
+    }
+
+    /**
+     * Create an instance of the database driver.
+     *
+     * @return \Laravel\Feature\Drivers\DatabaseDriver
+     */
+    public function createDatabaseDriver()
+    {
+        return new DatabaseDriver($this->container['db.connection'], $this->container['events'], []);
     }
 
     /**
@@ -94,5 +84,15 @@ class FeatureManager extends Manager
 
             return $this->container['auth']->guard()->user();
         };
+    }
+
+    /**
+     * Get the default driver name.
+     *
+     * @return string
+     */
+    public function getDefaultDriver()
+    {
+        return $this->container['config']->get('features.default') ?? 'database';
     }
 }
