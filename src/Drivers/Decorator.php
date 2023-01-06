@@ -150,7 +150,6 @@ class Decorator implements DriverContract
      */
     public function flushCache()
     {
-        // TODO do we need to manually flush for Octane / queue workers?
         $this->cache = new Collection;
     }
 
@@ -301,6 +300,16 @@ class Decorator implements DriverContract
                     ? $scope->toFeatureIdentifier($this->name)
                     : $scope)
                 ->all());
+    }
+
+    /**
+     * Get the feature driver.
+     *
+     * @return \Laravel\Feature\Contracts\Driver
+     */
+    public function getDriver()
+    {
+        return $this->driver;
     }
 
     /**

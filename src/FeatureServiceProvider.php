@@ -3,19 +3,9 @@
 namespace Laravel\Feature;
 
 use Illuminate\Support\ServiceProvider;
-use Laravel\Feature\Commands\PurgeCommand;
 
 class FeatureServiceProvider extends ServiceProvider
 {
-    /**
-     * The singletons to register into the container.
-     *
-     * @var array
-     */
-    public $singletons = [
-        FeatureManager::class,
-    ];
-
     /**
      * Register the package's services.
      *
@@ -23,6 +13,8 @@ class FeatureServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $this->app->singleton(FeatureManager::class, fn ($app) => new FeatureManager($app));
+
         $this->mergeConfigFrom(__DIR__.'/../config/features.php', 'features');
     }
 
@@ -41,8 +33,15 @@ class FeatureServiceProvider extends ServiceProvider
             ], 'laravel-feature-migrations');
 
             $this->commands([
-                PurgeCommand::class,
+                \Laravel\Feature\Commands\PurgeCommand::class,
             ]);
         }
+
+        $this->app['events']->listen([
+            \Illuminate\Queue\Events\JobProcessed::class,
+            \Laravel\Octane\Events\RequestReceived::class,
+            \Laravel\Octane\Events\TaskReceived::class,
+            \Laravel\Octane\Events\TickReceived::class,
+        ], fn () => $this->app[FeatureManager::class]->flushCache());
     }
 }

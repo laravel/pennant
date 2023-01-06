@@ -9,6 +9,7 @@ use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
 use RuntimeException;
+use stdClass;
 
 class ArrayDriver implements Driver
 {
@@ -27,6 +28,20 @@ class ArrayDriver implements Driver
     protected $featureStateResolvers;
 
     /**
+     * The resolved feature states.
+     *
+     * @var array<string, array<string, mixed>>
+     */
+    protected $resolvedFeatureStates = [];
+
+    /**
+     * The sentinel value for unknown features.
+     *
+     * @var \stdClass
+     */
+    protected $unknownFeatureValue;
+
+    /**
      * Create a new driver instance.
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
@@ -36,6 +51,8 @@ class ArrayDriver implements Driver
     {
         $this->events = $events;
         $this->featureStateResolvers = $featureStateResolvers;
+
+        $this->unknownFeatureValue = new stdClass;
     }
 
     /**
@@ -47,14 +64,20 @@ class ArrayDriver implements Driver
      */
     public function get($feature, $scope)
     {
-        if ($this->missingResolver($feature)) {
-            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
+        $scopeKey = $this->serializeScope($scope);
 
-            return false;
+        if (isset($this->resolvedFeatureStates[$feature][$scopeKey])) {
+            return $this->resolvedFeatureStates[$feature][$scopeKey];
         }
 
-        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
+        return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scopeKey) {
+            if ($value === $this->unknownFeatureValue) {
+                return false;
+            }
+
+            $this->set($feature, $scopeKey, $value);
+
+            return $value;
         });
     }
 
@@ -68,16 +91,9 @@ class ArrayDriver implements Driver
      */
     public function set($feature, $scope, $value)
     {
-        // TODO: are we worried about memory leaks here?
-        $existing = $this->featureStateResolvers[$feature] ?? fn () => false;
+        $this->resolvedFeatureStates[$feature] ??= [];
 
-        $this->register($feature, function ($s) use ($scope, $value, $existing) {
-            if ($s instanceof Model && $scope instanceof Model) {
-                return $s->is($scope) ? $value : $existing($s);
-            }
-
-            return $s === $scope ? $value : $existing($s);
-        });
+        $this->resolvedFeatureStates[$feature][$this->serializeScope($scope)] = $value;
     }
 
     /**
@@ -89,7 +105,7 @@ class ArrayDriver implements Driver
      */
     public function delete($feature, $scope)
     {
-        //
+        unset($this->resolvedFeatureStates[$feature][$this->serializeScope($scope)]);
     }
 
     /**
@@ -149,5 +165,62 @@ class ArrayDriver implements Driver
     protected function missingResolver($feature)
     {
         return ! array_key_exists($feature, $this->featureStateResolvers);
+    }
+
+    /**
+     * Flush the resolved feature states.
+     *
+     * @return void
+     */
+    public function flushCache()
+    {
+        $this->resolvedFeatureStates = [];
+    }
+
+    /**
+     * Determine the initial feature value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return mixed
+     */
+    protected function resolveValue($feature, $scope)
+    {
+        if ($this->missingResolver($feature)) {
+            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
+
+            return false;
+        }
+
+        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
+            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
+        });
+    }
+
+    /**
+     * Serialize the scope for storage.
+     *
+     * @param  mixed  $scope
+     * @return string
+     */
+    protected function serializeScope($scope)
+    {
+        if ($scope === null) {
+            return '__laravel_null';
+        }
+
+        if (is_string($scope)) {
+            return $scope;
+        }
+
+        if (is_numeric($scope)) {
+            return (string) $scope;
+        }
+
+        if ($scope instanceof Model) {
+            return $scope::class.'|'.$scope->getKey();
+        }
+
+        throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.');
     }
 }

@@ -59,6 +59,22 @@ class FeatureManager extends Manager
     }
 
     /**
+     * Flush the driver caches.
+     *
+     * @return void
+     */
+    public function flushCache()
+    {
+        foreach ($this->drivers as $driver) {
+            $driver->flushCache();
+        }
+
+        if (isset($this->drivers['array'])) {
+            $this->drivers['array']->getDriver()->flushCache();
+        }
+    }
+
+    /**
      * The default scope resolver.
      *
      * @param  string  $driver
