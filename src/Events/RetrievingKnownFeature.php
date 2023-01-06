@@ -23,7 +23,7 @@ class RetrievingKnownFeature
     public $scope;
 
     /**
-     * The scope of the feature check.
+     * The result value of the feature check.
      *
      * @var mixed
      */
@@ -39,9 +39,7 @@ class RetrievingKnownFeature
     public function __construct($feature, $scope, $value)
     {
         $this->feature = $feature;
-
         $this->scope = $scope;
-
         $this->value = $value;
     }
 }

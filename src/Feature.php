@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Feature\Drivers\ArrayDriver createArrayDriver()
  * @method static \Laravel\Feature\Drivers\DatabaseDriver createDatabaseDriver()
  * @method static string getDefaultDriver()
- * @method static void setDefaultScopeResolver((callable(string): mixed) $resolver)
+ * @method static void resolveScopeUsing((callable(string): mixed) $resolver)
  * @method static mixed driver(string|null $driver = null)
  * @method static \Laravel\Feature\FeatureManager extend(string $driver, \Closure $callback)
  * @method static array getDrivers()

@@ -59,17 +59,6 @@ class FeatureManager extends Manager
     }
 
     /**
-     * Set the default scope resolver.
-     *
-     * @param  (callable(string): mixed)  $resolver
-     * @return void
-     */
-    public function setDefaultScopeResolver($resolver)
-    {
-        $this->defaultScopeResolver = $resolver;
-    }
-
-    /**
      * The default scope resolver.
      *
      * @param  string  $driver
@@ -84,6 +73,17 @@ class FeatureManager extends Manager
 
             return $this->container['auth']->guard()->user();
         };
+    }
+
+    /**
+     * Set the default scope resolver.
+     *
+     * @param  (callable(string): mixed)  $resolver
+     * @return void
+     */
+    public function resolveScopeUsing($resolver)
+    {
+        $this->defaultScopeResolver = $resolver;
     }
 
     /**

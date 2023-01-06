@@ -366,7 +366,7 @@ class DatabaseDriverTest extends TestCase
 
         $scope = DB::table('features')->value('scope');
 
-        $this->assertStringContainsString('ModelIdentifier', $scope);
+        $this->assertStringContainsString('Tests\Feature\User|1', $scope);
     }
 
     public function test_it_can_load_feature_state_into_memory()
@@ -717,7 +717,7 @@ class DatabaseDriverTest extends TestCase
         Auth::login($user = new User());
         Feature::isActive('foo');
 
-        Feature::setDefaultScopeResolver(fn () => 'bar');
+        Feature::resolveScopeUsing(fn () => 'bar');
         Feature::isActive('foo');
 
         $this->assertSame([
@@ -734,7 +734,7 @@ class DatabaseDriverTest extends TestCase
             $scopes[] = $scope;
         });
 
-        Feature::setDefaultScopeResolver(fn () => null);
+        Feature::resolveScopeUsing(fn () => null);
         Feature::isActive('foo');
 
         $this->assertSame([

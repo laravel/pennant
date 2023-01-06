@@ -31,7 +31,6 @@ class RetrievingUnknownFeature
     public function __construct($feature, $scope)
     {
         $this->feature = $feature;
-
         $this->scope = $scope;
     }
 }

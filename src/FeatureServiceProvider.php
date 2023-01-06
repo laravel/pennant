@@ -17,7 +17,17 @@ class FeatureServiceProvider extends ServiceProvider
     ];
 
     /**
-     * Bootstrap any package services.
+     * Register the package's services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        $this->mergeConfigFrom(__DIR__.'/../config/features.php', 'features');
+    }
+
+    /**
+     * Bootstrap the package's services.
      *
      * @return void
      */

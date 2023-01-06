@@ -635,7 +635,7 @@ class ArrayDriverTest extends TestCase
         Auth::login($user = new User());
         Feature::isActive('foo');
 
-        Feature::setDefaultScopeResolver(fn () => 'bar');
+        Feature::resolveScopeUsing(fn () => 'bar');
         Feature::isActive('foo');
 
         $this->assertSame([
@@ -652,7 +652,7 @@ class ArrayDriverTest extends TestCase
             $scopes[] = $scope;
         });
 
-        Feature::setDefaultScopeResolver(fn () => null);
+        Feature::resolveScopeUsing(fn () => null);
         Feature::isActive('foo');
 
         $this->assertSame([

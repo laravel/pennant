@@ -35,12 +35,11 @@ class ArrayDriver implements Driver
     public function __construct(Dispatcher $events, $featureStateResolvers)
     {
         $this->events = $events;
-
         $this->featureStateResolvers = $featureStateResolvers;
     }
 
     /**
-     * Retrieve the flags value.
+     * Retrieve a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope

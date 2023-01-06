@@ -5,7 +5,7 @@ namespace Laravel\Feature\Contracts;
 interface Driver
 {
     /**
-     * Retrieve the flags value.
+     * Retrieve a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -14,7 +14,7 @@ interface Driver
     public function get($feature, $scope);
 
     /**
-     * Set the flags value.
+     * Set a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -24,7 +24,7 @@ interface Driver
     public function set($feature, $scope, $value);
 
     /**
-     * Delete the flags value.
+     * Delete a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -33,7 +33,7 @@ interface Driver
     public function delete($feature, $scope);
 
     /**
-     * Purge the given feature.
+     * Purge the given feature from storage.
      *
      * @param  string|null  $feature
      * @return void
@@ -41,7 +41,7 @@ interface Driver
     public function purge($feature = null);
 
     /**
-     * Register an initial flag state resolver.
+     * Register an initial feature flag state resolver.
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
@@ -50,7 +50,7 @@ interface Driver
     public function register($feature, $resolver);
 
     /**
-     * Retrieve mutliple flags values.
+     * Retrieve multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -58,7 +58,7 @@ interface Driver
     public function load($features);
 
     /**
-     * Retrieve the registered features.
+     * Retrieve the names of all registered features.
      *
      * @return array<string>
      */

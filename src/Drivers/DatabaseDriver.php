@@ -287,7 +287,7 @@ class DatabaseDriver implements Driver
         }
 
         if ($scope instanceof Model) {
-            return serialize($this->getSerializedPropertyValue($scope));
+            return get_class($scope).'|'.$scope->getKey();
         }
 
         throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.');
