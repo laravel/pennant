@@ -2,6 +2,7 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Container\Container;
 use Illuminate\Support\ServiceProvider;
 
 class FeatureServiceProvider extends ServiceProvider
@@ -38,10 +39,16 @@ class FeatureServiceProvider extends ServiceProvider
         }
 
         $this->app['events']->listen([
-            \Illuminate\Queue\Events\JobProcessed::class,
             \Laravel\Octane\Events\RequestReceived::class,
             \Laravel\Octane\Events\TaskReceived::class,
             \Laravel\Octane\Events\TickReceived::class,
+        ], function () {
+            $this->app[FeatureManager::class]->setContainer(Container::getInstance());
+            $this->app[FeatureManager::class]->forgetDrivers();
+        });
+
+        $this->app['events']->listen([
+            \Illuminate\Queue\Events\JobProcessed::class,
         ], fn () => $this->app[FeatureManager::class]->flushCache());
     }
 }

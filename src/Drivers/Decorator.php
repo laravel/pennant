@@ -36,7 +36,7 @@ class Decorator implements DriverContract
     protected $defaultScopeResolver;
 
     /**
-     * The container.
+     * The container instance.
      *
      * @var \Illuminate\Contracts\Container\Container
      */
@@ -79,7 +79,7 @@ class Decorator implements DriverContract
         if (func_num_args() === 1) {
             [$feature, $resolver] = with($this->container[$feature], fn ($instance) => [
                 $instance->name,
-                fn ($scope) => $instance($scope),
+                fn ($scope) => $this->container[$feature]($scope),
             ]);
         }
 
@@ -184,7 +184,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Eagerly preload mutliple flags values.
+     * Eagerly preload multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -202,7 +202,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Eagerly preload multiple feature flag values.
+     * Eagerly preload multiple feature flag values that are missing.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
