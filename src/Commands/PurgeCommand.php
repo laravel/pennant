@@ -26,7 +26,7 @@ class PurgeCommand extends Command
     {
         $manager->driver($this->option('driver'))->purge($this->argument('feature'));
 
-        $this->components->info("{$this->argument('feature')} successfully prunned.");
+        $this->components->info("{$this->argument('feature')} successfully purged from storage.");
 
         return self::SUCCESS;
     }
