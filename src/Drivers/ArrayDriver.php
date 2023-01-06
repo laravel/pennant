@@ -205,22 +205,12 @@ class ArrayDriver implements Driver
      */
     protected function serializeScope($scope)
     {
-        if ($scope === null) {
-            return '__laravel_null';
-        }
-
-        if (is_string($scope)) {
-            return $scope;
-        }
-
-        if (is_numeric($scope)) {
-            return (string) $scope;
-        }
-
-        if ($scope instanceof Model) {
-            return $scope::class.'|'.$scope->getKey();
-        }
-
-        throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.');
+        return match (true) {
+            $scope === null => '__laravel_null',
+            is_string($scope) => $scope,
+            is_numeric($scope) => (string) $scope,
+            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+        };
     }
 }
