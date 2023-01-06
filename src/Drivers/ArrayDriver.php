@@ -46,6 +46,7 @@ class ArrayDriver implements Driver
      *
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
+     * @return void
      */
     public function __construct(Dispatcher $events, $featureStateResolvers)
     {
@@ -53,6 +54,28 @@ class ArrayDriver implements Driver
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
+    }
+
+    /**
+     * Register an initial feature flag state resolver.
+     *
+     * @param  string  $feature
+     * @param  (callable(mixed $scope): mixed)  $resolver
+     * @return void
+     */
+    public function register($feature, $resolver)
+    {
+        $this->featureStateResolvers[$feature] = $resolver;
+    }
+
+    /**
+     * Retrieve the names of all registered features.
+     *
+     * @return array<string>
+     */
+    public function registered()
+    {
+        return array_keys($this->featureStateResolvers);
     }
 
     /**
@@ -82,7 +105,27 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Set the flags value.
+     * Determine the initial value for a given feature and scope.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return mixed
+     */
+    protected function resolveValue($feature, $scope)
+    {
+        if ($this->missingResolver($feature)) {
+            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
+
+            return false;
+        }
+
+        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
+            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
+        });
+    }
+
+    /**
+     * Set a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -97,7 +140,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Clear the flags value.
+     * Delete a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -109,7 +152,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Purge the given feature.
+     * Purge the given feature from storage.
      *
      * @param  string|null  $feature
      * @return void
@@ -120,19 +163,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Register an initial flag state resolver.
-     *
-     * @param  string  $feature
-     * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
-     */
-    public function register($feature, $resolver)
-    {
-        $this->featureStateResolvers[$feature] = $resolver;
-    }
-
-    /**
-     * Retrieve mutliple flags values.
+     * Eagerly preload multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -144,16 +175,6 @@ class ArrayDriver implements Driver
                 ->map(fn ($scope) => $this->get($feature, $scope))
                 ->all())
             ->all();
-    }
-
-    /**
-     * Retrieve the registered features.
-     *
-     * @return array<string>
-     */
-    public function registered()
-    {
-        return array_keys($this->featureStateResolvers);
     }
 
     /**
@@ -178,27 +199,7 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Determine the initial feature value.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return mixed
-     */
-    protected function resolveValue($feature, $scope)
-    {
-        if ($this->missingResolver($feature)) {
-            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
-
-            return false;
-        }
-
-        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
-        });
-    }
-
-    /**
-     * Serialize the scope for storage.
+     * Serialize the given scope for storage.
      *
      * @param  mixed  $scope
      * @return string

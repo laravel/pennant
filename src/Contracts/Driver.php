@@ -5,6 +5,22 @@ namespace Laravel\Feature\Contracts;
 interface Driver
 {
     /**
+     * Register an initial feature flag state resolver.
+     *
+     * @param  string  $feature
+     * @param  (callable(mixed $scope): mixed)  $resolver
+     * @return void
+     */
+    public function register($feature, $resolver);
+
+    /**
+     * Retrieve the names of all registered features.
+     *
+     * @return array<string>
+     */
+    public function registered();
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @param  string  $feature
@@ -41,26 +57,10 @@ interface Driver
     public function purge($feature = null);
 
     /**
-     * Register an initial feature flag state resolver.
-     *
-     * @param  string  $feature
-     * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
-     */
-    public function register($feature, $resolver);
-
-    /**
-     * Retrieve multiple feature flag values.
+     * Eagerly preload multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
     public function load($features);
-
-    /**
-     * Retrieve the names of all registered features.
-     *
-     * @return array<string>
-     */
-    public function registered();
 }

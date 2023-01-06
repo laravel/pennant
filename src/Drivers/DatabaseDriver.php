@@ -51,20 +51,41 @@ class DatabaseDriver implements Driver
      * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
+     * @return void
      */
     public function __construct(Connection $db, Dispatcher $events, $featureStateResolvers)
     {
         $this->db = $db;
-
         $this->events = $events;
-
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
     }
 
     /**
-     * Retrieve the flags value.
+     * Register an initial feature flag state resolver.
+     *
+     * @param  string  $feature
+     * @param  (callable(mixed $scope): mixed)  $resolver
+     * @return void
+     */
+    public function register($feature, $resolver)
+    {
+        $this->featureStateResolvers[$feature] = $resolver;
+    }
+
+    /**
+     * Retrieve the names of all registered features.
+     *
+     * @return array<string>
+     */
+    public function registered()
+    {
+        return array_keys($this->featureStateResolvers);
+    }
+
+    /**
+     * Retrieve a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -88,7 +109,42 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Set the flags value.
+     * Retrieve the value for the given feature and scope from storage.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return object|null
+     */
+    protected function retrieve($feature, $scope)
+    {
+        return $this->db->table('features')
+            ->where('name', $feature)
+            ->where('scope', $this->serializeScope($scope))
+            ->first();
+    }
+
+    /**
+     * Determine the initial value for a given feature and scope.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return mixed
+     */
+    protected function resolveValue($feature, $scope)
+    {
+        if (! array_key_exists($feature, $this->featureStateResolvers)) {
+            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
+
+            return $this->unknownFeatureValue;
+        }
+
+        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
+            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
+        });
+    }
+
+    /**
+     * Set a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -103,7 +159,42 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Clear the flags value.
+     * Update the value for the given feature and scope in storage.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function update($feature, $scope, $value)
+    {
+        return $this->db->table('features')
+            ->where('name', $feature)
+            ->where('scope', $this->serializeScope($scope))
+            ->update([
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+            ]) > 0;
+    }
+
+    /**
+     * Insert the value for the given feature and scope into storage.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $value
+     * @return bool
+     */
+    protected function insert($feature, $scope, $value)
+    {
+        return $this->db->table('features')->insert([
+            'name' => $feature,
+            'scope' => $this->serializeScope($scope),
+            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+        ]);
+    }
+
+    /**
+     * Delete a feature flag's value.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -118,7 +209,7 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Purge the given feature.
+     * Purge the given feature from storage.
      *
      * @param  string|null  $feature
      * @return void
@@ -135,19 +226,7 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Register an initial flag state resolver.
-     *
-     * @param  string  $feature
-     * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
-     */
-    public function register($feature, $resolver)
-    {
-        $this->featureStateResolvers[$feature] = $resolver;
-    }
-
-    /**
-     * Retrieve mutliple flags values.
+     * Eagerly preload multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
@@ -158,9 +237,12 @@ class DatabaseDriver implements Driver
 
         $features = Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->each(fn ($scope) => $query->orWhere(fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope)))));
+                ->each(fn ($scope) => $query->orWhere(
+                    fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope))
+                )));
 
         $records = $query->get();
+
         $inserts = new Collection;
 
         $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
@@ -187,109 +269,18 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Retrieve the registered features.
-     *
-     * @return array<string>
-     */
-    public function registered()
-    {
-        return array_keys($this->featureStateResolvers);
-    }
-
-    /**
-     * Retrieve the value from storage.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return object|null
-     */
-    protected function retrieve($feature, $scope)
-    {
-        return $this->db->table('features')
-            ->where('name', $feature)
-            ->where('scope', $this->serializeScope($scope))
-            ->first();
-    }
-
-    /**
-     * Insert the value into storage.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @param  mixed  $value
-     * @return bool
-     */
-    protected function insert($feature, $scope, $value)
-    {
-        return $this->db->table('features')->insert([
-            'name' => $feature,
-            'scope' => $this->serializeScope($scope),
-            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-        ]);
-    }
-
-    /**
-     * Update the value in storage.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @param  mixed  $value
-     * @return bool
-     */
-    protected function update($feature, $scope, $value)
-    {
-        return $this->db->table('features')
-            ->where('name', $feature)
-            ->where('scope', $this->serializeScope($scope))
-            ->update([
-                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-            ]) > 0;
-    }
-
-    /**
-     * Determine the initial feature value.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return mixed
-     */
-    protected function resolveValue($feature, $scope)
-    {
-        if (! array_key_exists($feature, $this->featureStateResolvers)) {
-            $this->events->dispatch(new RetrievingUnknownFeature($feature, $scope));
-
-            return $this->unknownFeatureValue;
-        }
-
-        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new RetrievingKnownFeature($feature, $scope, $value));
-        });
-    }
-
-    /**
-     * Serialize the scope for storage.
+     * Serialize the given scope for storage.
      *
      * @param  mixed  $scope
      * @return string|null
      */
     protected function serializeScope($scope)
     {
-        if ($scope === null) {
-            return null;
-        }
-
-        if (is_string($scope)) {
-            return $scope;
-        }
-
-        if (is_numeric($scope)) {
-            return (string) $scope;
-        }
-
-        if ($scope instanceof Model) {
-            return get_class($scope).'|'.$scope->getKey();
-        }
-
-        throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.');
+        return match (true) {
+            is_string($scope) || $scope === null => $scope,
+            is_numeric($scope) => (string) $scope,
+            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+        };
     }
 }

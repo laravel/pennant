@@ -2,6 +2,7 @@
 
 namespace Laravel\Feature\Drivers;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Feature\Contracts\Driver as DriverContract;
@@ -49,7 +50,7 @@ class Decorator implements DriverContract
     protected $cache;
 
     /**
-     * Create a new Driver Decorator instance.
+     * Create a new driver decorator instance.
      *
      * @param  string  $name
      * @param  \Laravel\Feature\Contracts\Driver  $driver
@@ -60,18 +61,14 @@ class Decorator implements DriverContract
     public function __construct($name, $driver, $defaultScopeResolver, $container, $cache)
     {
         $this->name = $name;
-
         $this->driver = $driver;
-
         $this->defaultScopeResolver = $defaultScopeResolver;
-
         $this->container = $container;
-
         $this->cache = $cache;
     }
 
     /**
-     * Register an initial flag state resolver.
+     * Register an initial feature flag state resolver.
      *
      * @param  string|class-string  $feature
      * @param  mixed  $resolver
@@ -100,41 +97,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Eagerly preload mutliple flags values.
-     *
-     * @param  array<string, array<int, mixed>>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function load($features)
-    {
-        $features = $this->normalizeFeaturesToLoad($features);
-
-        return tap($this->driver->load($features->all()), function ($results) use ($features) {
-            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
-                ->zip($results[$key])
-                ->map(fn ($scopes) => $scopes->push($key)))
-                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
-        });
-    }
-
-    /**
-     * Eagerly load mutliple missing flag values.
-     *
-     * @param  array<string, array<int, mixed>>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function loadMissing($features)
-    {
-        return $this->normalizeFeaturesToLoad($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->reject(fn ($scope) => $this->isCached($feature, $scope))
-                ->all())
-            ->reject(fn ($scopes) => $scopes === [])
-            ->pipe(fn ($features) => $this->load($features->all()));
-    }
-
-    /**
-     * Retrieve the registered features.
+     * Retrieve the names of all registered features.
      *
      * @return array<string>
      */
@@ -144,17 +107,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Flush the in-memory cache.
-     *
-     * @return void
-     */
-    public function flushCache()
-    {
-        $this->cache = new Collection;
-    }
-
-    /**
-     * Retrieve the flags value.
+     * Retrieve a feature flag's value.
      *
      * @internal
      *
@@ -183,7 +136,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Set the flags value.
+     * Set a feature flag's value.
      *
      * @internal
      *
@@ -204,7 +157,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Clear the flags value.
+     * Delete a feature flag's value.
      *
      * @internal
      *
@@ -220,7 +173,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Purge the given feature.
+     * Purge the given feature from storage.
      *
      * @param  string|null  $feature
      * @return void
@@ -231,7 +184,74 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Put the feature value into the cache.
+     * Eagerly preload mutliple flags values.
+     *
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function load($features)
+    {
+        $features = $this->normalizeFeaturesToLoad($features);
+
+        return tap($this->driver->load($features->all()), function ($results) use ($features) {
+            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+                ->zip($results[$key])
+                ->map(fn ($scopes) => $scopes->push($key)))
+                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
+        });
+    }
+
+    /**
+     * Eagerly preload multiple feature flag values.
+     *
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function loadMissing($features)
+    {
+        return $this->normalizeFeaturesToLoad($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->reject(fn ($scope) => $this->isCached($feature, $scope))
+                ->all())
+            ->reject(fn ($scopes) => $scopes === [])
+            ->pipe(fn ($features) => $this->load($features->all()));
+    }
+
+    /**
+     * Normalize the features to load.
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
+     */
+    protected function normalizeFeaturesToLoad($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => Collection::make([null])]
+                : [$key => Collection::wrap($value ?: [null])])
+            ->map(fn ($scopes) => $scopes
+                ->map(fn ($scope) => $scope instanceof FeatureScopeable
+                    ? $scope->toFeatureIdentifier($this->name)
+                    : $scope)
+                ->all());
+    }
+
+    /**
+     * Determine if a feature's value is in the cache for the given scope.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return bool
+     */
+    protected function isCached($feature, $scope)
+    {
+        return $this->cache->search(
+            fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
+        ) !== false;
+    }
+
+    /**
+     * Put the given feature's value into the cache.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -252,7 +272,7 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Remove the feature value from the cache.
+     * Remove the given feature's value from the cache.
      *
      * @param  string  $feature
      * @param  mixed  $scope
@@ -270,40 +290,17 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Determine if a feature is in the cache.
+     * Flush the in-memory cache of feature values.
      *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return bool
+     * @return void
      */
-    protected function isCached($feature, $scope)
+    public function flushCache()
     {
-        return $this->cache->search(
-            fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
-        ) !== false;
+        $this->cache = new Collection;
     }
 
     /**
-     * Normalize features to load.
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
-     */
-    protected function normalizeFeaturesToLoad($features)
-    {
-        return Collection::wrap($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key)
-                ? [$value => Collection::make([null])]
-                : [$key => Collection::wrap($value ?: [null])])
-            ->map(fn ($scopes) => $scopes
-                ->map(fn ($scope) => $scope instanceof FeatureScopeable
-                    ? $scope->toFeatureIdentifier($this->name)
-                    : $scope)
-                ->all());
-    }
-
-    /**
-     * Get the feature driver.
+     * Get the underlying feature driver.
      *
      * @return \Laravel\Feature\Contracts\Driver
      */
