@@ -42,10 +42,9 @@ class FeatureServiceProvider extends ServiceProvider
             \Laravel\Octane\Events\RequestReceived::class,
             \Laravel\Octane\Events\TaskReceived::class,
             \Laravel\Octane\Events\TickReceived::class,
-        ], function () {
-            $this->app[FeatureManager::class]->setContainer(Container::getInstance());
-            $this->app[FeatureManager::class]->forgetDrivers();
-        });
+        ], fn () => $this->app[FeatureManager::class]
+            ->setContainer(Container::getInstance())
+            ->flushCache());
 
         $this->app['events']->listen([
             \Illuminate\Queue\Events\JobProcessed::class,
