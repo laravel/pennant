@@ -186,7 +186,7 @@ class Decorator implements DriverContract
     /**
      * Eagerly preload multiple feature flag values.
      *
-     * @param  array<string, array<int, mixed>>  $features
+     * @param  string|array<int|string, mixed>  $features
      * @return array<string, array<int, mixed>>
      */
     public function load($features)
@@ -204,7 +204,7 @@ class Decorator implements DriverContract
     /**
      * Eagerly preload multiple feature flag values that are missing.
      *
-     * @param  array<string, array<int, mixed>>  $features
+     * @param  string|array<int|string, mixed>  $features
      * @return array<string, array<int, mixed>>
      */
     public function loadMissing($features)
