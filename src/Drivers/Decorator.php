@@ -181,6 +181,12 @@ class Decorator implements DriverContract
     public function purge($feature = null)
     {
         $this->driver->purge($feature);
+
+        if ($feature === null) {
+            $this->cache = new Collection;
+        } else {
+            $this->cache->forget($this->cache->search(fn ($item) => $item['feature']));
+        }
     }
 
     /**
