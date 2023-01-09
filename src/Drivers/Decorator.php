@@ -78,7 +78,7 @@ class Decorator implements DriverContract
     {
         if (func_num_args() === 1) {
             [$feature, $resolver] = with($this->container[$feature], fn ($instance) => [
-                $instance->name,
+                $instance->name ?? $instance::class,
                 fn ($scope) => $this->container[$feature]($scope),
             ]);
         }

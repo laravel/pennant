@@ -612,6 +612,15 @@ class ArrayDriverTest extends TestCase
         $this->assertSame('shared-123', $value);
     }
 
+    public function test_it_can_register_features_via_class_without_name()
+    {
+        Feature::register(MyUnnamedFeature::class);
+
+        $value = Feature::for('shared')->value(MyUnnamedFeature::class);
+
+        $this->assertSame('shared-123', $value);
+    }
+
     public function test_it_can_reevaluate_feature_state()
     {
         Feature::register('foo', fn () => false);
@@ -665,6 +674,14 @@ class MyFeature
 {
     public $name = 'my-feature';
 
+    public function __invoke($scope)
+    {
+        return "{$scope}-123";
+    }
+}
+
+class MyUnnamedFeature
+{
     public function __invoke($scope)
     {
         return "{$scope}-123";
