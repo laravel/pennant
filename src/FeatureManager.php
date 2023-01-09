@@ -10,6 +10,7 @@ use Laravel\Feature\Drivers\Decorator;
 
 /**
  * @method \Laravel\Feature\Drivers\Decorator driver(string|null $driver = null)
+ *
  * @mixin \Laravel\Feature\Drivers\Decorator
  */
 class FeatureManager extends Manager

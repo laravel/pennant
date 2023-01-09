@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use InvalidArgumentException;
 use Laravel\Feature\Feature;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use InvalidArgumentException;
 
 class PurgeCommandTest extends TestCase
 {
@@ -50,15 +50,16 @@ class PurgeCommandTest extends TestCase
 
     public function test_it_can_specify_a_driver()
     {
-        Feature::extend('custom', fn () => new class {
-            public function purge() {
+        Feature::extend('custom', fn () => new class
+        {
+            public function purge()
+            {
                 //
             }
         });
 
         Feature::driver('database')->register('foo', true);
         Feature::driver('database')->register('bar', false);
-
 
         Feature::for('tim')->isActive('foo');
         Feature::for('taylor')->isActive('foo');
