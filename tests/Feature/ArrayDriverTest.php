@@ -682,6 +682,20 @@ class ArrayDriverTest extends TestCase
         $loaded = Feature::load('feature');
         $this->assertSame(['feature' => [true]], $loaded);
     }
+
+    public function test_retrieving_values_after_purging()
+    {
+        Feature::register('foo', false);
+
+        Feature::for('tim')->activate('foo');
+
+        $this->assertTrue(Feature::for('tim')->isActive('foo'));
+
+        Feature::purge('foo');
+
+        $this->assertFalse(Feature::for('tim')->isActive('foo'));
+    }
+
 }
 
 class MyFeature

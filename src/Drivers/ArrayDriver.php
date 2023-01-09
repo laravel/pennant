@@ -159,7 +159,11 @@ class ArrayDriver implements Driver
      */
     public function purge($feature = null)
     {
-        throw new RuntimeException('The array driver does not support purging.');
+        if ($feature === null) {
+            $this->resolvedFeatureStates = [];
+        } else {
+            unset($this->resolvedFeatureStates[$feature]);
+        }
     }
 
     /**
