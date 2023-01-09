@@ -5,7 +5,6 @@ namespace Laravel\Feature\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Queue\SerializesAndRestoresModelIdentifiers;
 use Illuminate\Support\Collection;
 use Laravel\Feature\Contracts\Driver;
 use Laravel\Feature\Events\RetrievingKnownFeature;
@@ -15,8 +14,6 @@ use stdClass;
 
 class DatabaseDriver implements Driver
 {
-    use SerializesAndRestoresModelIdentifiers;
-
     /**
      * The database connection.
      *
