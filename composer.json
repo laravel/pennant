@@ -17,18 +17,19 @@
     "require": {
         "php": "^8.0",
         "illuminate/console": "^9.0",
-        "illuminate/support": "^9.0",
-        "illuminate/routing": "^9.0"
+        "illuminate/container": "^9.0",
+        "illuminate/contracts": "^9.0",
+        "illuminate/database": "^9.0",
+        "illuminate/queue": "^9.0",
+        "illuminate/support": "^9.0"
     },
     "require-dev": {
-        "mockery/mockery": "^1.0",
         "orchestra/testbench": "^7.0",
         "phpunit/phpunit": "^9.0"
     },
     "autoload": {
         "psr-4": {
-            "Laravel\\Feature\\": "src/",
-            "Laravel\\Feature\\Database\\Factories\\": "database/factories"
+            "Laravel\\Feature\\": "src/"
         }
     },
     "autoload-dev": {
