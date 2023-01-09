@@ -23,7 +23,7 @@ class PurgeCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:purge foo');
+        $this->artisan('pennant:purge foo')->expectsOutputToContain('foo successfully purged from storage.');
 
         $this->assertSame(1, DB::table('features')->count());
 
@@ -43,7 +43,7 @@ class PurgeCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:purge');
+        $this->artisan('pennant:purge')->expectsOutputToContain('All features successfully purged from storage.');
 
         $this->assertSame(0, DB::table('features')->count());
     }
