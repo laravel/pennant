@@ -30,7 +30,7 @@ class FeatureServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
             $this->publishes([
-                __DIR__.'/../database/migrations' => database_path('migrations'),
+                __DIR__.'/../database/migrations' => $this->app->databasePath('migrations'),
             ], 'laravel-feature-migrations');
 
             $this->commands([
