@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Feature\Contracts\Driver as DriverContract;
 use Laravel\Feature\Contracts\FeatureScopeable;
+use Laravel\Feature\Events\DynamicallyRegisteringFeature;
 use Laravel\Feature\PendingScopedFeatureInteraction;
 
 /**
@@ -128,6 +129,12 @@ class Decorator implements DriverContract
 
         if ($item !== null) {
             return $item['value'];
+        }
+
+        if (! in_array($feature, $this->driver->registered()) && method_exists($feature, '__invoke')) {
+            $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
+
+            $this->register($feature);
         }
 
         return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {

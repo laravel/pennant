@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Feature\Contracts\FeatureScopeable;
+use Laravel\Feature\Events\DynamicallyRegisteringFeature;
 use Laravel\Feature\Events\RetrievingKnownFeature;
 use Laravel\Feature\Events\RetrievingUnknownFeature;
 use Laravel\Feature\Feature;
@@ -766,5 +767,29 @@ class DatabaseDriverTest extends TestCase
         Feature::isActive('foo');
 
         $this->assertSame(0, DB::table('features')->count());
+    }
+
+    public function test_it_can_use_unregistered_class_features()
+    {
+        Event::fake([DynamicallyRegisteringFeature::class]);
+
+        Feature::value(UnregisteredFeature::class);
+        $value = Feature::value(UnregisteredFeature::class);
+
+        $this->assertSame('unregistered-value', $value);
+        Event::assertDispatched(DynamicallyRegisteringFeature::class, 1);
+        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+            $this->assertSame($event->feature, UnregisteredFeature::class);
+
+            return true;
+        });
+    }
+}
+
+class UnregisteredFeature
+{
+    public function __invoke()
+    {
+        return 'unregistered-value';
     }
 }
