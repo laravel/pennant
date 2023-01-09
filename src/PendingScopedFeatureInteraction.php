@@ -206,7 +206,7 @@ class PendingScopedFeatureInteraction
      */
     public function forget($features)
     {
-        return Collection::wrap($features)
+        Collection::wrap($features)
             ->crossJoin($this->scope())
             ->each(fn ($bits) => $this->driver->delete(...$bits));
     }
