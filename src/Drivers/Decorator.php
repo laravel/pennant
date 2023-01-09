@@ -227,7 +227,7 @@ class Decorator implements DriverContract
     {
         return Collection::wrap($features)
             ->mapWithKeys(fn ($value, $key) => is_int($key)
-                ? [$value => Collection::make([null])]
+                ? [$value => Collection::make([$this->defaultScope()])]
                 : [$key => Collection::wrap($value ?: [null])])
             ->map(fn ($scopes) => $scopes
                 ->map(fn ($scope) => $scope instanceof FeatureScopeable
@@ -287,6 +287,16 @@ class Decorator implements DriverContract
         if ($position !== false) {
             unset($this->cache[$position]);
         }
+    }
+
+    /**
+     * Retrieve the default scope.
+     *
+     * @return mixed
+     */
+    protected function defaultScope()
+    {
+        return ($this->defaultScopeResolver)();
     }
 
     /**

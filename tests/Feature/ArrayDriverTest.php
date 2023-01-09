@@ -668,6 +668,20 @@ class ArrayDriverTest extends TestCase
             null,
         ], $scopes);
     }
+
+    public function test_it_uses_default_scope_for_loading_with_string()
+    {
+        Feature::register('feature', fn () => false);
+        Feature::for('tim')->activate('feature');
+
+        $loaded = Feature::load('feature');
+        $this->assertSame(['feature' => [false]], $loaded);
+
+        Feature::resolveScopeUsing(fn () => 'tim');
+
+        $loaded = Feature::load('feature');
+        $this->assertSame(['feature' => [true]], $loaded);
+    }
 }
 
 class MyFeature
