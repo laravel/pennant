@@ -579,10 +579,10 @@ class DatabaseDriverTest extends TestCase
 
     public function test_missing_results_are_inserted_on_load()
     {
-        Feature::register('foo', function () use (&$called) {
+        Feature::register('foo', function () {
             return 1;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::register('bar', function () {
             return 2;
         });
 
