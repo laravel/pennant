@@ -228,7 +228,7 @@ class Decorator implements DriverContract
         return Collection::wrap($features)
             ->mapWithKeys(fn ($value, $key) => is_int($key)
                 ? [$value => Collection::make([$this->defaultScope()])]
-                : [$key => Collection::wrap($value ?: [null])])
+                : [$key => Collection::wrap($value)])
             ->map(fn ($scopes) => $scopes
                 ->map(fn ($scope) => $scope instanceof FeatureScopeable
                     ? $scope->toFeatureIdentifier($this->name)
