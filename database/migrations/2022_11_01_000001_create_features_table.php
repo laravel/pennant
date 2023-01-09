@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('features', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            // TODO should we use "string" here or something bigger?
             $table->string('scope')->nullable();
             $table->text('value');
             $table->timestamps();
