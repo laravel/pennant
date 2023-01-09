@@ -2,6 +2,7 @@
 
 namespace Laravel\Feature;
 
+use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
 use Laravel\Feature\Drivers\ArrayDriver;
@@ -111,5 +112,20 @@ class FeatureManager extends Manager
     public function getDefaultDriver()
     {
         return $this->container['config']->get('features.default') ?? 'database';
+    }
+
+    /**
+     * Set the container instance used by the manager.
+     *
+     * @param  \Illuminate\Contracts\Container\Container  $container
+     * @return $this
+     */
+    public function setContainer(Container $container)
+    {
+        foreach ($this->drivers as $driver) {
+            $driver->setContainer($container);
+        }
+
+        return parent::setContainer($container);
     }
 }
