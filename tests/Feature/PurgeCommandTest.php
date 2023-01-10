@@ -18,8 +18,8 @@ class PurgeCommandTest extends TestCase
         Feature::register('bar', false);
 
         Feature::for('tim')->isActive('foo');
-        Feature::for('taylor')->isActive('foo');
         Feature::for('taylor')->isActive('bar');
+        Feature::for('taylor')->isActive('foo');
 
         $this->assertSame(3, DB::table('features')->count());
 

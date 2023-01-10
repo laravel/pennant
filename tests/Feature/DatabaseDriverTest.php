@@ -775,11 +775,71 @@ class DatabaseDriverTest extends TestCase
 
         Feature::value(UnregisteredFeature::class);
         $value = Feature::value(UnregisteredFeature::class);
+        $registered = Feature::registered();
 
         $this->assertSame('unregistered-value', $value);
+        $this->assertSame([UnregisteredFeature::class], $registered);
         Event::assertDispatched(DynamicallyRegisteringFeature::class, 1);
         Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
             $this->assertSame($event->feature, UnregisteredFeature::class);
+
+            return true;
+        });
+    }
+
+    public function test_it_can_use_unregistered_class_features_with_name_property()
+    {
+        Event::fake([DynamicallyRegisteringFeature::class]);
+
+        Feature::value(UnregisteredFeatureWithName::class);
+        $value = Feature::value(UnregisteredFeatureWithName::class);
+        $registered = Feature::registered();
+
+        $this->assertSame('unregistered-value', $value);
+        $this->assertSame(['feature-name'], $registered);
+        Event::assertDispatched(DynamicallyRegisteringFeature::class, 1);
+        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
+
+            return true;
+        });
+    }
+
+    public function test_it_can_delete_unregistered_class_features_with_name_property()
+    {
+        Event::fake([DynamicallyRegisteringFeature::class]);
+
+        Feature::value(UnregisteredFeatureWithName::class);
+        $this->assertSame(1, DB::table('features')->where('name', 'feature-name')->count());
+
+        Feature::forgetDrivers();
+
+        Feature::forget(UnregisteredFeatureWithName::class);
+        $this->assertSame(0, DB::table('features')->where('name', 'feature-name')->count());
+
+        Event::assertDispatched(DynamicallyRegisteringFeature::class, 2);
+        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
+
+            return true;
+        });
+    }
+
+    public function test_it_can_activate_unregistered_class_features_with_name_property()
+    {
+        Event::fake([DynamicallyRegisteringFeature::class]);
+
+        Feature::activate(UnregisteredFeatureWithName::class, 'expected-value');
+        $this->assertSame(1, DB::table('features')->where('name', 'feature-name')->where('value', '"expected-value"')->count());
+
+        Feature::forgetDrivers();
+
+        Feature::forget(UnregisteredFeatureWithName::class);
+        $this->assertSame(0, DB::table('features')->where('name', 'feature-name')->where('value', '"expected-value"')->count());
+
+        Event::assertDispatched(DynamicallyRegisteringFeature::class, 2);
+        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
 
             return true;
         });
@@ -788,6 +848,16 @@ class DatabaseDriverTest extends TestCase
 
 class UnregisteredFeature
 {
+    public function __invoke()
+    {
+        return 'unregistered-value';
+    }
+}
+
+class UnregisteredFeatureWithName
+{
+    public $name = 'feature-name';
+
     public function __invoke()
     {
         return 'unregistered-value';

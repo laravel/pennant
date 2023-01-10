@@ -121,6 +121,7 @@ class Decorator implements DriverContract
         $scope = $scope instanceof FeatureScopeable
             ? $scope->toFeatureIdentifier($this->name)
             : $scope;
+        $feature = $this->resolveFeature($feature);
 
         $item = $this->cache
             ->whereStrict('scope', $scope)
@@ -129,12 +130,6 @@ class Decorator implements DriverContract
 
         if ($item !== null) {
             return $item['value'];
-        }
-
-        if (! in_array($feature, $this->driver->registered()) && method_exists($feature, '__invoke')) {
-            $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
-
-            $this->register($feature);
         }
 
         return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
@@ -157,6 +152,8 @@ class Decorator implements DriverContract
         $scope = $scope instanceof FeatureScopeable
             ? $scope->toFeatureIdentifier($this->name)
             : $scope;
+        $feature = $this->resolveFeature($feature);
+
 
         $this->driver->set($feature, $scope, $value);
 
@@ -174,6 +171,8 @@ class Decorator implements DriverContract
      */
     public function delete($feature, $scope)
     {
+        $feature = $this->resolveFeature($feature);
+
         $this->driver->delete($feature, $scope);
 
         $this->removeFromCache($feature, $scope);
@@ -187,12 +186,18 @@ class Decorator implements DriverContract
      */
     public function purge($feature = null)
     {
-        $this->driver->purge($feature);
-
         if ($feature === null) {
+            $this->driver->purge(null);
+
             $this->cache = new Collection;
         } else {
-            $this->cache->forget($this->cache->search(fn ($item) => $item['feature']));
+            with($this->resolveFeature($feature), function ($feature) {
+                $this->driver->purge($feature);
+
+                $this->cache->forget(
+                    $this->cache->whereStrict('feature', $feature)->keys()->all()
+                );
+            });
         }
     }
 
@@ -231,6 +236,53 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Resolve the feature name and ensure it is registered.
+     *
+     * @param  string  $feature
+     * @return string
+     */
+    protected function resolveFeature($feature)
+    {
+        return $this->shouldDynamicallyRegister($feature)
+            ? $this->ensureDynamicFeatureIsRegistered($feature)
+            : $feature;
+    }
+
+    /**
+     * Determine if the feature should be dynamically registered.
+     *
+     * @param  string  $feature
+     * @return bool
+     */
+    protected function shouldDynamicallyRegister($feature)
+    {
+        return ! in_array($feature, $this->registered())
+            && class_exists($feature)
+            && method_exists($feature, '__invoke');
+    }
+
+    /**
+     * Dynamically register the feature.
+     *
+     * @param  string  $feature
+     * @return string
+     */
+    protected function ensureDynamicFeatureIsRegistered($feature)
+    {
+        $instance = $this->container[$feature];
+
+        $name = $instance->name ?? $feature;
+
+        if (! in_array($name, $this->registered())) {
+            $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
+
+            $this->register($name, $instance);
+        }
+
+        return $name;
+    }
+
+    /**
      * Normalize the features to load.
      *
      * @param  string|array<int|string, mixed>  $features
@@ -247,6 +299,9 @@ class Decorator implements DriverContract
                     ? $scope->toFeatureIdentifier($this->name)
                     : $scope)
                 ->all());
+            ->mapWithKeys(fn ($scopes, $feature) => [
+                $this->resolveFeature($feature) => $scopes,
+            ])
     }
 
     /**
