@@ -118,10 +118,9 @@ class Decorator implements DriverContract
      */
     public function get($feature, $scope)
     {
-        $scope = $scope instanceof FeatureScopeable
-            ? $scope->toFeatureIdentifier($this->name)
-            : $scope;
         $feature = $this->resolveFeature($feature);
+
+        $scope = $this->resolveScope($scope);
 
         $item = $this->cache
             ->whereStrict('scope', $scope)
@@ -149,11 +148,9 @@ class Decorator implements DriverContract
      */
     public function set($feature, $scope, $value)
     {
-        $scope = $scope instanceof FeatureScopeable
-            ? $scope->toFeatureIdentifier($this->name)
-            : $scope;
         $feature = $this->resolveFeature($feature);
 
+        $scope = $this->resolveScope($scope);
 
         $this->driver->set($feature, $scope, $value);
 
@@ -172,6 +169,8 @@ class Decorator implements DriverContract
     public function delete($feature, $scope)
     {
         $feature = $this->resolveFeature($feature);
+
+        $scope = $this->resolveScope($scope);
 
         $this->driver->delete($feature, $scope);
 
@@ -283,6 +282,19 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Resolve the scope.
+     *
+     * @param  mixed  $scope
+     * @return mixed
+     */
+    protected function resolveScope($scope)
+    {
+        return $scope instanceof FeatureScopeable
+            ? $scope->toFeatureIdentifier($this->name)
+            : $scope;
+    }
+
+    /**
      * Normalize the features to load.
      *
      * @param  string|array<int|string, mixed>  $features
@@ -294,14 +306,12 @@ class Decorator implements DriverContract
             ->mapWithKeys(fn ($value, $key) => is_int($key)
                 ? [$value => Collection::make([$this->defaultScope()])]
                 : [$key => Collection::wrap($value)])
-            ->map(fn ($scopes) => $scopes
-                ->map(fn ($scope) => $scope instanceof FeatureScopeable
-                    ? $scope->toFeatureIdentifier($this->name)
-                    : $scope)
-                ->all());
             ->mapWithKeys(fn ($scopes, $feature) => [
                 $this->resolveFeature($feature) => $scopes,
             ])
+            ->map(
+                fn ($scopes) => $scopes->map(fn ($scope) => $this->resolveScope($scope))->all()
+            );
     }
 
     /**
