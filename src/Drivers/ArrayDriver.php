@@ -157,7 +157,7 @@ class ArrayDriver implements Driver
      * @param  string|null  $feature
      * @return void
      */
-    public function purge($feature = null)
+    public function purge($feature)
     {
         if ($feature === null) {
             $this->resolvedFeatureStates = [];

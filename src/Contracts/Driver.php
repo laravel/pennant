@@ -54,7 +54,7 @@ interface Driver
      * @param  string|null  $feature
      * @return void
      */
-    public function purge($feature = null);
+    public function purge($feature);
 
     /**
      * Eagerly preload multiple feature flag values.
