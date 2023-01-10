@@ -78,10 +78,10 @@ class Decorator implements DriverContract
     public function register($feature, $resolver = null)
     {
         if (func_num_args() === 1) {
-            [$feature, $resolver] = with($this->container[$feature], fn ($instance) => [
-                $instance->name ?? $instance::class,
+            [$feature, $resolver] = [
+                $this->container->make($feature)->name ?? $feature,
                 fn ($scope) => $this->container[$feature]($scope),
-            ]);
+            ];
         }
 
         if (is_string($resolver) || ! is_callable($resolver)) {
@@ -268,17 +268,13 @@ class Decorator implements DriverContract
      */
     protected function ensureDynamicFeatureIsRegistered($feature)
     {
-        $instance = $this->container[$feature];
+        return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
+            if (! in_array($name, $this->registered())) {
+                $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
 
-        $name = $instance->name ?? $feature;
-
-        if (! in_array($name, $this->registered())) {
-            $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
-
-            $this->register($feature);
-        }
-
-        return $name;
+                $this->register($feature);
+            }
+        });
     }
 
     /**
