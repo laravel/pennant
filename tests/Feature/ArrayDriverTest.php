@@ -695,7 +695,6 @@ class ArrayDriverTest extends TestCase
 
         $this->assertFalse(Feature::for('tim')->isActive('foo'));
     }
-
 }
 
 class MyFeature

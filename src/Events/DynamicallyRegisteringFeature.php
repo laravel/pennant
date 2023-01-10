@@ -11,7 +11,6 @@ class DynamicallyRegisteringFeature
      */
     public $feature;
 
-
     /**
      * Create a new event instance.
      *
