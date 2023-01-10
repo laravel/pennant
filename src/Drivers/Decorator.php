@@ -275,7 +275,7 @@ class Decorator implements DriverContract
         if (! in_array($name, $this->registered())) {
             $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
 
-            $this->register($name, $instance);
+            $this->register($feature);
         }
 
         return $name;
