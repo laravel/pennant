@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
-use Laravel\Feature\Feature;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class PurgeCommandTest extends TestCase

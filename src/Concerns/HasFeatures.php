@@ -1,8 +1,8 @@
 <?php
 
-namespace Laravel\Feature\Concerns;
+namespace Laravel\Pennant\Concerns;
 
-use Laravel\Feature\Feature;
+use Laravel\Pennant\Feature;
 
 trait HasFeatures
 {

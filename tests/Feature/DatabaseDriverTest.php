@@ -8,11 +8,11 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
-use Laravel\Feature\Contracts\FeatureScopeable;
-use Laravel\Feature\Events\DynamicallyRegisteringFeature;
-use Laravel\Feature\Events\RetrievingKnownFeature;
-use Laravel\Feature\Events\RetrievingUnknownFeature;
-use Laravel\Feature\Feature;
+use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\DynamicallyRegisteringFeature;
+use Laravel\Pennant\Events\RetrievingKnownFeature;
+use Laravel\Pennant\Events\RetrievingUnknownFeature;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class DatabaseDriverTest extends TestCase

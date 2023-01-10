@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
-use Laravel\Feature\Contracts\FeatureScopeable;
-use Laravel\Feature\Events\RetrievingKnownFeature;
-use Laravel\Feature\Events\RetrievingUnknownFeature;
-use Laravel\Feature\Feature;
+use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\RetrievingKnownFeature;
+use Laravel\Pennant\Events\RetrievingUnknownFeature;
+use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
 

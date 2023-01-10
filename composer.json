@@ -1,12 +1,12 @@
 {
-    "name": "laravel/feature",
-    "description": "Laravel Package ...",
+    "name": "laravel/pennant",
+    "description": "A simple, lightweight library for managing feature flags.",
     "keywords": ["laravel"],
-    "homepage": "https://github.com/laravel/package-template",
+    "homepage": "https://github.com/laravel/pennant",
     "license": "MIT",
     "support": {
-        "issues": "https://github.com/laravel/package-template/issues",
-        "source": "https://github.com/laravel/package-template"
+        "issues": "https://github.com/laravel/pennant/issues",
+        "source": "https://github.com/laravel/pennant"
     },
     "authors": [
         {
@@ -29,7 +29,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Laravel\\Feature\\": "src/"
+            "Laravel\\Pennant\\": "src/"
         }
     },
     "autoload-dev": {
@@ -43,10 +43,10 @@
         },
         "laravel": {
             "providers": [
-                "Laravel\\Feature\\FeatureServiceProvider"
+                "Laravel\\Pennant\\PennantServiceProvider"
             ],
             "aliases": {
-                "Feature": "Laravel\\Feature\\Feature"
+                "Pennant": "Laravel\\Pennant\\Feature"
             }
         }
     },

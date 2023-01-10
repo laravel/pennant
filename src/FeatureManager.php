@@ -1,18 +1,18 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Pennant;
 
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
-use Laravel\Feature\Drivers\ArrayDriver;
-use Laravel\Feature\Drivers\DatabaseDriver;
-use Laravel\Feature\Drivers\Decorator;
+use Laravel\Pennant\Drivers\ArrayDriver;
+use Laravel\Pennant\Drivers\DatabaseDriver;
+use Laravel\Pennant\Drivers\Decorator;
 
 /**
- * @method \Laravel\Feature\Drivers\Decorator driver(string|null $driver = null)
+ * @method \Laravel\Pennant\Drivers\Decorator driver(string|null $driver = null)
  *
- * @mixin \Laravel\Feature\Drivers\Decorator
+ * @mixin \Laravel\Pennant\Drivers\Decorator
  */
 class FeatureManager extends Manager
 {
@@ -27,7 +27,7 @@ class FeatureManager extends Manager
      * Create a new driver instance.
      *
      * @param  string  $driver
-     * @return \Laravel\Feature\Drivers\Decorator
+     * @return \Laravel\Pennant\Drivers\Decorator
      */
     protected function createDriver($driver)
     {
@@ -43,7 +43,7 @@ class FeatureManager extends Manager
     /**
      * Create an instance of the array driver.
      *
-     * @return \Laravel\Feature\Drivers\ArrayDriver
+     * @return \Laravel\Pennant\Drivers\ArrayDriver
      */
     public function createArrayDriver()
     {
@@ -53,7 +53,7 @@ class FeatureManager extends Manager
     /**
      * Create an instance of the database driver.
      *
-     * @return \Laravel\Feature\Drivers\DatabaseDriver
+     * @return \Laravel\Pennant\Drivers\DatabaseDriver
      */
     public function createDatabaseDriver()
     {

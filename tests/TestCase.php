@@ -2,8 +2,8 @@
 
 namespace Tests;
 
-use Laravel\Feature\FeatureManager;
-use Laravel\Feature\FeatureServiceProvider;
+use Laravel\Pennant\FeatureManager;
+use Laravel\Pennant\PennantServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
@@ -17,14 +17,14 @@ abstract class TestCase extends OrchestraTestCase
     protected function getPackageProviders($app)
     {
         return [
-            FeatureServiceProvider::class,
+            PennantServiceProvider::class,
         ];
     }
 
     /**
      * Create an instance of the manager.
      *
-     * @return \Laravel\Feature\FeatureManager
+     * @return \Laravel\Pennant\FeatureManager
      */
     protected function createManager()
     {

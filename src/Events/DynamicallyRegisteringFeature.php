@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Feature\Events;
+namespace Laravel\Pennant\Events;
 
 class DynamicallyRegisteringFeature
 {

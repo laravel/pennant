@@ -1,6 +1,6 @@
 <?php
 
-namespace Laravel\Feature\Contracts;
+namespace Laravel\Pennant\Contracts;
 
 interface Driver
 {

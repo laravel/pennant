@@ -1,13 +1,13 @@
 <?php
 
-namespace Laravel\Feature\Drivers;
+namespace Laravel\Pennant\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Laravel\Feature\Contracts\Driver;
-use Laravel\Feature\Events\RetrievingKnownFeature;
-use Laravel\Feature\Events\RetrievingUnknownFeature;
+use Laravel\Pennant\Contracts\Driver;
+use Laravel\Pennant\Events\RetrievingKnownFeature;
+use Laravel\Pennant\Events\RetrievingUnknownFeature;
 use RuntimeException;
 use stdClass;
 

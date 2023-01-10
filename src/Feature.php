@@ -1,28 +1,28 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Pennant;
 
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Laravel\Feature\Drivers\ArrayDriver createArrayDriver()
- * @method static \Laravel\Feature\Drivers\DatabaseDriver createDatabaseDriver()
+ * @method static \Laravel\Pennant\Drivers\ArrayDriver createArrayDriver()
+ * @method static \Laravel\Pennant\Drivers\DatabaseDriver createDatabaseDriver()
  * @method static void flushCache()
  * @method static void resolveScopeUsing(callable $resolver)
  * @method static string getDefaultDriver()
  * @method static mixed driver(string|null $driver = null)
- * @method static \Laravel\Feature\FeatureManager extend(string $driver, \Closure $callback)
+ * @method static \Laravel\Pennant\FeatureManager extend(string $driver, \Closure $callback)
  * @method static array getDrivers()
  * @method static \Illuminate\Contracts\Container\Container getContainer()
- * @method static \Laravel\Feature\FeatureManager setContainer(\Illuminate\Contracts\Container\Container $container)
- * @method static \Laravel\Feature\FeatureManager forgetDrivers()
+ * @method static \Laravel\Pennant\FeatureManager setContainer(\Illuminate\Contracts\Container\Container $container)
+ * @method static \Laravel\Pennant\FeatureManager forgetDrivers()
  * @method static void register(string $feature, mixed $resolver = null)
  * @method static array registered()
  * @method static void purge(string|null $feature = null)
  * @method static array load(string|array $features)
  * @method static array loadMissing(string|array $features)
- * @method static \Laravel\Feature\Contracts\Driver getDriver()
- * @method static \Laravel\Feature\PendingScopedFeatureInteraction for(mixed $scope)
+ * @method static \Laravel\Pennant\Contracts\Driver getDriver()
+ * @method static \Laravel\Pennant\PendingScopedFeatureInteraction for(mixed $scope)
  * @method static mixed value(string $feature)
  * @method static array values(array $features)
  * @method static array all()
@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivate(string|array $feature)
  * @method static void forget(string|array $features)
  *
- * @see \Laravel\Feature\FeatureManager
+ * @see \Laravel\Pennant\FeatureManager
  */
 class Feature extends Facade
 {

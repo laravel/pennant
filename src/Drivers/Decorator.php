@@ -1,17 +1,17 @@
 <?php
 
-namespace Laravel\Feature\Drivers;
+namespace Laravel\Pennant\Drivers;
 
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
-use Laravel\Feature\Contracts\Driver as DriverContract;
-use Laravel\Feature\Contracts\FeatureScopeable;
-use Laravel\Feature\Events\DynamicallyRegisteringFeature;
-use Laravel\Feature\PendingScopedFeatureInteraction;
+use Laravel\Pennant\Contracts\Driver as DriverContract;
+use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\DynamicallyRegisteringFeature;
+use Laravel\Pennant\PendingScopedFeatureInteraction;
 
 /**
- * @mixin \Laravel\Feature\PendingScopedFeatureInteraction
+ * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
 class Decorator implements DriverContract
 {
@@ -25,7 +25,7 @@ class Decorator implements DriverContract
     /**
      * The driver being decorated.
      *
-     * @var \Laravel\Feature\Contracts\Driver
+     * @var \Laravel\Pennant\Contracts\Driver
      */
     protected $driver;
 
@@ -54,7 +54,7 @@ class Decorator implements DriverContract
      * Create a new driver decorator instance.
      *
      * @param  string  $name
-     * @param  \Laravel\Feature\Contracts\Driver  $driver
+     * @param  \Laravel\Pennant\Contracts\Driver  $driver
      * @param  (callable(): mixed)  $defaultScopeResolver
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
@@ -386,7 +386,7 @@ class Decorator implements DriverContract
     /**
      * Get the underlying feature driver.
      *
-     * @return \Laravel\Feature\Contracts\Driver
+     * @return \Laravel\Pennant\Contracts\Driver
      */
     public function getDriver()
     {

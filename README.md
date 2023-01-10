@@ -1,16 +1,16 @@
 <p align="center"><img src="/art/logo.svg" alt="Logo Laravel Package"></p>
 
 <p align="center">
-<a href="https://github.com/laravel/package-template/actions"><img src="https://github.com/laravel/package-template/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/package-template"><img src="https://img.shields.io/packagist/dt/laravel/package-template" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/package-template"><img src="https://img.shields.io/packagist/v/laravel/package-template" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/package-template"><img src="https://img.shields.io/packagist/l/laravel/package-template" alt="License"></a>
+<a href="https://github.com/laravel/pennant/actions"><img src="https://github.com/laravel/pennant/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/pennant"><img src="https://img.shields.io/packagist/dt/laravel/pennant" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/pennant"><img src="https://img.shields.io/packagist/v/laravel/pennant" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/pennant"><img src="https://img.shields.io/packagist/l/laravel/pennant" alt="License"></a>
 </p>
 
-> This is a template repository for new Laravel packages. [Start a new repo with this](https://github.com/laravel/package-template/generate), clone it locally and search & replace the relevant things below:
+> This is a template repository for new Laravel packages. [Start a new repo with this](https://github.com/laravel/pennant/generate), clone it locally and search & replace the relevant things below:
 >
 > - `Laravel Package` with the package name (e.g. `Laravel Horizon`)
-> - `laravel/package-template` references to the vendor name / GitHub url (e.g. `laravel/horizon`) (*)
+> - `laravel/pennant` references to the vendor name / GitHub url (e.g. `laravel/horizon`) (*)
 > - `laravel-package` references to the publishing name (e.g. `horizon`) (*)
 > - `Laravel\Package` references to the package namespace (e.g. `Laravel\Horizon`) (*)
 > - `LaravelPackage` references to the short package name (e.g. `Horizon`) (*)

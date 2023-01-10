@@ -1,9 +1,9 @@
 <?php
 
-namespace Laravel\Feature\Commands;
+namespace Laravel\Pennant\Commands;
 
 use Illuminate\Console\Command;
-use Laravel\Feature\FeatureManager;
+use Laravel\Pennant\FeatureManager;
 
 class PurgeCommand extends Command
 {
@@ -19,7 +19,7 @@ class PurgeCommand extends Command
     /**
      * Execute the console command.
      *
-     * @param  \Laravel\Feature\FeatureManager  $manager
+     * @param  \Laravel\Pennant\FeatureManager  $manager
      * @return int
      */
     public function handle(FeatureManager $manager)

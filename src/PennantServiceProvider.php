@@ -1,11 +1,11 @@
 <?php
 
-namespace Laravel\Feature;
+namespace Laravel\Pennant;
 
 use Illuminate\Container\Container;
 use Illuminate\Support\ServiceProvider;
 
-class FeatureServiceProvider extends ServiceProvider
+class PennantServiceProvider extends ServiceProvider
 {
     /**
      * Register the package's services.
@@ -16,7 +16,7 @@ class FeatureServiceProvider extends ServiceProvider
     {
         $this->app->singleton(FeatureManager::class, fn ($app) => new FeatureManager($app));
 
-        $this->mergeConfigFrom(__DIR__.'/../config/features.php', 'features');
+        $this->mergeConfigFrom(__DIR__.'/../config/pennant.php', 'pennant');
     }
 
     /**
@@ -31,10 +31,10 @@ class FeatureServiceProvider extends ServiceProvider
 
             $this->publishes([
                 __DIR__.'/../database/migrations' => $this->app->databasePath('migrations'),
-            ], 'laravel-feature-migrations');
+            ], 'laravel-pennant-migrations');
 
             $this->commands([
-                \Laravel\Feature\Commands\PurgeCommand::class,
+                \Laravel\Pennant\Commands\PurgeCommand::class,
             ]);
         }
 
