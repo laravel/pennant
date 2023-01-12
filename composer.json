@@ -1,7 +1,7 @@
 {
     "name": "laravel/pennant",
     "description": "A simple, lightweight library for managing feature flags.",
-    "keywords": ["laravel"],
+    "keywords": ["laravel", "pennant", "feature", "flags"],
     "homepage": "https://github.com/laravel/pennant",
     "license": "MIT",
     "support": {
