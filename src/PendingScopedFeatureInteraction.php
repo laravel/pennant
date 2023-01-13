@@ -81,7 +81,7 @@ class PendingScopedFeatureInteraction
      */
     public function all()
     {
-        return $this->values($this->driver->registered());
+        return $this->values($this->driver->defined());
     }
 
     /**

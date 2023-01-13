@@ -14,8 +14,8 @@ class PurgeCommandTest extends TestCase
 
     public function test_it_can_purge_flags()
     {
-        Feature::register('foo', true);
-        Feature::register('bar', false);
+        Feature::define('foo', true);
+        Feature::define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('bar');
@@ -34,8 +34,8 @@ class PurgeCommandTest extends TestCase
 
     public function test_it_can_purge_all_feature_flags()
     {
-        Feature::register('foo', true);
-        Feature::register('bar', false);
+        Feature::define('foo', true);
+        Feature::define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('foo');
@@ -58,8 +58,8 @@ class PurgeCommandTest extends TestCase
             }
         });
 
-        Feature::driver('database')->register('foo', true);
-        Feature::driver('database')->register('bar', false);
+        Feature::driver('database')->define('foo', true);
+        Feature::driver('database')->define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('foo');

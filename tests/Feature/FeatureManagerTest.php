@@ -43,7 +43,7 @@ class FeatureManagerTest extends TestCase
     {
         Lottery::fix([true, true, true, true, false]);
 
-        Feature::register('foo', Lottery::odds(1, 100));
+        Feature::define('foo', Lottery::odds(1, 100));
 
         Feature::load('foo');
         $this->assertTrue(Feature::active('foo'));

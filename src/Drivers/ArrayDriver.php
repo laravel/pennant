@@ -57,23 +57,23 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Register an initial feature flag state resolver.
+     * Define an initial feature flag state resolver.
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
      * @return void
      */
-    public function register($feature, $resolver)
+    public function define($feature, $resolver)
     {
         $this->featureStateResolvers[$feature] = $resolver;
     }
 
     /**
-     * Retrieve the names of all registered features.
+     * Retrieve the names of all defined features.
      *
      * @return array<string>
      */
-    public function registered()
+    public function defined()
     {
         return array_keys($this->featureStateResolvers);
     }

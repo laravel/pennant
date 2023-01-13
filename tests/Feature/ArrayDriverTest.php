@@ -46,8 +46,8 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_register_default_boolean_values()
     {
-        Feature::register('true', fn () => true);
-        Feature::register('false', fn () => false);
+        Feature::define('true', fn () => true);
+        Feature::define('false', fn () => false);
 
         $true = Feature::active('true');
         $false = Feature::active('false');
@@ -58,7 +58,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_register_complex_values()
     {
-        Feature::register('config', fn () => [
+        Feature::define('config', fn () => [
             'color' => 'red',
             'default' => 'api',
         ]);
@@ -84,7 +84,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_caches_state_after_resolving()
     {
         $called = 0;
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called++;
 
             return true;
@@ -101,12 +101,12 @@ class ArrayDriverTest extends TestCase
 
     public function test_non_false_registered_values_are_considered_active()
     {
-        Feature::register('true', fn () => true);
-        Feature::register('false', fn () => false);
-        Feature::register('one', fn () => 1);
-        Feature::register('zero', fn () => 0);
-        Feature::register('null', fn () => null);
-        Feature::register('empty-string', fn () => '');
+        Feature::define('true', fn () => true);
+        Feature::define('false', fn () => false);
+        Feature::define('one', fn () => 1);
+        Feature::define('zero', fn () => 0);
+        Feature::define('null', fn () => null);
+        Feature::define('empty-string', fn () => '');
 
         $this->assertTrue(Feature::active('true'));
         $this->assertFalse(Feature::active('false'));
@@ -138,7 +138,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_dispatches_events_when_resolving_feature_into_memory()
     {
         Event::fake([RetrievingKnownFeature::class]);
-        Feature::register('foo', fn () => true);
+        Feature::define('foo', fn () => true);
 
         Feature::active('foo');
         Feature::active('foo');
@@ -191,7 +191,7 @@ class ArrayDriverTest extends TestCase
         $inactive = new User(['id' => 2]);
         $captured = [];
 
-        Feature::register('foo', function ($scope) use (&$captured) {
+        Feature::define('foo', function ($scope) use (&$captured) {
             $captured[] = $scope;
 
             return $scope?->id === 1;
@@ -316,10 +316,10 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_load_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -366,10 +366,10 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_load_scoped_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function ($scope) use (&$called) {
+        Feature::define('foo', function ($scope) use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -420,10 +420,10 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_load_against_scope()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function ($scope) use (&$called) {
+        Feature::define('foo', function ($scope) use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -472,10 +472,10 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_load_missing_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -523,7 +523,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_retrive_value_for_multiple_scopes()
     {
-        Feature::register('foo', fn ($scope) => $scope);
+        Feature::define('foo', fn ($scope) => $scope);
 
         $values = Feature::for(1)->values(['foo']);
 
@@ -534,8 +534,8 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_retrive_value_for_multiple_scopes_and_features()
     {
-        Feature::register('foo', fn ($scope) => $scope);
-        Feature::register('bar', fn ($scope) => $scope * 2);
+        Feature::define('foo', fn ($scope) => $scope);
+        Feature::define('bar', fn ($scope) => $scope * 2);
 
         $values = Feature::for(2)->values(['foo', 'bar']);
 
@@ -547,7 +547,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_may_register_shorthand_feature_values()
     {
-        Feature::register('foo', 'value');
+        Feature::define('foo', 'value');
 
         $value = Feature::value('foo');
 
@@ -556,9 +556,9 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_use_lottery()
     {
-        Feature::register('foo', Lottery::odds(1, 1));
-        Feature::register('bar', Lottery::odds(0, 1));
-        Feature::register('baz', fn () => Lottery::odds(0, 1));
+        Feature::define('foo', Lottery::odds(1, 1));
+        Feature::define('bar', Lottery::odds(0, 1));
+        Feature::define('baz', fn () => Lottery::odds(0, 1));
 
         $this->assertTrue(Feature::value('foo'));
         $this->assertFalse(Feature::value('bar'));
@@ -567,11 +567,11 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_retrieve_registered_features()
     {
-        Feature::register('foo', fn () => true);
-        Feature::register('bar', fn () => false);
-        Feature::register('baz', fn () => false);
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => false);
+        Feature::define('baz', fn () => false);
 
-        $registered = Feature::registered();
+        $registered = Feature::defined();
 
         $this->assertSame(['foo', 'bar', 'baz'], $registered);
     }
@@ -579,7 +579,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_clear_the_cache()
     {
         $called = 0;
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called++;
         });
 
@@ -592,8 +592,8 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_get_all_features()
     {
-        Feature::register('foo', fn () => true);
-        Feature::register('bar', fn () => false);
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => false);
 
         $all = Feature::all();
 
@@ -605,7 +605,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_register_feature_via_class()
     {
-        Feature::register(MyFeature::class);
+        Feature::define(MyFeature::class);
 
         $value = Feature::for('shared')->value('my-feature');
 
@@ -614,7 +614,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_register_features_via_class_without_name()
     {
-        Feature::register(MyUnnamedFeature::class);
+        Feature::define(MyUnnamedFeature::class);
 
         $value = Feature::for('shared')->value(MyUnnamedFeature::class);
 
@@ -623,19 +623,19 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_can_reevaluate_feature_state()
     {
-        Feature::register('foo', fn () => false);
+        Feature::define('foo', fn () => false);
         $this->assertFalse(Feature::for('tim')->value('foo'));
 
         Feature::for('tim')->forget('foo');
 
-        Feature::register('foo', fn () => true);
+        Feature::define('foo', fn () => true);
         $this->assertTrue(Feature::for('tim')->value('foo'));
     }
 
     public function test_it_can_customise_default_scope()
     {
         $scopes = [];
-        Feature::register('foo', function ($scope) use (&$scopes) {
+        Feature::define('foo', function ($scope) use (&$scopes) {
             $scopes[] = $scope;
         });
 
@@ -657,7 +657,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_doesnt_include_default_scope_when_null()
     {
         $scopes = [];
-        Feature::register('foo', function ($scope) use (&$scopes) {
+        Feature::define('foo', function ($scope) use (&$scopes) {
             $scopes[] = $scope;
         });
 
@@ -671,7 +671,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_uses_default_scope_for_loading_with_string()
     {
-        Feature::register('feature', fn () => false);
+        Feature::define('feature', fn () => false);
         Feature::for('tim')->activate('feature');
 
         $loaded = Feature::load('feature');
@@ -685,7 +685,7 @@ class ArrayDriverTest extends TestCase
 
     public function test_retrieving_values_after_purging()
     {
-        Feature::register('foo', false);
+        Feature::define('foo', false);
 
         Feature::for('tim')->activate('foo');
 
