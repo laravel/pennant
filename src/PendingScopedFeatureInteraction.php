@@ -90,7 +90,7 @@ class PendingScopedFeatureInteraction
      * @param  string  $feature
      * @return bool
      */
-    public function isActive($feature)
+    public function active($feature)
     {
         return $this->allAreActive([$feature]);
     }
@@ -127,7 +127,7 @@ class PendingScopedFeatureInteraction
      * @param  string  $feature
      * @return bool
      */
-    public function isInactive($feature)
+    public function inactive($feature)
     {
         return $this->allAreInactive([$feature]);
     }

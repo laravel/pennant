@@ -14,7 +14,7 @@ trait HasFeatures
      */
     public function featureIsActive($feature)
     {
-        return Feature::for($this)->isActive($feature);
+        return Feature::for($this)->active($feature);
     }
 
     /**
@@ -25,7 +25,7 @@ trait HasFeatures
      */
     public function featureIsInactive($feature)
     {
-        return Feature::for($this)->isInactive($feature);
+        return Feature::for($this)->inactive($feature);
     }
 
     /**

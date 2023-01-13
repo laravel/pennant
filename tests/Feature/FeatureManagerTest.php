@@ -16,15 +16,15 @@ class FeatureManagerTest extends TestCase
     {
         Feature::for('tim@laravel.com')->for('jess@laravel.com')->activate('foo');
 
-        $this->assertFalse(Feature::isActive('foo'));
-        $this->assertTrue(Feature::for('tim@laravel.com')->isActive('foo'));
-        $this->assertTrue(Feature::for('jess@laravel.com')->isActive('foo'));
-        $this->assertFalse(Feature::for('taylor@laravel.com')->isActive('foo'));
-        $this->assertTrue(Feature::for('jess@laravel.com')->for('tim@laravel.com')->isActive('foo'));
-        $this->assertFalse(Feature::for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));
+        $this->assertFalse(Feature::active('foo'));
+        $this->assertTrue(Feature::for('tim@laravel.com')->active('foo'));
+        $this->assertTrue(Feature::for('jess@laravel.com')->active('foo'));
+        $this->assertFalse(Feature::for('taylor@laravel.com')->active('foo'));
+        $this->assertTrue(Feature::for('jess@laravel.com')->for('tim@laravel.com')->active('foo'));
+        $this->assertFalse(Feature::for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->active('foo'));
 
         Feature::for('taylor@laravel.com')->activate('foo');
-        $this->assertTrue(Feature::for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->isActive('foo'));
+        $this->assertTrue(Feature::for('tim@laravel.com')->for('jess@laravel.com')->for('taylor@laravel.com')->active('foo'));
     }
 
     public function test_the_authenticated_user_is_the_default_scope()
@@ -34,9 +34,9 @@ class FeatureManagerTest extends TestCase
 
         Feature::activate('foo');
 
-        $this->assertFalse(Feature::for('misc')->isActive('foo'));
-        $this->assertTrue(Feature::isActive('foo'));
-        $this->assertTrue(Feature::for($user)->isActive('foo'));
+        $this->assertFalse(Feature::for('misc')->active('foo'));
+        $this->assertTrue(Feature::active('foo'));
+        $this->assertTrue(Feature::for($user)->active('foo'));
     }
 
     public function test_it_can_return_lottery_as_value()
@@ -46,22 +46,22 @@ class FeatureManagerTest extends TestCase
         Feature::register('foo', Lottery::odds(1, 100));
 
         Feature::load('foo');
-        $this->assertTrue(Feature::isActive('foo'));
+        $this->assertTrue(Feature::active('foo'));
         Feature::forget('foo');
 
         Feature::load('foo');
-        $this->assertTrue(Feature::isActive('foo'));
+        $this->assertTrue(Feature::active('foo'));
         Feature::forget('foo');
 
         Feature::load(['foo']);
-        $this->assertTrue(Feature::isActive('foo'));
+        $this->assertTrue(Feature::active('foo'));
         Feature::forget('foo');
 
         Feature::load(['foo']);
-        $this->assertTrue(Feature::isActive('foo'));
+        $this->assertTrue(Feature::active('foo'));
         Feature::forget('foo');
 
         Feature::load(['foo']);
-        $this->assertFalse(Feature::isActive('foo'));
+        $this->assertFalse(Feature::active('foo'));
     }
 }

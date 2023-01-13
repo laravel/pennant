@@ -17,9 +17,9 @@ class PurgeCommandTest extends TestCase
         Feature::register('foo', true);
         Feature::register('bar', false);
 
-        Feature::for('tim')->isActive('foo');
-        Feature::for('taylor')->isActive('bar');
-        Feature::for('taylor')->isActive('foo');
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('bar');
+        Feature::for('taylor')->active('foo');
 
         $this->assertSame(3, DB::table('features')->count());
 
@@ -37,9 +37,9 @@ class PurgeCommandTest extends TestCase
         Feature::register('foo', true);
         Feature::register('bar', false);
 
-        Feature::for('tim')->isActive('foo');
-        Feature::for('taylor')->isActive('foo');
-        Feature::for('taylor')->isActive('bar');
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+        Feature::for('taylor')->active('bar');
 
         $this->assertSame(3, DB::table('features')->count());
 
@@ -61,9 +61,9 @@ class PurgeCommandTest extends TestCase
         Feature::driver('database')->register('foo', true);
         Feature::driver('database')->register('bar', false);
 
-        Feature::for('tim')->isActive('foo');
-        Feature::for('taylor')->isActive('foo');
-        Feature::for('taylor')->isActive('bar');
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+        Feature::for('taylor')->active('bar');
 
         $this->assertSame(3, DB::table('features')->count());
 
