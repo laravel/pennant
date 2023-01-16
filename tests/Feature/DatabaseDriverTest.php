@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Events\DynamicallyRegisteringFeature;
+use Laravel\Pennant\Events\DynamicallyDefiningFeature;
 use Laravel\Pennant\Events\RetrievingKnownFeature;
 use Laravel\Pennant\Events\RetrievingUnknownFeature;
 use Laravel\Pennant\Feature;
@@ -56,8 +56,8 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_register_default_boolean_values()
     {
-        Feature::register('true', fn () => true);
-        Feature::register('false', fn () => false);
+        Feature::define('true', fn () => true);
+        Feature::define('false', fn () => false);
 
         $true = Feature::active('true');
         $false = Feature::active('false');
@@ -70,7 +70,7 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_register_complex_values()
     {
-        Feature::register('config', fn () => [
+        Feature::define('config', fn () => [
             'color' => 'red',
             'default' => 'api',
         ]);
@@ -98,7 +98,7 @@ class DatabaseDriverTest extends TestCase
     public function test_it_caches_state_after_resolving()
     {
         $called = 0;
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called++;
 
             return true;
@@ -117,12 +117,12 @@ class DatabaseDriverTest extends TestCase
 
     public function test_non_false_registered_values_are_considered_active()
     {
-        Feature::register('true', fn () => true);
-        Feature::register('false', fn () => false);
-        Feature::register('one', fn () => 1);
-        Feature::register('zero', fn () => 0);
-        Feature::register('null', fn () => null);
-        Feature::register('empty-string', fn () => '');
+        Feature::define('true', fn () => true);
+        Feature::define('false', fn () => false);
+        Feature::define('one', fn () => 1);
+        Feature::define('zero', fn () => 0);
+        Feature::define('null', fn () => null);
+        Feature::define('empty-string', fn () => '');
 
         $this->assertTrue(Feature::active('true'));
         $this->assertFalse(Feature::active('false'));
@@ -158,7 +158,7 @@ class DatabaseDriverTest extends TestCase
     public function test_it_dispatches_events_when_checking_known_features()
     {
         Event::fake([RetrievingKnownFeature::class]);
-        Feature::register('foo', fn () => true);
+        Feature::define('foo', fn () => true);
 
         Feature::active('foo');
         Feature::active('foo');
@@ -217,7 +217,7 @@ class DatabaseDriverTest extends TestCase
         $inactive = new User(['id' => 2]);
         $captured = [];
 
-        Feature::register('foo', function ($scope) use (&$captured) {
+        Feature::define('foo', function ($scope) use (&$captured) {
             $captured[] = $scope;
 
             return $scope?->id === 1;
@@ -373,10 +373,10 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_load_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -425,10 +425,10 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_load_scoped_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function ($scope) use (&$called) {
+        Feature::define('foo', function ($scope) use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -481,10 +481,10 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_load_against_scope()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function ($scope) use (&$called) {
+        Feature::define('foo', function ($scope) use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -535,10 +535,10 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_load_missing_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
-        Feature::register('foo', function () use (&$called) {
+        Feature::define('foo', function () use (&$called) {
             $called['foo']++;
         });
-        Feature::register('bar', function () use (&$called) {
+        Feature::define('bar', function () use (&$called) {
             $called['bar']++;
         });
 
@@ -580,10 +580,10 @@ class DatabaseDriverTest extends TestCase
 
     public function test_missing_results_are_inserted_on_load()
     {
-        Feature::register('foo', function () {
+        Feature::define('foo', function () {
             return 1;
         });
-        Feature::register('bar', function () {
+        Feature::define('bar', function () {
             return 2;
         });
 
@@ -625,11 +625,11 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_retrieve_registered_features()
     {
-        Feature::register('foo', fn () => true);
-        Feature::register('bar', fn () => false);
-        Feature::register('baz', fn () => false);
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => false);
+        Feature::define('baz', fn () => false);
 
-        $registered = Feature::registered();
+        $registered = Feature::defined();
 
         $this->assertSame(['foo', 'bar', 'baz'], $registered);
         $this->assertCount(0, DB::getQueryLog());
@@ -637,7 +637,7 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_clear_the_cache()
     {
-        Feature::register('foo', fn () => true);
+        Feature::define('foo', fn () => true);
 
         Feature::active('foo');
         Feature::flushCache();
@@ -648,8 +648,8 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_get_all_features()
     {
-        Feature::register('foo', fn () => true);
-        Feature::register('bar', fn () => false);
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => false);
 
         $all = Feature::all();
 
@@ -661,19 +661,19 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_reevaluate_feature_state()
     {
-        Feature::register('foo', fn () => false);
+        Feature::define('foo', fn () => false);
         $this->assertFalse(Feature::for('tim')->value('foo'));
 
         Feature::for('tim')->forget('foo');
 
-        Feature::register('foo', fn () => true);
+        Feature::define('foo', fn () => true);
         $this->assertTrue(Feature::for('tim')->value('foo'));
     }
 
     public function test_it_can_purge_flags()
     {
-        Feature::register('foo', true);
-        Feature::register('bar', false);
+        Feature::define('foo', true);
+        Feature::define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('foo');
@@ -692,7 +692,7 @@ class DatabaseDriverTest extends TestCase
 
     public function test_retrieving_values_after_purging()
     {
-        Feature::register('foo', false);
+        Feature::define('foo', false);
 
         Feature::for('tim')->activate('foo');
 
@@ -708,8 +708,8 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_purge_all_feature_flags()
     {
-        Feature::register('foo', true);
-        Feature::register('bar', false);
+        Feature::define('foo', true);
+        Feature::define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('foo');
@@ -725,7 +725,7 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_customise_default_scope()
     {
         $scopes = [];
-        Feature::register('foo', function ($scope) use (&$scopes) {
+        Feature::define('foo', function ($scope) use (&$scopes) {
             $scopes[] = $scope;
         });
 
@@ -747,7 +747,7 @@ class DatabaseDriverTest extends TestCase
     public function test_it_doesnt_include_default_scope_when_null()
     {
         $scopes = [];
-        Feature::register('foo', function ($scope) use (&$scopes) {
+        Feature::define('foo', function ($scope) use (&$scopes) {
             $scopes[] = $scope;
         });
 
@@ -771,16 +771,16 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_use_unregistered_class_features()
     {
-        Event::fake([DynamicallyRegisteringFeature::class]);
+        Event::fake([DynamicallyDefiningFeature::class]);
 
         Feature::value(UnregisteredFeature::class);
         $value = Feature::value(UnregisteredFeature::class);
-        $registered = Feature::registered();
+        $registered = Feature::defined();
 
         $this->assertSame('unregistered-value', $value);
         $this->assertSame([UnregisteredFeature::class], $registered);
-        Event::assertDispatched(DynamicallyRegisteringFeature::class, 1);
-        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+        Event::assertDispatched(DynamicallyDefiningFeature::class, 1);
+        Event::assertDispatched(function (DynamicallyDefiningFeature $event) {
             $this->assertSame($event->feature, UnregisteredFeature::class);
 
             return true;
@@ -789,16 +789,16 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_use_unregistered_class_features_with_name_property()
     {
-        Event::fake([DynamicallyRegisteringFeature::class]);
+        Event::fake([DynamicallyDefiningFeature::class]);
 
         Feature::value(UnregisteredFeatureWithName::class);
         $value = Feature::value(UnregisteredFeatureWithName::class);
-        $registered = Feature::registered();
+        $registered = Feature::defined();
 
         $this->assertSame('unregistered-value', $value);
         $this->assertSame(['feature-name'], $registered);
-        Event::assertDispatched(DynamicallyRegisteringFeature::class, 1);
-        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+        Event::assertDispatched(DynamicallyDefiningFeature::class, 1);
+        Event::assertDispatched(function (DynamicallyDefiningFeature $event) {
             $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
 
             return true;
@@ -807,7 +807,7 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_delete_unregistered_class_features_with_name_property()
     {
-        Event::fake([DynamicallyRegisteringFeature::class]);
+        Event::fake([DynamicallyDefiningFeature::class]);
 
         Feature::value(UnregisteredFeatureWithName::class);
         $this->assertSame(1, DB::table('features')->where('name', 'feature-name')->count());
@@ -817,8 +817,8 @@ class DatabaseDriverTest extends TestCase
         Feature::forget(UnregisteredFeatureWithName::class);
         $this->assertSame(0, DB::table('features')->where('name', 'feature-name')->count());
 
-        Event::assertDispatched(DynamicallyRegisteringFeature::class, 2);
-        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+        Event::assertDispatched(DynamicallyDefiningFeature::class, 2);
+        Event::assertDispatched(function (DynamicallyDefiningFeature $event) {
             $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
 
             return true;
@@ -827,7 +827,7 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_activate_unregistered_class_features_with_name_property()
     {
-        Event::fake([DynamicallyRegisteringFeature::class]);
+        Event::fake([DynamicallyDefiningFeature::class]);
 
         Feature::activate(UnregisteredFeatureWithName::class, 'expected-value');
         $this->assertSame(1, DB::table('features')->where('name', 'feature-name')->where('value', '"expected-value"')->count());
@@ -837,8 +837,8 @@ class DatabaseDriverTest extends TestCase
         Feature::forget(UnregisteredFeatureWithName::class);
         $this->assertSame(0, DB::table('features')->where('name', 'feature-name')->where('value', '"expected-value"')->count());
 
-        Event::assertDispatched(DynamicallyRegisteringFeature::class, 2);
-        Event::assertDispatched(function (DynamicallyRegisteringFeature $event) {
+        Event::assertDispatched(DynamicallyDefiningFeature::class, 2);
+        Event::assertDispatched(function (DynamicallyDefiningFeature $event) {
             $this->assertSame($event->feature, UnregisteredFeatureWithName::class);
 
             return true;

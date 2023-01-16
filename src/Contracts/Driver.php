@@ -5,20 +5,20 @@ namespace Laravel\Pennant\Contracts;
 interface Driver
 {
     /**
-     * Register an initial feature flag state resolver.
+     * Define an initial feature flag state resolver.
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
      * @return void
      */
-    public function register($feature, $resolver);
+    public function define($feature, $resolver);
 
     /**
-     * Retrieve the names of all registered features.
+     * Retrieve the names of all defined features.
      *
      * @return array<string>
      */
-    public function registered();
+    public function defined();
 
     /**
      * Retrieve a feature flag's value.

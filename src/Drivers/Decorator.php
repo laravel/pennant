@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Events\DynamicallyRegisteringFeature;
+use Laravel\Pennant\Events\DynamicallyDefiningFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 
 /**
@@ -69,13 +69,13 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Register an initial feature flag state resolver.
+     * Define an initial feature flag state resolver.
      *
      * @param  string|class-string  $feature
      * @param  mixed  $resolver
      * @return void
      */
-    public function register($feature, $resolver = null)
+    public function define($feature, $resolver = null)
     {
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
@@ -88,7 +88,7 @@ class Decorator implements DriverContract
             $resolver = fn () => $resolver;
         }
 
-        $this->driver->register($feature, function ($scope) use ($resolver) {
+        $this->driver->define($feature, function ($scope) use ($resolver) {
             $value = $resolver($scope);
 
             return $value instanceof Lottery
@@ -98,13 +98,13 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Retrieve the names of all registered features.
+     * Retrieve the names of all defined features.
      *
      * @return array<string>
      */
-    public function registered()
+    public function defined()
     {
-        return $this->driver->registered();
+        return $this->driver->defined();
     }
 
     /**
@@ -235,44 +235,44 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Resolve the feature name and ensure it is registered.
+     * Resolve the feature name and ensure it is defined.
      *
      * @param  string  $feature
      * @return string
      */
     protected function resolveFeature($feature)
     {
-        return $this->shouldDynamicallyRegister($feature)
-            ? $this->ensureDynamicFeatureIsRegistered($feature)
+        return $this->shouldDynamicallyDefine($feature)
+            ? $this->ensureDynamicFeatureIsDefined($feature)
             : $feature;
     }
 
     /**
-     * Determine if the feature should be dynamically registered.
+     * Determine if the feature should be dynamically defined.
      *
      * @param  string  $feature
      * @return bool
      */
-    protected function shouldDynamicallyRegister($feature)
+    protected function shouldDynamicallyDefine($feature)
     {
-        return ! in_array($feature, $this->registered())
+        return ! in_array($feature, $this->defined())
             && class_exists($feature)
             && method_exists($feature, '__invoke');
     }
 
     /**
-     * Dynamically register the feature.
+     * Dynamically define the feature.
      *
      * @param  string  $feature
      * @return string
      */
-    protected function ensureDynamicFeatureIsRegistered($feature)
+    protected function ensureDynamicFeatureIsDefined($feature)
     {
         return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
-            if (! in_array($name, $this->registered())) {
-                $this->container['events']->dispatch(new DynamicallyRegisteringFeature($feature));
+            if (! in_array($name, $this->defined())) {
+                $this->container['events']->dispatch(new DynamicallyDefiningFeature($feature));
 
-                $this->register($feature);
+                $this->define($feature);
             }
         });
     }
