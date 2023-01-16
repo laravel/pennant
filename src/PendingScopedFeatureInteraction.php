@@ -212,6 +212,36 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Apply the callback if the feature is active.
+     *
+     * @param  string  $feature
+     * @param  \Closure  $whenActive
+     * @param  \Closure|null  $whenInactive
+     * @return mixed
+     */
+    public function when($feature, $whenActive, $whenInactive = null)
+    {
+        if ($this->active($feature)) {
+            return $whenActive($this->value($feature), $this);
+        }
+
+        return $whenInactive($this);
+    }
+
+    /**
+     * Apply the callback if the feature is inactive.
+     *
+     * @param  string  $feature
+     * @param  \Closure  $whenInactive
+     * @param  \Closure|null  $whenActive
+     * @return mixed
+     */
+    public function unless($feature, $whenInactive, $whenActive = null)
+    {
+        return $this->when($feature, $whenActive ?? fn () => null, $whenInactive);
+    }
+
+    /**
      * The scope to pass to the driver.
      *
      * @return array<mixed>

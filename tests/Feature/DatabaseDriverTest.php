@@ -844,6 +844,110 @@ class DatabaseDriverTest extends TestCase
             return true;
         });
     }
+
+    public function test_it_can_conditionally_execute_code_block_for_inactive_feature()
+    {
+        $active = $inactive = null;
+
+        Feature::when('foo',
+            function () use (&$active) {
+                $active = true;
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        $this->assertNull($active);
+        $this->assertTrue($inactive);
+    }
+
+    public function test_it_can_conditionally_execute_code_block_for_active_feature()
+    {
+        $active = $inactive = null;
+        Feature::activate('foo');
+
+        Feature::when('foo',
+            function () use (&$active) {
+                $active = true;
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        $this->assertTrue($active);
+        $this->assertNull($inactive);
+    }
+
+    public function test_it_receives_value_for_feature_in_conditional_code_execution()
+    {
+        $active = $inactive = null;
+        Feature::activate('foo', ['hello' => 'world']);
+
+        Feature::when('foo',
+            function ($value) use (&$active) {
+                $active = $value;
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        $this->assertSame(['hello' => 'world'], $active);
+        $this->assertNull($inactive);
+    }
+
+    public function test_it_conditionally_executing_code_respects_scope()
+    {
+        $active = $inactive = null;
+        Feature::for('tim')->activate('foo');
+
+        Feature::when('foo',
+            function () use (&$active) {
+                $active = true;
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        $this->assertNull($active);
+        $this->assertTrue($inactive);
+
+        $active = $inactive = null;
+
+        Feature::for('tim')->when('foo',
+            function () use (&$active) {
+                $active = true;
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        $this->assertTrue($active);
+        $this->assertNull($inactive);
+    }
+
+    public function test_conditional_closures_receive_current_feature_interaction()
+    {
+        $active = $inactive = null;
+        Feature::for('tim')->activate('foo', ['hello' => 'tim']);
+
+        Feature::for('tim')->when('foo',
+            function ($value, $feature) {
+                $feature->deactivate('foo');
+            },
+            function () use (&$inactive) {
+                $inactive = true;
+            },
+        );
+
+        Feature::flushCache();
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertNull($inactive);
+    }
 }
 
 class UnregisteredFeature
