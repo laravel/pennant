@@ -21,5 +21,3 @@ function feature($name = null, $whenActive = null, $whenInactive = null)
         default => $manager->when(...func_get_args()),
     };
 }
-
-

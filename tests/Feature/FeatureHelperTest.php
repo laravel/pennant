@@ -2,11 +2,8 @@
 
 namespace Tests\Feature;
 
-use BadFunctionCallException;
-use BadMethodCallException;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pennant\Feature;
-use RuntimeException;
 use Tests\TestCase;
 
 class FeatureHelperTest extends TestCase
