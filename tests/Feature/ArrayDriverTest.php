@@ -749,7 +749,7 @@ class ArrayDriverTest extends TestCase
         $this->assertNull($inactive);
     }
 
-    public function test_it_conditionally_executing_code_respects_scope()
+    public function test_conditionally_executing_code_respects_scope()
     {
         $active = $inactive = null;
         Feature::for('tim')->activate('foo');
