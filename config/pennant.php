@@ -6,8 +6,8 @@ return [
     'drivers' => [
 
         'database' => [
-            // 'connection' => 'mysql',
-            // 'table' => 'features',
+            'connection' => null,
+            'table' => 'features',
         ],
 
     ],
