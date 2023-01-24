@@ -22,6 +22,13 @@ class DatabaseDriver implements Driver
     protected $db;
 
     /**
+     * The user configuration.
+     *
+     * @var array{connection?: string, table?: string}
+     */
+    protected $config;
+
+    /**
      * The event dispatcher.
      *
      * @var \Illuminate\Contracts\Events\Dispatcher
@@ -47,13 +54,15 @@ class DatabaseDriver implements Driver
      *
      * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @param  array<{connection?: string, table?: string}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
-    public function __construct(Connection $db, Dispatcher $events, $featureStateResolvers)
+    public function __construct(Connection $db, Dispatcher $events, $config, $featureStateResolvers)
     {
         $this->db = $db;
         $this->events = $events;
+        $this->config = $config;
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
@@ -114,7 +123,7 @@ class DatabaseDriver implements Driver
      */
     protected function retrieve($feature, $scope)
     {
-        return $this->db->table('features')
+        return $this->newQuery()
             ->where('name', $feature)
             ->where('scope', $this->serializeScope($scope))
             ->first();
@@ -165,7 +174,7 @@ class DatabaseDriver implements Driver
      */
     protected function update($feature, $scope, $value)
     {
-        return $this->db->table('features')
+        return $this->newQuery()
             ->where('name', $feature)
             ->where('scope', $this->serializeScope($scope))
             ->update([
@@ -183,7 +192,7 @@ class DatabaseDriver implements Driver
      */
     protected function insert($feature, $scope, $value)
     {
-        return $this->db->table('features')->insert([
+        return $this->newQuery()->insert([
             'name' => $feature,
             'scope' => $this->serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
@@ -199,7 +208,7 @@ class DatabaseDriver implements Driver
      */
     public function delete($feature, $scope)
     {
-        $this->db->table('features')
+        $this->newQuery()
             ->where('name', $feature)
             ->where('scope', $this->serializeScope($scope))
             ->delete();
@@ -214,9 +223,9 @@ class DatabaseDriver implements Driver
     public function purge($feature)
     {
         if ($feature === null) {
-            $this->db->table('features')->delete();
+            $this->newQuery()->delete();
         } else {
-            $this->db->table('features')
+            $this->newQuery()
                 ->where('name', $feature)
                 ->delete();
         }
@@ -230,7 +239,7 @@ class DatabaseDriver implements Driver
      */
     public function load($features)
     {
-        $query = $this->db->table('features');
+        $query = $this->newQuery();
 
         $features = Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
@@ -259,7 +268,7 @@ class DatabaseDriver implements Driver
         })->all())->all();
 
         if ($inserts->isNotEmpty()) {
-            $this->db->table('features')->insert($inserts->all());
+            $this->newQuery()->insert($inserts->all());
         }
 
         return $results;
@@ -279,5 +288,15 @@ class DatabaseDriver implements Driver
             $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
             default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
         };
+    }
+
+    /**
+     * Create a new table query.
+     *
+     * @return \Illuminate\Database\Query\Builder
+     */
+    protected function newQuery()
+    {
+        return $this->db->table($this->config['table'] ?? 'features');
     }
 }

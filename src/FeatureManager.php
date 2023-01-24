@@ -57,7 +57,14 @@ class FeatureManager extends Manager
      */
     public function createDatabaseDriver()
     {
-        return new DatabaseDriver($this->container['db.connection'], $this->container['events'], []);
+        return with($this->container['config']->get('pennant.drivers.database'), function ($config) {
+            return new DatabaseDriver(
+                $this->container['db']->connection($config['connection'] ?? null),
+                $this->container['events'],
+                $config,
+                []
+            );
+        });
     }
 
     /**
