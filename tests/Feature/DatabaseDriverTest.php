@@ -23,7 +23,7 @@ class DatabaseDriverTest extends TestCase
     {
         parent::setUp();
 
-        Config::set('features.default', 'database');
+        Config::set('pennant.default', 'database');
 
         DB::enableQueryLog();
     }
