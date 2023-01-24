@@ -24,7 +24,7 @@ class DatabaseDriver implements Driver
     /**
      * The user configuration.
      *
-     * @var array{connection?: string, table?: string}
+     * @var array{connection?: string|null, table?: string|null}
      */
     protected $config;
 
@@ -54,7 +54,7 @@ class DatabaseDriver implements Driver
      *
      * @param  \Illuminate\Database\Connection  $db
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
-     * @param  array<{connection?: string, table?: string}  $config
+     * @param  array<{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
