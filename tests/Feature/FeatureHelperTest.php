@@ -12,7 +12,7 @@ class FeatureHelperTest extends TestCase
     {
         parent::setUp();
 
-        Config::set('features.default', 'array');
+        Config::set('pennant.default', 'array');
     }
 
     public function testItReturnsFeatureManager()

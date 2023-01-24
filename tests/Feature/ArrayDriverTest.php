@@ -19,7 +19,7 @@ class ArrayDriverTest extends TestCase
     {
         parent::setUp();
 
-        Config::set('features.default', 'array');
+        Config::set('pennant.default', 'array');
     }
 
     public function test_it_defaults_to_false_for_unknown_values()
