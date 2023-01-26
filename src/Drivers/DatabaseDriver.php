@@ -174,12 +174,23 @@ class DatabaseDriver implements Driver
      */
     protected function update($feature, $scope, $value)
     {
-        return $this->newQuery()
+        $exists = $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', $this->serializeScope($scope))
+            ->where('scope', $serialized = $this->serializeScope($scope))
+            ->first();
+
+        if (! $exists) {
+            return false;
+        }
+
+        $this->newQuery()
+            ->where('name', $feature)
+            ->where('scope', $serialized)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-            ]) > 0;
+            ]);
+
+        return true;
     }
 
     /**

@@ -152,7 +152,7 @@ class DatabaseDriverTest extends TestCase
         Feature::activate('foo');
         $this->assertTrue(Feature::active('foo'));
 
-        $this->assertCount(4, DB::getQueryLog());
+        $this->assertCount(6, DB::getQueryLog());
     }
 
     public function test_it_dispatches_events_when_checking_known_features()
@@ -191,7 +191,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::active('bar'));
         $this->assertTrue(Feature::active('bar'));
 
-        $this->assertCount(10, DB::getQueryLog());
+        $this->assertCount(13, DB::getQueryLog());
     }
 
     public function test_it_can_check_if_multiple_features_are_active_at_once()
