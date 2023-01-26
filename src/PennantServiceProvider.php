@@ -30,6 +30,10 @@ class PennantServiceProvider extends ServiceProvider
             $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
             $this->publishes([
+                __DIR__.'/../config/pennant.php' => config_path('pennant.php'),
+            ], 'pennant-config');
+
+            $this->publishes([
                 __DIR__.'/../database/migrations' => $this->app->databasePath('migrations'),
             ], 'laravel-pennant-migrations');
 
