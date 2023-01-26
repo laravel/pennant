@@ -166,6 +166,23 @@ class DatabaseDriver implements Driver
     }
 
     /**
+     * Set a feature flag's value for all scopes.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setForAllScopes($feature, $value)
+    {
+        $this->newQuery()
+            ->where('name', $feature)
+            ->update([
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                'updated_at' => Carbon::now(),
+            ]);
+    }
+
+    /**
      * Update the value for the given feature and scope in storage.
      *
      * @param  string  $feature

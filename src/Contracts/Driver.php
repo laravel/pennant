@@ -40,6 +40,15 @@ interface Driver
     public function set($feature, $scope, $value);
 
     /**
+     * Set a feature flag's value for all scopes.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setForAllScopes($feature, $value);
+
+    /**
      * Delete a feature flag's value.
      *
      * @param  string  $feature
