@@ -5,6 +5,7 @@ namespace Laravel\Pennant\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\RetrievingKnownFeature;
@@ -188,6 +189,7 @@ class DatabaseDriver implements Driver
             ->where('scope', $serialized)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                'updated_at' => Carbon::now(),
             ]);
 
         return true;
@@ -207,6 +209,8 @@ class DatabaseDriver implements Driver
             'name' => $feature,
             'scope' => $this->serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+            'created_at' => Carbon::now(),
+            'updated_at' => Carbon::now(),
         ]);
     }
 
