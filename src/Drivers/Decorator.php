@@ -170,7 +170,9 @@ class Decorator implements DriverContract
 
         $this->driver->setForAllScopes($feature, $value);
 
-        $this->flushCache();
+        $this->cache = $this->cache->reject(
+            fn ($item) => $item['feature'] === $feature
+        );
     }
 
     /**
