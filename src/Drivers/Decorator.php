@@ -160,6 +160,8 @@ class Decorator implements DriverContract
     /**
      * Set a feature flag's value for all scopes.
      *
+     * @internal
+     *
      * @param  string  $feature
      * @param  mixed  $value
      * @return void
