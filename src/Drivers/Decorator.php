@@ -158,6 +158,26 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Set a feature flag's value for all scopes.
+     *
+     * @internal
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setForAllScopes($feature, $value)
+    {
+        $feature = $this->resolveFeature($feature);
+
+        $this->driver->setForAllScopes($feature, $value);
+
+        $this->cache = $this->cache->reject(
+            fn ($item) => $item['feature'] === $feature
+        );
+    }
+
+    /**
      * Delete a feature flag's value.
      *
      * @internal

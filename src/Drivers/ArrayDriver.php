@@ -140,6 +140,22 @@ class ArrayDriver implements Driver
     }
 
     /**
+     * Set a feature flag's value for all scopes.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setForAllScopes($feature, $value)
+    {
+        $this->resolvedFeatureStates[$feature] ??= [];
+
+        foreach ($this->resolvedFeatureStates[$feature] as $scope => $currentValue) {
+            $this->resolvedFeatureStates[$feature][$scope] = $value;
+        }
+    }
+
+    /**
      * Delete a feature flag's value.
      *
      * @param  string  $feature

@@ -203,6 +203,19 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Activate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function activateForEveryone($feature, $value = true)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->driver->setForAllScopes($name, $value));
+    }
+
+    /**
      * Deactivate the feature.
      *
      * @param  string|array<string>  $feature
@@ -213,6 +226,18 @@ class PendingScopedFeatureInteraction
         Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], false));
+    }
+
+    /**
+     * Deactivate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function deactivateForEveryone($feature)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->driver->setForAllScopes($name, false));
     }
 
     /**

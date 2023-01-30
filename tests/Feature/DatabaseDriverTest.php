@@ -948,6 +948,33 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(Feature::for('tim')->active('foo'));
         $this->assertNull($inactive);
     }
+
+    public function test_it_can_set_for_all()
+    {
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo');
+        Feature::for('taylor')->activate('foo');
+
+        $this->assertTrue(Feature::for('tim')->value('foo'));
+        $this->assertTrue(Feature::for('taylor')->value('foo'));
+        $this->assertTrue(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertTrue(Feature::getDriver()->get('foo', 'taylor'));
+
+        Feature::deactivateForEveryone('foo');
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('taylor')->value('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'taylor'));
+
+        Feature::activateForEveryone('foo');
+
+        $this->assertTrue(Feature::for('tim')->value('foo'));
+        $this->assertTrue(Feature::for('taylor')->value('foo'));
+        $this->assertTrue(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertTrue(Feature::getDriver()->get('foo', 'taylor'));
+    }
 }
 
 class UnregisteredFeature
