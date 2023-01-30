@@ -195,7 +195,7 @@ class DatabaseDriver implements Driver
         $exists = $this->newQuery()
             ->where('name', $feature)
             ->where('scope', $serialized = $this->serializeScope($scope))
-            ->first();
+            ->exists();
 
         if (! $exists) {
             return false;
