@@ -83,6 +83,6 @@ class PennantServiceProvider extends ServiceProvider
 
         $this->publishes([
             __DIR__.'/../database/migrations' => $this->app->databasePath('migrations'),
-        ], 'laravel-pennant-migrations');
+        ], 'pennant-migrations');
     }
 }
