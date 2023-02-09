@@ -73,14 +73,15 @@ class Decorator implements DriverContract
      *
      * @param  string|class-string  $feature
      * @param  mixed  $resolver
-     * @return void
      */
-    public function define($feature, $resolver = null)
+    public function define($feature, $resolver = null): void
     {
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
                 $this->container->make($feature)->name ?? $feature,
-                fn ($scope) => $this->container[$feature]($scope),
+                fn ($scope) => with($this->container[$feature], fn ($featureClass) => method_exists($featureClass, 'resolve')
+                    ? $featureClass->resolve($scope)
+                    : $featureClass($scope)),
             ];
         }
 
@@ -102,7 +103,7 @@ class Decorator implements DriverContract
      *
      * @return array<string>
      */
-    public function defined()
+    public function defined(): array
     {
         return $this->driver->defined();
     }
@@ -114,9 +115,8 @@ class Decorator implements DriverContract
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return mixed
      */
-    public function get($feature, $scope)
+    public function get($feature, $scope): mixed
     {
         $feature = $this->resolveFeature($feature);
 
@@ -144,9 +144,8 @@ class Decorator implements DriverContract
      * @param  string  $feature
      * @param  mixed  $scope
      * @param  mixed  $value
-     * @return void
      */
-    public function set($feature, $scope, $value)
+    public function set($feature, $scope, $value): void
     {
         $feature = $this->resolveFeature($feature);
 
@@ -164,9 +163,8 @@ class Decorator implements DriverContract
      *
      * @param  string  $feature
      * @param  mixed  $value
-     * @return void
      */
-    public function setForAllScopes($feature, $value)
+    public function setForAllScopes($feature, $value): void
     {
         $feature = $this->resolveFeature($feature);
 
@@ -184,9 +182,8 @@ class Decorator implements DriverContract
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return void
      */
-    public function delete($feature, $scope)
+    public function delete($feature, $scope): void
     {
         $feature = $this->resolveFeature($feature);
 
@@ -201,9 +198,8 @@ class Decorator implements DriverContract
      * Purge the given feature from storage.
      *
      * @param  string|null  $feature
-     * @return void
      */
-    public function purge($feature = null)
+    public function purge($feature = null): void
     {
         if ($feature === null) {
             $this->driver->purge(null);
@@ -226,7 +222,7 @@ class Decorator implements DriverContract
      * @param  string|array<int|string, mixed>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features)
+    public function load($features): array
     {
         $features = $this->normalizeFeaturesToLoad($features);
 
@@ -255,6 +251,31 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Activate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function activateForEveryone($feature, $value = true)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, $value));
+    }
+
+    /**
+     * Deactivate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function deactivateForEveryone($feature)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, false));
+    }
+
+    /**
      * Resolve the feature name and ensure it is defined.
      *
      * @param  string  $feature
@@ -277,7 +298,7 @@ class Decorator implements DriverContract
     {
         return ! in_array($feature, $this->defined())
             && class_exists($feature)
-            && method_exists($feature, '__invoke');
+            && (method_exists($feature, 'resolve') || method_exists($feature, '__invoke'));
     }
 
     /**

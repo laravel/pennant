@@ -7,63 +7,41 @@ interface Driver
     /**
      * Define an initial feature flag state resolver.
      *
-     * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
      */
-    public function define($feature, $resolver);
+    public function define(string $feature, callable $resolver): void;
 
     /**
      * Retrieve the names of all defined features.
      *
      * @return array<string>
      */
-    public function defined();
+    public function defined(): array;
 
     /**
      * Retrieve a feature flag's value.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return mixed
      */
-    public function get($feature, $scope);
+    public function get(string $feature, mixed $scope): mixed;
 
     /**
      * Set a feature flag's value.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @param  mixed  $value
-     * @return void
      */
-    public function set($feature, $scope, $value);
+    public function set(string $feature, mixed $scope, mixed $value): void;
 
     /**
      * Set a feature flag's value for all scopes.
-     *
-     * @param  string  $feature
-     * @param  mixed  $value
-     * @return void
      */
-    public function setForAllScopes($feature, $value);
+    public function setForAllScopes(string $feature, mixed $value): void;
 
     /**
      * Delete a feature flag's value.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @return void
      */
-    public function delete($feature, $scope);
+    public function delete(string $feature, mixed $scope): void;
 
     /**
      * Purge the given feature from storage.
-     *
-     * @param  string|null  $feature
-     * @return void
      */
-    public function purge($feature);
+    public function purge(?string $feature): void;
 
     /**
      * Eagerly preload multiple feature flag values.
@@ -71,5 +49,5 @@ interface Driver
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features);
+    public function load(array $features): array;
 }

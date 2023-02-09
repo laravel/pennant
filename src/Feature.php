@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool someAreActive(array $features)
  * @method static bool inactive(string $feature)
  * @method static bool allAreInactive(array $features)
- * @method static bool anyAreInactive(array $features)
+ * @method static bool someAreInactive(array $features)
  * @method static mixed when(string $feature, \Closure $whenActive, \Closure|null $whenInactive = null)
  * @method static mixed unless(string $feature, \Closure $whenInactive, \Closure|null $whenActive = null)
  * @method static void activate(string|array $feature, mixed $value = true)

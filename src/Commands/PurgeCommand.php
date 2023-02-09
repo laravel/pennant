@@ -19,16 +19,15 @@ class PurgeCommand extends Command
     /**
      * Execute the console command.
      *
-     * @param  \Laravel\Pennant\FeatureManager  $manager
      * @return int
      */
     public function handle(FeatureManager $manager)
     {
         $manager->driver($this->option('driver'))->purge($this->argument('feature'));
 
-        $name = $this->argument('feature') ?? 'All features';
-
-        $this->components->info("{$name} successfully purged from storage.");
+        with($this->argument('feature') ?? 'All features', function ($name) {
+            $this->components->info("{$name} successfully purged from storage.");
+        });
 
         return self::SUCCESS;
     }

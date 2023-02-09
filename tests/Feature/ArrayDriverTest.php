@@ -300,7 +300,7 @@ class ArrayDriverTest extends TestCase
     {
         $scopeable = fn () => new class extends User implements FeatureScopeable
         {
-            public function toFeatureIdentifier($driver)
+            public function toFeatureIdentifier($driver): mixed
             {
                 return 'tim@laravel.com';
             }
@@ -621,6 +621,15 @@ class ArrayDriverTest extends TestCase
         $this->assertSame('shared-123', $value);
     }
 
+    public function test_it_can_register_feature_via_class_with_resolve()
+    {
+        Feature::define(MyFeatureWithResolveMethod::class);
+
+        $value = Feature::for('shared')->value(MyFeatureWithResolveMethod::class);
+
+        $this->assertSame('shared-resolve-123', $value);
+    }
+
     public function test_it_can_reevaluate_feature_state()
     {
         Feature::define('foo', fn () => false);
@@ -843,5 +852,13 @@ class MyUnnamedFeature
     public function __invoke($scope)
     {
         return "{$scope}-123";
+    }
+}
+
+class MyFeatureWithResolveMethod
+{
+    public function resolve($scope)
+    {
+        return "{$scope}-resolve-123";
     }
 }
