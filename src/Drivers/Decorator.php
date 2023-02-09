@@ -157,6 +157,31 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Activate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function activateForEveryone($feature, $value = true)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, $value));
+    }
+
+    /**
+     * Deactivate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function deactivateForEveryone($feature)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, false));
+    }
+
+    /**
      * Set a feature flag's value for all scopes.
      *
      * @internal
@@ -248,31 +273,6 @@ class Decorator implements DriverContract
                 ->all())
             ->reject(fn ($scopes) => $scopes === [])
             ->pipe(fn ($features) => $this->load($features->all()));
-    }
-
-    /**
-     * Activate the feature for everyone.
-     *
-     * @param  string|array<string>  $feature
-     * @param  mixed  $value
-     * @return void
-     */
-    public function activateForEveryone($feature, $value = true)
-    {
-        Collection::wrap($feature)
-            ->each(fn ($name) => $this->setForAllScopes($name, $value));
-    }
-
-    /**
-     * Deactivate the feature for everyone.
-     *
-     * @param  string|array<string>  $feature
-     * @return void
-     */
-    public function deactivateForEveryone($feature)
-    {
-        Collection::wrap($feature)
-            ->each(fn ($name) => $this->setForAllScopes($name, false));
     }
 
     /**
