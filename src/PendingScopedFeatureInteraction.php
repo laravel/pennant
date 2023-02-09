@@ -151,7 +151,7 @@ class PendingScopedFeatureInteraction
      * @param  array<string>  $features
      * @return bool
      */
-    public function anyAreInactive($features)
+    public function someAreInactive($features)
     {
         return Collection::make($features)
             ->crossJoin($this->scope())
