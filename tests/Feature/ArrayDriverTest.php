@@ -300,7 +300,7 @@ class ArrayDriverTest extends TestCase
     {
         $scopeable = fn () => new class extends User implements FeatureScopeable
         {
-            public function toFeatureIdentifier($driver)
+            public function toFeatureIdentifier($driver): mixed
             {
                 return 'tim@laravel.com';
             }

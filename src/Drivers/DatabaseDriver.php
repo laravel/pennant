@@ -74,9 +74,8 @@ class DatabaseDriver implements Driver
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
      */
-    public function define($feature, $resolver)
+    public function define($feature, $resolver): void
     {
         $this->featureStateResolvers[$feature] = $resolver;
     }
@@ -86,7 +85,7 @@ class DatabaseDriver implements Driver
      *
      * @return array<string>
      */
-    public function defined()
+    public function defined(): array
     {
         return array_keys($this->featureStateResolvers);
     }
@@ -96,9 +95,8 @@ class DatabaseDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return mixed
      */
-    public function get($feature, $scope)
+    public function get($feature, $scope): mixed
     {
         if (($record = $this->retrieve($feature, $scope)) !== null) {
             return json_decode($record->value, flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
@@ -156,9 +154,8 @@ class DatabaseDriver implements Driver
      * @param  string  $feature
      * @param  mixed  $scope
      * @param  mixed  $value
-     * @return void
      */
-    public function set($feature, $scope, $value)
+    public function set($feature, $scope, $value): void
     {
         if (! $this->update($feature, $scope, $value)) {
             $this->insert($feature, $scope, $value);
@@ -170,9 +167,8 @@ class DatabaseDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $value
-     * @return void
      */
-    public function setForAllScopes($feature, $value)
+    public function setForAllScopes($feature, $value): void
     {
         $this->newQuery()
             ->where('name', $feature)
@@ -236,9 +232,8 @@ class DatabaseDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return void
      */
-    public function delete($feature, $scope)
+    public function delete($feature, $scope): void
     {
         $this->newQuery()
             ->where('name', $feature)
@@ -250,9 +245,8 @@ class DatabaseDriver implements Driver
      * Purge the given feature from storage.
      *
      * @param  string|null  $feature
-     * @return void
      */
-    public function purge($feature)
+    public function purge($feature): void
     {
         if ($feature === null) {
             $this->newQuery()->delete();
@@ -269,7 +263,7 @@ class DatabaseDriver implements Driver
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features)
+    public function load($features): array
     {
         $query = $this->newQuery();
 

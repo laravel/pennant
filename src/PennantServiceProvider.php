@@ -44,7 +44,6 @@ class PennantServiceProvider extends ServiceProvider
             });
         });
 
-
         $this->listenForEvents();
     }
 

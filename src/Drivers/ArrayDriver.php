@@ -61,9 +61,8 @@ class ArrayDriver implements Driver
      *
      * @param  string  $feature
      * @param  (callable(mixed $scope): mixed)  $resolver
-     * @return void
      */
-    public function define($feature, $resolver)
+    public function define($feature, $resolver): void
     {
         $this->featureStateResolvers[$feature] = $resolver;
     }
@@ -73,7 +72,7 @@ class ArrayDriver implements Driver
      *
      * @return array<string>
      */
-    public function defined()
+    public function defined(): array
     {
         return array_keys($this->featureStateResolvers);
     }
@@ -83,9 +82,8 @@ class ArrayDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return mixed
      */
-    public function get($feature, $scope)
+    public function get($feature, $scope): mixed
     {
         $scopeKey = $this->serializeScope($scope);
 
@@ -130,9 +128,8 @@ class ArrayDriver implements Driver
      * @param  string  $feature
      * @param  mixed  $scope
      * @param  mixed  $value
-     * @return void
      */
-    public function set($feature, $scope, $value)
+    public function set($feature, $scope, $value): void
     {
         $this->resolvedFeatureStates[$feature] ??= [];
 
@@ -144,9 +141,8 @@ class ArrayDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $value
-     * @return void
      */
-    public function setForAllScopes($feature, $value)
+    public function setForAllScopes($feature, $value): void
     {
         $this->resolvedFeatureStates[$feature] ??= [];
 
@@ -160,9 +156,8 @@ class ArrayDriver implements Driver
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return void
      */
-    public function delete($feature, $scope)
+    public function delete($feature, $scope): void
     {
         unset($this->resolvedFeatureStates[$feature][$this->serializeScope($scope)]);
     }
@@ -171,9 +166,8 @@ class ArrayDriver implements Driver
      * Purge the given feature from storage.
      *
      * @param  string|null  $feature
-     * @return void
      */
-    public function purge($feature)
+    public function purge($feature): void
     {
         if ($feature === null) {
             $this->resolvedFeatureStates = [];
@@ -188,7 +182,7 @@ class ArrayDriver implements Driver
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features)
+    public function load($features): array
     {
         return Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
