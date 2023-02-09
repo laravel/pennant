@@ -50,6 +50,8 @@ class PurgeCommandTest extends TestCase
 
     public function test_it_can_specify_a_driver()
     {
+        config(['pennant.stores.custom' => ['driver' => 'custom']]);
+
         Feature::extend('custom', fn () => new class
         {
             public function purge()
@@ -58,8 +60,8 @@ class PurgeCommandTest extends TestCase
             }
         });
 
-        Feature::driver('database')->define('foo', true);
-        Feature::driver('database')->define('bar', false);
+        Feature::store('database')->define('foo', true);
+        Feature::store('database')->define('bar', false);
 
         Feature::for('tim')->active('foo');
         Feature::for('taylor')->active('foo');
@@ -67,16 +69,16 @@ class PurgeCommandTest extends TestCase
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:purge --driver=custom');
+        $this->artisan('pennant:purge --store=custom');
 
         $this->assertSame(3, DB::table('features')->count());
 
-        $this->artisan('pennant:purge --driver=database');
+        $this->artisan('pennant:purge --store=database');
 
         $this->assertSame(0, DB::table('features')->count());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Driver [foo] not supported.');
-        $this->artisan('pennant:purge --driver=foo');
+        $this->expectExceptionMessage('Pennant store [foo] is not defined or does not have a driver.');
+        $this->artisan('pennant:purge --store=foo');
     }
 }

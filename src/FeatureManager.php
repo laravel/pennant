@@ -5,12 +5,13 @@ namespace Laravel\Pennant;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
+use InvalidArgumentException;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
 
 /**
- * @method \Laravel\Pennant\Drivers\Decorator driver(string|null $driver = null)
+ * @method \Laravel\Pennant\Drivers\Decorator store(string|null $store = null)
  *
  * @mixin \Laravel\Pennant\Drivers\Decorator
  */
@@ -24,16 +25,37 @@ class FeatureManager extends Manager
     protected $defaultScopeResolver;
 
     /**
+     * Get a Pennant store instance.
+     *
+     * @param  string|null  $driver
+     * @return mixed
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function store($store = null)
+    {
+        return $this->driver($store);
+    }
+
+    /**
      * Create a new driver instance.
      *
      * @param  string  $driver
      * @return \Laravel\Pennant\Drivers\Decorator
+     *
+     * @throws \InvalidArgumentException
      */
     protected function createDriver($driver)
     {
+        $storeDriver = $this->container['config']->get('pennant.stores.'.$driver.'.driver');
+
+        if (is_null($storeDriver)) {
+            throw new InvalidArgumentException("Pennant store [{$driver}] is not defined or does not have a driver.");
+        }
+
         return new Decorator(
             $driver,
-            parent::createDriver($driver),
+            parent::createDriver($storeDriver),
             $this->defaultScopeResolver($driver),
             $this->container,
             new Collection

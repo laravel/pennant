@@ -14,7 +14,7 @@ class PurgeCommand extends Command
      */
     protected $signature = 'pennant:purge
                             {feature? : The feature to purge}
-                            {--driver= : The driver to purge the feature from}';
+                            {--store= : The store to purge the feature from}';
 
     /**
      * Execute the console command.
@@ -23,7 +23,7 @@ class PurgeCommand extends Command
      */
     public function handle(FeatureManager $manager)
     {
-        $manager->driver($this->option('driver'))->purge($this->argument('feature'));
+        $manager->store($this->option('store'))->purge($this->argument('feature'));
 
         with($this->argument('feature') ?? 'All features', function ($name) {
             $this->components->info("{$name} successfully purged from storage.");
