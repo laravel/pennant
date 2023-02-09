@@ -787,6 +787,24 @@ class DatabaseDriverTest extends TestCase
         });
     }
 
+    public function test_it_can_use_unregistered_class_features_with_resolve_method()
+    {
+        Event::fake([DynamicallyDefiningFeature::class]);
+
+        Feature::value(UnregisteredFeatureWithResolve::class);
+        $value = Feature::value(UnregisteredFeatureWithResolve::class);
+        $registered = Feature::defined();
+
+        $this->assertSame('unregistered-value.resolve', $value);
+        $this->assertSame([UnregisteredFeatureWithResolve::class], $registered);
+        Event::assertDispatched(DynamicallyDefiningFeature::class, 1);
+        Event::assertDispatched(function (DynamicallyDefiningFeature $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithResolve::class);
+
+            return true;
+        });
+    }
+
     public function test_it_can_use_unregistered_class_features_with_name_property()
     {
         Event::fake([DynamicallyDefiningFeature::class]);
@@ -982,6 +1000,14 @@ class UnregisteredFeature
     public function __invoke()
     {
         return 'unregistered-value';
+    }
+}
+
+class UnregisteredFeatureWithResolve
+{
+    public function resolve()
+    {
+        return 'unregistered-value.resolve';
     }
 }
 

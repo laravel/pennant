@@ -79,7 +79,9 @@ class Decorator implements DriverContract
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
                 $this->container->make($feature)->name ?? $feature,
-                fn ($scope) => $this->container[$feature]($scope),
+                fn ($scope) => with($this->container[$feature], fn ($featureClass) => method_exists($featureClass, 'resolve')
+                    ? $featureClass->resolve($scope)
+                    : $featureClass($scope)),
             ];
         }
 
@@ -296,7 +298,7 @@ class Decorator implements DriverContract
     {
         return ! in_array($feature, $this->defined())
             && class_exists($feature)
-            && method_exists($feature, '__invoke');
+            && (method_exists($feature, 'resolve') || method_exists($feature, '__invoke'));
     }
 
     /**
