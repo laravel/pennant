@@ -249,6 +249,31 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Activate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function activateForEveryone($feature, $value = true)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, $value));
+    }
+
+    /**
+     * Deactivate the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function deactivateForEveryone($feature)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, false));
+    }
+
+    /**
      * Resolve the feature name and ensure it is defined.
      *
      * @param  string  $feature
