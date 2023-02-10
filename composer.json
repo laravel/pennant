@@ -49,7 +49,7 @@
                 "Laravel\\Pennant\\PennantServiceProvider"
             ],
             "aliases": {
-                "Pennant": "Laravel\\Pennant\\Feature"
+                "Feature": "Laravel\\Pennant\\Feature"
             }
         }
     },

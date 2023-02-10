@@ -30,6 +30,7 @@ class PennantServiceProvider extends ServiceProvider
             $this->offerPublishing();
 
             $this->commands([
+                \Laravel\Pennant\Commands\FeatureMakeCommand::class,
                 \Laravel\Pennant\Commands\PurgeCommand::class,
             ]);
         }
@@ -65,6 +66,10 @@ class PennantServiceProvider extends ServiceProvider
         $this->app['events']->listen([
             \Illuminate\Queue\Events\JobProcessed::class,
         ], fn () => $this->app[FeatureManager::class]->flushCache());
+
+        $this->app['events']->listen([
+            \Illuminate\Foundation\Events\PublishingStubs::class,
+        ], fn ($event) => $event->add(__DIR__.'/../stubs/feature.stub', 'feature.stub'));
     }
 
     /**
