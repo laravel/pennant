@@ -16,12 +16,12 @@ class EnsureFeaturesAreActive
      */
     public function handle(Request $request, Closure $next, string ...$features): mixed
     {
-        foreach ($features as $feature) {
-            if (! Feature::active($feature)) {
-                return static::$respondUsing
-                    ? call_user_func(static::$respondUsing, $request, $features)
-                    : abort(400);
-            }
+        Feature::loadMissing($features);
+
+        if (Feature::anyAreInactive($feature)) {
+            return static::$respondUsing
+                ? call_user_func(static::$respondUsing, $request, $features)
+                : abort(400);
         }
 
         return $next($request);
