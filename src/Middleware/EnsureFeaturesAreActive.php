@@ -18,7 +18,7 @@ class EnsureFeaturesAreActive
     {
         Feature::loadMissing($features);
 
-        if (Feature::anyAreInactive($features)) {
+        if (Feature::someAreInactive($features)) {
             return static::$respondUsing
                 ? call_user_func(static::$respondUsing, $request, $features)
                 : abort(400);
