@@ -17,6 +17,13 @@ class PurgeCommand extends Command
                             {--store= : The store to purge the feature from}';
 
     /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Purge features from storage';
+
+    /**
      * Execute the console command.
      *
      * @return int

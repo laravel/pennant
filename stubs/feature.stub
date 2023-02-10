@@ -1,0 +1,16 @@
+<?php
+
+namespace {{ namespace }};
+
+use Illuminate\Support\Lottery;
+
+class {{ class }}
+{
+    /**
+     * Resolve the feature's initial value.
+     */
+    public function resolve(mixed $scope): mixed
+    {
+        return false;
+    }
+}
