@@ -68,7 +68,7 @@ class FeatureMiddlewareTest extends TestCase
     {
         $this->assertFalse(Feature::active('test'));
 
-        EnsureFeaturesAreActive::whenInactive(fn () => 'test-response');
+        EnsureFeaturesAreActive::whenInactive(fn (Request $request, array $features) => 'test-response');
 
         $response = $this->middleware->handle(
             $this->createRequest('test', 'get'),
