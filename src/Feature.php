@@ -5,6 +5,7 @@ namespace Laravel\Pennant;
 use Illuminate\Support\Facades\Facade;
 
 /**
+ * @method static mixed store(string|null $store = null)
  * @method static \Laravel\Pennant\Drivers\ArrayDriver createArrayDriver()
  * @method static \Laravel\Pennant\Drivers\DatabaseDriver createDatabaseDriver()
  * @method static void flushCache()
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pennant\FeatureManager forgetDrivers()
  * @method static void define(string $feature, mixed $resolver = null)
  * @method static array defined()
+ * @method static void activateForEveryone(string|array $feature, mixed $value = true)
+ * @method static void deactivateForEveryone(string|array $feature)
  * @method static void purge(string|null $feature = null)
  * @method static array load(string|array $features)
  * @method static array loadMissing(string|array $features)
@@ -35,9 +38,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static mixed when(string $feature, \Closure $whenActive, \Closure|null $whenInactive = null)
  * @method static mixed unless(string $feature, \Closure $whenInactive, \Closure|null $whenActive = null)
  * @method static void activate(string|array $feature, mixed $value = true)
- * @method static void activateForEveryone(string|array $feature, mixed $value = true)
  * @method static void deactivate(string|array $feature)
- * @method static void deactivateForEveryone(string|array $feature)
  * @method static void forget(string|array $features)
  *
  * @see \Laravel\Pennant\FeatureManager

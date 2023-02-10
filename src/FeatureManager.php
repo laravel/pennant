@@ -11,8 +11,6 @@ use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
 
 /**
- * @method \Laravel\Pennant\Drivers\Decorator store(string|null $store = null)
- *
  * @mixin \Laravel\Pennant\Drivers\Decorator
  */
 class FeatureManager extends Manager
@@ -27,7 +25,7 @@ class FeatureManager extends Manager
     /**
      * Get a Pennant store instance.
      *
-     * @param  string|null  $driver
+     * @param  string|null  $store
      * @return mixed
      *
      * @throws \InvalidArgumentException
