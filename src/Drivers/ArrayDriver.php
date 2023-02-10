@@ -165,14 +165,16 @@ class ArrayDriver implements Driver
     /**
      * Purge the given feature from storage.
      *
-     * @param  string|null  $feature
+     * @param  array|null  $features
      */
-    public function purge($feature): void
+    public function purge($features): void
     {
-        if ($feature === null) {
+        if ($features === null) {
             $this->resolvedFeatureStates = [];
         } else {
-            unset($this->resolvedFeatureStates[$feature]);
+            foreach ($features as $feature) {
+                unset($this->resolvedFeatureStates[$feature]);
+            }
         }
     }
 

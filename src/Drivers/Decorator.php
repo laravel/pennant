@@ -222,22 +222,24 @@ class Decorator implements DriverContract
     /**
      * Purge the given feature from storage.
      *
-     * @param  string|null  $feature
+     * @param  string|array|null  $features
      */
-    public function purge($feature = null): void
+    public function purge($features = null): void
     {
-        if ($feature === null) {
+        if ($features === null) {
             $this->driver->purge(null);
 
             $this->cache = new Collection;
         } else {
-            with($this->resolveFeature($feature), function ($feature) {
-                $this->driver->purge($feature);
+            Collection::wrap($features)
+                ->map($this->resolveFeature(...))
+                ->pipe(function ($features) {
+                    $this->driver->purge($features);
 
-                $this->cache->forget(
-                    $this->cache->whereStrict('feature', $feature)->keys()->all()
-                );
-            });
+                    $this->cache->forget(
+                        $this->cache->whereInStrict('feature', $features)->keys()->all()
+                    );
+                });
         }
     }
 
