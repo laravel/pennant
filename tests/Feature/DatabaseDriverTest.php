@@ -690,6 +690,29 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(0, DB::table('features')->count());
     }
 
+    public function test_it_can_purge_multiple_flags_at_once()
+    {
+        Feature::define('foo', true);
+        Feature::define('bar', false);
+        Feature::define('baz', false);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+        Feature::for('taylor')->active('bar');
+        Feature::for('taylor')->active('baz');
+
+        $this->assertSame(4, DB::table('features')->count());
+
+        Feature::purge(['foo', 'bar']);
+
+        $this->assertSame(1, DB::table('features')->count());
+
+        Feature::purge(['baz']);
+
+        $this->assertSame(0, DB::table('features')->count());
+    }
+
     public function test_retrieving_values_after_purging()
     {
         Feature::define('foo', false);

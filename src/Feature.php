@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array defined()
  * @method static void activateForEveryone(string|array $feature, mixed $value = true)
  * @method static void deactivateForEveryone(string|array $feature)
- * @method static void purge(string|null $feature = null)
+ * @method static void purge(string|array|null $features = null)
  * @method static array load(string|array $features)
  * @method static array loadMissing(string|array $features)
  * @method static \Laravel\Pennant\Contracts\Driver getDriver()

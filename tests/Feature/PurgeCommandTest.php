@@ -32,6 +32,28 @@ class PurgeCommandTest extends TestCase
         $this->assertSame(0, DB::table('features')->count());
     }
 
+    public function test_it_can_purge_multiple_features()
+    {
+        Feature::define('foo', true);
+        Feature::define('bar', true);
+        Feature::define('baz', true);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('tim')->active('bar');
+        Feature::for('taylor')->active('bar');
+        Feature::for('taylor')->active('baz');
+
+        $this->assertSame(4, DB::table('features')->count());
+
+        $this->artisan('pennant:purge foo bar')->expectsOutputToContain('foo, bar successfully purged from storage.');
+
+        $this->assertSame(1, DB::table('features')->count());
+
+        $this->artisan('pennant:purge baz');
+
+        $this->assertSame(0, DB::table('features')->count());
+    }
+
     public function test_it_can_purge_all_feature_flags()
     {
         Feature::define('foo', true);

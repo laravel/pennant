@@ -244,15 +244,15 @@ class DatabaseDriver implements Driver
     /**
      * Purge the given feature from storage.
      *
-     * @param  string|null  $feature
+     * @param  array|null  $features
      */
-    public function purge($feature): void
+    public function purge($features): void
     {
-        if ($feature === null) {
+        if ($features === null) {
             $this->newQuery()->delete();
         } else {
             $this->newQuery()
-                ->where('name', $feature)
+                ->whereIn('name', $features)
                 ->delete();
         }
     }

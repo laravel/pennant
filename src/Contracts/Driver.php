@@ -39,9 +39,9 @@ interface Driver
     public function delete(string $feature, mixed $scope): void;
 
     /**
-     * Purge the given feature from storage.
+     * Purge the given features from storage.
      */
-    public function purge(?string $feature): void;
+    public function purge(array|null $features): void;
 
     /**
      * Eagerly preload multiple feature flag values.

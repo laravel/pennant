@@ -13,8 +13,8 @@ class PurgeCommand extends Command
      * @var string
      */
     protected $signature = 'pennant:purge
-                            {feature? : The feature to purge}
-                            {--store= : The store to purge the feature from}';
+                            {features?* : The features to purge}
+                            {--store= : The store to purge the features from}';
 
     /**
      * The console command description.
@@ -30,10 +30,10 @@ class PurgeCommand extends Command
      */
     public function handle(FeatureManager $manager)
     {
-        $manager->store($this->option('store'))->purge($this->argument('feature'));
+        $manager->store($this->option('store'))->purge($this->argument('features') ?: null);
 
-        with($this->argument('feature') ?? 'All features', function ($name) {
-            $this->components->info("{$name} successfully purged from storage.");
+        with($this->argument('features') ?: ['All features'], function ($names) {
+            $this->components->info(implode(', ', $names).' successfully purged from storage.');
         });
 
         return self::SUCCESS;
