@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Laravel\Pennant\Feature;
-use Laravel\Pennant\Middleware\FeatureMiddleware;
+use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -15,13 +15,13 @@ class FeatureMiddlewareTest extends TestCase
 {
     use RefreshDatabase;
 
-    private FeatureMiddleware $middleware;
+    private EnsureFeaturesAreActive $middleware;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->middleware = new FeatureMiddleware();
+        $this->middleware = new EnsureFeaturesAreActive();
     }
 
     public function test_it_throws_a_http_exception_if_feature_is_not_defined(): void
@@ -62,6 +62,23 @@ class FeatureMiddlewareTest extends TestCase
             fn () => new Response(),
             'test', 'another',
         );
+    }
+
+    public function it_allows_custom_responses(): void
+    {
+        $this->assertFalse(Feature::active('test'));
+
+        EnsureFeaturesAreActive::whenInactive(fn () => 'test-response');
+
+        $response = $this->middleware->handle(
+            $this->createRequest('test', 'get'),
+            fn () => new Response(),
+            'test', 'another',
+        );
+
+        $this->assertEquals('test-response', $response);
+
+        EnsureFeaturesAreActive::whenInactive(null);
     }
 
     public function it_passes_if_all_features_are_enabled(): void
