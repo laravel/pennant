@@ -1008,6 +1008,37 @@ class ArrayDriverTest extends TestCase
         $this->assertSame($first[FeatureDependency::class], $firstDependency);
         $this->assertSame($second[FeatureDependency::class], $secondDependency);
     }
+
+    public function test_it_can_list_all_features()
+    {
+        Feature::define('foo', fn() => true);
+
+        $this->assertEquals([], Feature::listAll());
+
+        Feature::for('tim')->activate('foo');
+        Feature::for('taylor')->deactivate('foo');
+
+        $this->assertEquals([
+            'foo' => [
+                true => 1,
+                false => 1,
+            ]
+        ], Feature::listAll());
+
+        Feature::define('bar', function ($name) {
+            return $name === "tim" ? "a" : "b";
+        });
+
+        Feature::for('tim')->active('bar');
+        Feature::for('taylor')->active('bar');
+        Feature::for('ahmed')->active('bar');
+
+        $this->assertEquals([
+            'a' => 1,
+            'b' => 2,
+        ], Feature::listAll()['bar']);
+    }
+
 }
 
 class MyFeature

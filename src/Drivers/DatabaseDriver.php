@@ -6,6 +6,7 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
@@ -298,6 +299,46 @@ class DatabaseDriver implements Driver
                 ->whereIn('name', $features)
                 ->delete();
         }
+    }
+
+    /**
+     * Load all feature flags grouped by values.
+     *
+     * @return array<string, array<mixed, int>>
+     */
+    public function listAll(): array
+    {
+        $query = $this->newQuery();
+
+        $query->select('name', 'value', DB::raw('COUNT(scope) as total'))
+            ->groupBy('name', 'value');
+
+        return $query->get()
+            ->groupBy('name')
+            ->map(function ($group) {
+                return $group->mapWithKeys(function ($record) {
+                    $value = json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+
+                    return [$value => $record->total];
+                })->all();
+            })->all();
+    }
+
+    /**
+     * Serialize the given scope for storage.
+     *
+     * @param  mixed  $scope
+     * @return string|null
+     */
+    protected function serializeScope($scope)
+    {
+        return match (true) {
+            $scope === null => '__laravel_null',
+            is_string($scope) => $scope,
+            is_numeric($scope) => (string) $scope,
+            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+        };
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
@@ -1122,6 +1123,36 @@ class DatabaseDriverTest extends TestCase
 
         $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
         $this->assertTrue($result);
+    }
+
+    public function test_it_can_list_all_features()
+    {
+        Feature::define('foo', fn() => true);
+
+        $this->assertEquals([], Feature::listAll());
+
+        Feature::for('tim')->activate('foo');
+        Feature::for('taylor')->deactivate('foo');
+
+        $this->assertEquals([
+            'foo' => [
+                true => 1,
+                false => 1,
+            ]
+        ], Feature::listAll());
+
+        Feature::define('bar', function ($name) {
+            return $name === "tim" ? "a" : "b";
+        });
+
+        Feature::for('tim')->active('bar');
+        Feature::for('taylor')->active('bar');
+        Feature::for('ahmed')->active('bar');
+
+        $this->assertEquals([
+            'a' => 1,
+            'b' => 2,
+        ], Feature::listAll()['bar']);
     }
 }
 

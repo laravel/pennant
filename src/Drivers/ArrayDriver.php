@@ -188,6 +188,14 @@ class ArrayDriver implements Driver
         }
     }
 
+    public function listAll(): array
+    {
+        return Collection::make($this->resolvedFeatureStates)
+            ->map(function ($records) {
+                return Collection::make($records)->countBy()->all();
+            })->all();
+    }
+
     /**
      * Determine if the feature does not have a resolver available.
      *

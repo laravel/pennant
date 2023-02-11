@@ -386,6 +386,33 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Load all feature flags grouped by values.
+     *
+     * @return array<string, array<mixed, int>>
+     */
+    public function listAll(): array
+    {
+        return $this->driver->listAll();
+    }
+
+
+    /**
+     * Eagerly preload multiple feature flag values that are missing.
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function loadMissing($features)
+    {
+        return $this->normalizeFeaturesToLoad($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->reject(fn ($scope) => $this->isCached($feature, $scope))
+                ->all())
+            ->reject(fn ($scopes) => $scopes === [])
+            ->pipe(fn ($features) => $this->load($features->all()));
+    }
+
+    /**
      * Resolve the feature name and ensure it is defined.
      *
      * @param  string  $feature

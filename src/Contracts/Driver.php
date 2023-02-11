@@ -50,4 +50,11 @@ interface Driver
      * Purge the given features from storage.
      */
     public function purge(array|null $features): void;
+
+    /**
+     * Load all feature flag values.
+     *
+     * @return array<string, array<mixed, int>>
+     */
+    public function listAll(): array;
 }
