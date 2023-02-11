@@ -64,4 +64,13 @@ class FeatureManagerTest extends TestCase
         Feature::load(['foo']);
         $this->assertFalse(Feature::active('foo'));
     }
+
+    public function test_it_can_apply_macros()
+    {
+        Feature::macro('foo', function () {
+            return 'bar';
+        });
+
+        $this->assertEquals('bar', Feature::foo());
+    }
 }
