@@ -1013,7 +1013,7 @@ class ArrayDriverTest extends TestCase
     {
         Feature::define('foo', fn() => true);
 
-        $this->assertEquals([], Feature::listAll());
+        $this->assertEquals([], Feature::stats());
 
         Feature::for('tim')->activate('foo');
         Feature::for('taylor')->deactivate('foo');
@@ -1023,7 +1023,7 @@ class ArrayDriverTest extends TestCase
                 ['value' => true, 'count' => 1],
                 ['value' => false, 'count' => 1],
             ]
-        ], Feature::listAll());
+        ], Feature::stats());
 
         Feature::define('bar', function ($name) {
             return $name === "tim" ? "a" : "b";
@@ -1036,7 +1036,7 @@ class ArrayDriverTest extends TestCase
         $this->assertEquals([
             ['value' => 'a', 'count' => 1],
             ['value' => 'b', 'count' => 2],
-        ], Feature::listAll()['bar']);
+        ], Feature::stats()['bar']);
 
         Feature::define('baz', function ($name) {
             return $name === "tim" ? ['discount' => 10] : ['discount' => 5];
@@ -1048,9 +1048,24 @@ class ArrayDriverTest extends TestCase
         $this->assertEquals([
             ['value' => ['discount' => 10], 'count' => 1],
             ['value' => ['discount' => 5], 'count' => 1],
-        ], Feature::listAll()['baz']);
+        ], Feature::stats()['baz']);
     }
 
+    public function test_it_can_filter_list_of_all_features()
+    {
+        Feature::define('foo', fn() => true);
+        Feature::define('bar', fn() => true);
+
+        Feature::for('tim')->activate('foo');
+        Feature::for('taylor')->deactivate('foo');
+
+        Feature::for('tim')->activate('bar');
+
+        $this->assertCount(2, Feature::stats());
+
+        $this->assertCount(1, Feature::stats(['foo']));
+        $this->assertArrayHasKey('foo', Feature::stats(['foo']));
+    }
 }
 
 class MyFeature

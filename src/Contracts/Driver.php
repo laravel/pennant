@@ -54,7 +54,8 @@ interface Driver
     /**
      * Load all feature flag values.
      *
-     * @return array<string, array<mixed, int>>
+     * @param array<string> $features
+     * @return array<array<string, mixed>>
      */
-    public function listAll(): array;
+    public function stats(array $features = []): array;
 }

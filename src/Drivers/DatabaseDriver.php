@@ -302,16 +302,18 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Load all feature flags grouped by values.
+     * Load all feature flag values.
      *
-     * @return array<string, array<mixed, int>>
+     * @param array<string> $features
+     * @return array<array<string, mixed>>
      */
-    public function listAll(): array
+    public function stats(array $features = []): array
     {
         $query = $this->newQuery();
 
         $query->select('name', 'value', DB::raw('COUNT(scope) as count'))
-            ->groupBy('name', 'value');
+            ->groupBy('name', 'value')
+            ->when(!empty($features), fn($q) => $q->whereIn('name', $features));
 
         return $query->get()
             ->groupBy('name')

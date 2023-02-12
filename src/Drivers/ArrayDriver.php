@@ -188,9 +188,18 @@ class ArrayDriver implements Driver
         }
     }
 
-    public function listAll(): array
+    /**
+     * Load all feature flag values.
+     *
+     * @param array<string> $features
+     * @return array<array<string, mixed>>
+     */
+    public function stats(array $features = []): array
     {
         return Collection::make($this->resolvedFeatureStates)
+            ->when(!empty($features), fn($collection) => $collection
+                ->filter(fn($record, $feature) => in_array($feature, $features, true))
+            )
             ->map(function ($records) {
                 return Collection::make($records)
                     ->map(function ($value) {
