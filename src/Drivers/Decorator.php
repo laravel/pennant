@@ -107,7 +107,7 @@ class Decorator implements DriverContract
      * @param  string  $namespace
      * @return void
      */
-    public function discover($path = null, $namespace = '\\App\\Features\\')
+    public function discover($path = null, $namespace = '\\App\\Features')
     {
         $namespace = Str::finish($namespace, '\\');
 
