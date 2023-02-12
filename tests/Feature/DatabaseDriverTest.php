@@ -435,7 +435,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(0, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['foo' => 'loaded']);
+        Feature::for('loaded')->load('foo');
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
@@ -443,7 +443,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['foo' => 'loaded']);
+        Feature::for('loaded')->load(['foo']);
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
@@ -451,7 +451,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['bar' => 'loaded']);
+        Feature::for('loaded')->load(['bar']);
         $this->assertSame(1, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
@@ -463,7 +463,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
-        Feature::load([
+        Feature::getAll([
             'foo' => [1, 2, 3],
             'bar' => [2],
         ]);
@@ -563,7 +563,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        Feature::loadMissing([
+        Feature::getAllMissing([
             'foo' => [1, 2, 3],
             'bar' => [2],
         ]);
@@ -575,7 +575,28 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(4, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
-        $this->assertCount(8, DB::getQueryLog());
+        $this->assertCount(6, DB::getQueryLog());
+    }
+
+    public function test_it_does_not_hit_db_when_features_are_empty()
+    {
+        Feature::load([]);
+        Feature::loadMissing([]);
+        $this->assertCount(0, DB::getQueryLog());
+
+        Feature::active('foo');
+        Feature::loadMissing(['foo']);
+        $this->assertCount(1, DB::getQueryLog());
+    }
+
+    public function test_unknown_features_are_no_persisted_when_loading()
+    {
+        Event::fake([RetrievingUnknownFeature::class]);
+        Feature::load(['foo', 'bar']);
+
+        Event::assertDispatchedTimes(RetrievingUnknownFeature::class, 2);
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertCount(0, DB::table('features')->get());
     }
 
     public function test_missing_results_are_inserted_on_load()

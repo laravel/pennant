@@ -258,12 +258,12 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Eagerly preload multiple feature flag values.
+     * Get multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features): array
+    public function getAll($features): array
     {
         $query = $this->newQuery();
 
@@ -284,12 +284,18 @@ class DatabaseDriver implements Driver
                 return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
-            return tap($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+                if ($value === $this->unknownFeatureValue) {
+                    return false;
+                }
+
                 $inserts[] = [
                     'name' => $feature,
                     'scope' => $this->serializeScope($scope),
                     'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 ];
+
+                return $value;
             });
         })->all())->all();
 

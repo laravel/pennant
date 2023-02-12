@@ -179,12 +179,12 @@ class ArrayDriver implements Driver
     }
 
     /**
-     * Eagerly preload multiple feature flag values.
+     * Get multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features): array
+    public function getAll($features): array
     {
         return Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)

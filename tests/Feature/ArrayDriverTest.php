@@ -376,7 +376,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(0, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['foo' => 'loaded']);
+        Feature::for('loaded')->load(['foo']);
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
@@ -384,7 +384,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['foo' => 'loaded']);
+        Feature::for('loaded')->load('foo');
         $this->assertSame(2, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
@@ -392,7 +392,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(2, $called['foo']);
         $this->assertSame(0, $called['bar']);
 
-        Feature::load(['bar' => 'loaded']);
+        Feature::for('loaded')->load('bar');
         $this->assertSame(2, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
@@ -404,7 +404,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(2, $called['foo']);
         $this->assertSame(2, $called['bar']);
 
-        Feature::load([
+        Feature::getAll([
             'foo' => [1, 2, 3],
             'bar' => [2],
         ]);
@@ -500,7 +500,7 @@ class ArrayDriverTest extends TestCase
         $this->assertSame(1, $called['foo']);
         $this->assertSame(1, $called['bar']);
 
-        Feature::loadMissing([
+        Feature::getAll([
             'foo' => [1, 2, 3],
             'bar' => [2],
         ]);

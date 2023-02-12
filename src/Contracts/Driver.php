@@ -44,10 +44,10 @@ interface Driver
     public function purge(array|null $features): void;
 
     /**
-     * Eagerly preload multiple feature flag values.
+     * Get multiple feature flag values.
      *
      * @param  array<string, array<int, mixed>>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load(array $features): array;
+    public function getAll(array $features): array;
 }

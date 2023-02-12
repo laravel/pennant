@@ -70,6 +70,8 @@ class PendingScopedFeatureInteraction
             throw new RuntimeException('It is not possible to retrieve the values for mutliple scopes.');
         }
 
+        $this->loadMissing($features);
+
         return Collection::make($features)
             ->mapWithKeys(fn ($feature) => [
                 $feature => $this->driver->get($feature, $this->scope()[0]),
@@ -106,6 +108,8 @@ class PendingScopedFeatureInteraction
      */
     public function allAreActive($features)
     {
+        $this->loadMissing($features);
+
         return Collection::make($features)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
@@ -119,6 +123,8 @@ class PendingScopedFeatureInteraction
      */
     public function someAreActive($features)
     {
+        $this->loadMissing($features);
+
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
                 ->some(fn ($feature) => $this->driver->get($feature, $scope) !== false));
@@ -143,6 +149,8 @@ class PendingScopedFeatureInteraction
      */
     public function allAreInactive($features)
     {
+        $this->loadMissing($features);
+
         return Collection::make($features)
             ->crossJoin($this->scope())
             ->every(fn ($bits) => $this->driver->get(...$bits) === false);
@@ -156,6 +164,8 @@ class PendingScopedFeatureInteraction
      */
     public function someAreInactive($features)
     {
+        $this->loadMissing($features);
+
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
                 ->some(fn ($feature) => $this->driver->get($feature, $scope) === false));
@@ -222,13 +232,26 @@ class PendingScopedFeatureInteraction
      * Load the feature into memory.
      *
      * @param  string|array<int, string>  $features
-     * @return void
+     * @return array<string, array<int, mixed>>
      */
     public function load($features)
     {
-        Collection::wrap($features)
+        return Collection::wrap($features)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
-            ->pipe(fn ($features) => $this->driver->load($features->all()));
+            ->pipe(fn ($features) => $this->driver->getAll($features->all()));
+    }
+
+    /**
+     * Load the missing features into memory.
+     *
+     * @param  string|array<int, string>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function loadMissing($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
+            ->pipe(fn ($features) => $this->driver->getAllMissing($features->all()));
     }
 
     /**
