@@ -9,6 +9,7 @@ use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyDefiningFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
+use Symfony\Component\Finder\Finder;
 
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
@@ -97,6 +98,29 @@ class Decorator implements DriverContract
                 : $value;
         });
     }
+
+    // collect([
+    //     Foo::class,
+    //     Bar::class,
+    // ])->each(Feature::define(...));
+
+    /**
+     * Discover and register the application's feature classes.
+     *
+     * @param  string|null  $path
+     * @param  string  $namespace
+     * @return void
+     */
+    public function discover($path = null, $namespace = '\\App\\Features\\')
+    {
+        Collection::make((new Finder)
+                ->files()
+                ->name('*.php')
+                ->depth(0)
+                ->in($path ?? base_path('app/Features')))
+            ->each(fn ($file) => $this->define("{$namespace}{$file->getBasename('.php')}"));
+    }
+
 
     /**
      * Retrieve the names of all defined features.
