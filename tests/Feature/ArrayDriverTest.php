@@ -845,7 +845,7 @@ class ArrayDriverTest extends TestCase
 
         $this->assertSame([
             'marketing-design' => 'marketing-design-value',
-            '\Tests\FeatureClasses\NewApi' => 'new-api-value',
+            '\\Tests\\FeatureClasses\\NewApi' => 'new-api-value',
         ], $all);
     }
 }
