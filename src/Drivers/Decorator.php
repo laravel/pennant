@@ -100,11 +100,6 @@ class Decorator implements DriverContract
         });
     }
 
-    // collect([
-    //     Foo::class,
-    //     Bar::class,
-    // ])->each(Feature::define(...));
-
     /**
      * Discover and register the application's feature classes.
      *
