@@ -5,6 +5,7 @@ namespace Laravel\Pennant\Drivers;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Str;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyDefiningFeature;
@@ -113,6 +114,8 @@ class Decorator implements DriverContract
      */
     public function discover($path = null, $namespace = '\\App\\Features\\')
     {
+        $namespace = Str::finish($namespace, '\\');
+
         Collection::make((new Finder)
                 ->files()
                 ->name('*.php')
