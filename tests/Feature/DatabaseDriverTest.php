@@ -1136,8 +1136,8 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertEquals([
             'foo' => [
-                true => 1,
-                false => 1,
+                ['value' => false, 'count' => 1],
+                ['value' => true, 'count' => 1],
             ]
         ], Feature::listAll());
 
@@ -1150,9 +1150,21 @@ class DatabaseDriverTest extends TestCase
         Feature::for('ahmed')->active('bar');
 
         $this->assertEquals([
-            'a' => 1,
-            'b' => 2,
+            ['value' => 'a', 'count' => 1],
+            ['value' => 'b', 'count' => 2],
         ], Feature::listAll()['bar']);
+
+        Feature::define('baz', function ($name) {
+            return $name === "tim" ? ['discount' => 10] : ['discount' => 5];
+        });
+
+        Feature::for('tim')->active('baz');
+        Feature::for('taylor')->active('baz');
+
+        $this->assertEquals([
+            ['value' => ['discount' => 10], 'count' => 1],
+            ['value' => ['discount' => 5], 'count' => 1],
+        ], Feature::listAll()['baz']);
     }
 }
 

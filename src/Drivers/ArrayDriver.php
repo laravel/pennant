@@ -192,7 +192,19 @@ class ArrayDriver implements Driver
     {
         return Collection::make($this->resolvedFeatureStates)
             ->map(function ($records) {
-                return Collection::make($records)->countBy()->all();
+                return Collection::make($records)
+                    ->map(function ($value) {
+                        return json_encode($value, flags: JSON_THROW_ON_ERROR);
+                    })
+                    ->countBy()
+                    ->map(function ($count, $value) {
+                        return [
+                            'value' => json_decode($value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR),
+                            'count' => $count
+                        ];
+                    })
+                    ->values()
+                    ->all();
             })->all();
     }
 

@@ -310,16 +310,15 @@ class DatabaseDriver implements Driver
     {
         $query = $this->newQuery();
 
-        $query->select('name', 'value', DB::raw('COUNT(scope) as total'))
+        $query->select('name', 'value', DB::raw('COUNT(scope) as count'))
             ->groupBy('name', 'value');
 
         return $query->get()
             ->groupBy('name')
             ->map(function ($group) {
-                return $group->mapWithKeys(function ($record) {
+                return $group->map(function ($record) {
                     $value = json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
-
-                    return [$value => $record->total];
+                    return ['value' => $value, 'count' => $record->count];
                 })->all();
             })->all();
     }
