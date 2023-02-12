@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Events\RetrievingKnownFeature;
-use Laravel\Pennant\Events\RetrievingUnknownFeature;
+use Laravel\Pennant\Events\ResolvingKnownFeature;
+use Laravel\Pennant\Events\ResolvingUnknownFeature;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
@@ -31,12 +31,12 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_dispatches_events_on_unknown_feature_checks()
     {
-        Event::fake([RetrievingUnknownFeature::class]);
+        Event::fake([ResolvingUnknownFeature::class]);
 
         Feature::active('foo');
 
-        Event::assertDispatchedTimes(RetrievingUnknownFeature::class, 1);
-        Event::assertDispatched(function (RetrievingUnknownFeature $event) {
+        Event::assertDispatchedTimes(ResolvingUnknownFeature::class, 1);
+        Event::assertDispatched(function (ResolvingUnknownFeature $event) {
             $this->assertSame('foo', $event->feature);
             $this->assertNull($event->scope);
 
@@ -137,14 +137,14 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_dispatches_events_when_resolving_feature_into_memory()
     {
-        Event::fake([RetrievingKnownFeature::class]);
+        Event::fake([ResolvingKnownFeature::class]);
         Feature::define('foo', fn () => true);
 
         Feature::active('foo');
         Feature::active('foo');
 
-        Event::assertDispatchedTimes(RetrievingKnownFeature::class, 1);
-        Event::assertDispatched(function (RetrievingKnownFeature $event) {
+        Event::assertDispatchedTimes(ResolvingKnownFeature::class, 1);
+        Event::assertDispatched(function (ResolvingKnownFeature $event) {
             return $event->feature === 'foo' && $event->scope === null;
         });
     }

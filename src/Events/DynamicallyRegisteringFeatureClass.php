@@ -2,7 +2,7 @@
 
 namespace Laravel\Pennant\Events;
 
-class DynamicallyDefiningFeature
+class DynamicallyRegisteringFeatureClass
 {
     /**
      * The feature class.
