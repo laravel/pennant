@@ -71,6 +71,25 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Discover and register the application's feature classes.
+     *
+     * @param  string  $namespace
+     * @param  string|null  $path
+     * @return void
+     */
+    public function discover($namespace = '\\App\\Features', $path = null)
+    {
+        $namespace = Str::finish($namespace, '\\');
+
+        Collection::make((new Finder)
+                ->files()
+                ->name('*.php')
+                ->depth(0)
+                ->in($path ?? base_path('app/Features')))
+            ->each(fn ($file) => $this->define("{$namespace}{$file->getBasename('.php')}"));
+    }
+
+    /**
      * Define an initial feature flag state resolver.
      *
      * @param  string|class-string  $feature
@@ -98,25 +117,6 @@ class Decorator implements DriverContract
                 ? $value()
                 : $value;
         });
-    }
-
-    /**
-     * Discover and register the application's feature classes.
-     *
-     * @param  string  $namespace
-     * @param  string|null  $path
-     * @return void
-     */
-    public function discover($namespace = '\\App\\Features', $path = null, )
-    {
-        $namespace = Str::finish($namespace, '\\');
-
-        Collection::make((new Finder)
-                ->files()
-                ->name('*.php')
-                ->depth(0)
-                ->in($path ?? base_path('app/Features')))
-            ->each(fn ($file) => $this->define("{$namespace}{$file->getBasename('.php')}"));
     }
 
 
