@@ -78,6 +78,21 @@ class ArrayDriver implements Driver
     }
 
     /**
+     * Get multiple feature flag values.
+     *
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAll($features): array
+    {
+        return Collection::make($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->map(fn ($scope) => $this->get($feature, $scope))
+                ->all())
+            ->all();
+    }
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @param  string  $feature
@@ -176,21 +191,6 @@ class ArrayDriver implements Driver
                 unset($this->resolvedFeatureStates[$feature]);
             }
         }
-    }
-
-    /**
-     * Get multiple feature flag values.
-     *
-     * @param  array<string, array<int, mixed>>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function getAll($features): array
-    {
-        return Collection::make($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->map(fn ($scope) => $this->get($feature, $scope))
-                ->all())
-            ->all();
     }
 
     /**
