@@ -1,0 +1,30 @@
+{
+    "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+    "blade": {
+        "ifDirectives": [
+            {
+                "name": "feature",
+                "prefix": "<?php feature(",
+                "suffix": "); ?>"
+            }
+        ]
+    },
+    "codeGenerations": [
+        {
+            "name": "Create Pennant Feature",
+            "id": "laravel/pennant:feature",
+            "files": [
+                {
+                    "appNamespace": "Features",
+                    "template": {
+                        "path": "stubs/feature.stub",
+                        "parameters": {
+                            "{{ namespace }}": "${INPUT_FQN|namespace}",
+                            "{{ class }}": "${INPUT_FQN|className}"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
