@@ -4,14 +4,12 @@ namespace Laravel\Pennant\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
-use RuntimeException;
 use stdClass;
 
 class DatabaseDriver implements Driver
