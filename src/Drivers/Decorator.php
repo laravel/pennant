@@ -131,24 +131,6 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Get multiple feature flag values that are missing.
-     *
-     * @internal
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function getAllMissing($features)
-    {
-        return $this->normalizeFeaturesToLoad($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->reject(fn ($scope) => $this->isCached($feature, $scope))
-                ->all())
-            ->reject(fn ($scopes) => $scopes === [])
-            ->pipe(fn ($features) => $this->getAll($features->all()));
-    }
-
-    /**
      * Get multiple feature flag values.
      *
      * @internal
@@ -170,6 +152,44 @@ class Decorator implements DriverContract
                 ->map(fn ($scopes) => $scopes->push($key)))
                 ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
         });
+    }
+
+    /**
+     * Get multiple feature flag values that are missing.
+     *
+     * @internal
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAllMissing($features)
+    {
+        return $this->normalizeFeaturesToLoad($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->reject(fn ($scope) => $this->isCached($feature, $scope))
+                ->all())
+            ->reject(fn ($scopes) => $scopes === [])
+            ->pipe(fn ($features) => $this->getAll($features->all()));
+    }
+
+    /**
+     * Normalize the features to load.
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
+     */
+    protected function normalizeFeaturesToLoad($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($value, $key) => is_int($key)
+                ? [$value => Collection::make([$this->defaultScope()])]
+                : [$key => Collection::wrap($value)])
+            ->mapWithKeys(fn ($scopes, $feature) => [
+                $this->resolveFeature($feature) => $scopes,
+            ])
+            ->map(
+                fn ($scopes) => $scopes->map(fn ($scope) => $this->resolveScope($scope))->all()
+            );
     }
 
     /**
@@ -365,26 +385,6 @@ class Decorator implements DriverContract
         return $scope instanceof FeatureScopeable
             ? $scope->toFeatureIdentifier($this->name)
             : $scope;
-    }
-
-    /**
-     * Normalize the features to load.
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
-     */
-    protected function normalizeFeaturesToLoad($features)
-    {
-        return Collection::wrap($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key)
-                ? [$value => Collection::make([$this->defaultScope()])]
-                : [$key => Collection::wrap($value)])
-            ->mapWithKeys(fn ($scopes, $feature) => [
-                $this->resolveFeature($feature) => $scopes,
-            ])
-            ->map(
-                fn ($scopes) => $scopes->map(fn ($scope) => $this->resolveScope($scope))->all()
-            );
     }
 
     /**
