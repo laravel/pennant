@@ -48,6 +48,32 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Load the feature into memory.
+     *
+     * @param  string|array<int, string>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function load($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
+            ->pipe(fn ($features) => $this->driver->getAll($features->all()));
+    }
+
+    /**
+     * Load the missing features into memory.
+     *
+     * @param  string|array<int, string>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function loadMissing($features)
+    {
+        return Collection::wrap($features)
+            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
+            ->pipe(fn ($features) => $this->driver->getAllMissing($features->all()));
+    }
+
+    /**
      * Get the value of the flag.
      *
      * @param  string  $feature
@@ -226,32 +252,6 @@ class PendingScopedFeatureInteraction
         Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], false));
-    }
-
-    /**
-     * Load the feature into memory.
-     *
-     * @param  string|array<int, string>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function load($features)
-    {
-        return Collection::wrap($features)
-            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
-            ->pipe(fn ($features) => $this->driver->getAll($features->all()));
-    }
-
-    /**
-     * Load the missing features into memory.
-     *
-     * @param  string|array<int, string>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function loadMissing($features)
-    {
-        return Collection::wrap($features)
-            ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
-            ->pipe(fn ($features) => $this->driver->getAllMissing($features->all()));
     }
 
     /**

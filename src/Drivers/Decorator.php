@@ -131,6 +131,48 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Get multiple feature flag values that are missing.
+     *
+     * @internal
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAllMissing($features)
+    {
+        return $this->normalizeFeaturesToLoad($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->reject(fn ($scope) => $this->isCached($feature, $scope))
+                ->all())
+            ->reject(fn ($scopes) => $scopes === [])
+            ->pipe(fn ($features) => $this->getAll($features->all()));
+    }
+
+    /**
+     * Get multiple feature flag values.
+     *
+     * @internal
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAll($features): array
+    {
+        $features = $this->normalizeFeaturesToLoad($features);
+
+        if ($features->isEmpty()) {
+            return [];
+        }
+
+        return tap($this->driver->getAll($features->all()), function ($results) use ($features) {
+            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+                ->zip($results[$key])
+                ->map(fn ($scopes) => $scopes->push($key)))
+                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
+        });
+    }
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @internal
@@ -267,48 +309,6 @@ class Decorator implements DriverContract
                     );
                 });
         }
-    }
-
-    /**
-     * Get multiple feature flag values that are missing.
-     *
-     * @internal
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function getAllMissing($features)
-    {
-        return $this->normalizeFeaturesToLoad($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->reject(fn ($scope) => $this->isCached($feature, $scope))
-                ->all())
-            ->reject(fn ($scopes) => $scopes === [])
-            ->pipe(fn ($features) => $this->getAll($features->all()));
-    }
-
-    /**
-     * Get multiple feature flag values.
-     *
-     * @internal
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function getAll($features): array
-    {
-        $features = $this->normalizeFeaturesToLoad($features);
-
-        if ($features->isEmpty()) {
-            return [];
-        }
-
-        return tap($this->driver->getAll($features->all()), function ($results) use ($features) {
-            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
-                ->zip($results[$key])
-                ->map(fn ($scopes) => $scopes->push($key)))
-                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
-        });
     }
 
     /**
