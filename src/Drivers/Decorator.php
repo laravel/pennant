@@ -270,37 +270,45 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Eagerly preload multiple feature flag values.
+     * Get multiple feature flag values that are missing.
+     *
+     * @internal
      *
      * @param  string|array<int|string, mixed>  $features
      * @return array<string, array<int, mixed>>
      */
-    public function load($features): array
-    {
-        $features = $this->normalizeFeaturesToLoad($features);
-
-        return tap($this->driver->load($features->all()), function ($results) use ($features) {
-            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
-                ->zip($results[$key])
-                ->map(fn ($scopes) => $scopes->push($key)))
-                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
-        });
-    }
-
-    /**
-     * Eagerly preload multiple feature flag values that are missing.
-     *
-     * @param  string|array<int|string, mixed>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function loadMissing($features)
+    public function getAllMissing($features)
     {
         return $this->normalizeFeaturesToLoad($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
                 ->reject(fn ($scope) => $this->isCached($feature, $scope))
                 ->all())
             ->reject(fn ($scopes) => $scopes === [])
-            ->pipe(fn ($features) => $this->load($features->all()));
+            ->pipe(fn ($features) => $this->getAll($features->all()));
+    }
+
+    /**
+     * Get multiple feature flag values.
+     *
+     * @internal
+     *
+     * @param  string|array<int|string, mixed>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAll($features): array
+    {
+        $features = $this->normalizeFeaturesToLoad($features);
+
+        if ($features->isEmpty()) {
+            return [];
+        }
+
+        return tap($this->driver->getAll($features->all()), function ($results) use ($features) {
+            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+                ->zip($results[$key])
+                ->map(fn ($scopes) => $scopes->push($key)))
+                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
+        });
     }
 
     /**

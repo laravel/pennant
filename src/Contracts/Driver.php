@@ -19,6 +19,14 @@ interface Driver
     public function defined(): array;
 
     /**
+     * Get multiple feature flag values.
+     *
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAll(array $features): array;
+
+    /**
      * Retrieve a feature flag's value.
      */
     public function get(string $feature, mixed $scope): mixed;
@@ -42,12 +50,4 @@ interface Driver
      * Purge the given features from storage.
      */
     public function purge(array|null $features): void;
-
-    /**
-     * Eagerly preload multiple feature flag values.
-     *
-     * @param  array<string, array<int, mixed>>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function load(array $features): array;
 }
