@@ -1020,7 +1020,7 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_auto_register_feature_classes()
     {
         Feature::define('marketing-design', 'marketing-design-value');
-        Feature::discover( '\\Tests\\FeatureClasses', __DIR__.'/../FeatureClasses');
+        Feature::discover('\\Tests\\FeatureClasses', __DIR__.'/../FeatureClasses');
 
         $all = Feature::all();
 

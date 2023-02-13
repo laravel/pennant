@@ -120,7 +120,6 @@ class Decorator implements DriverContract
         });
     }
 
-
     /**
      * Retrieve the names of all defined features.
      *
