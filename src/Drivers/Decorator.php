@@ -7,7 +7,8 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Events\DynamicallyDefiningFeature;
+use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
+use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 
 /**
@@ -128,11 +129,15 @@ class Decorator implements DriverContract
             ->first();
 
         if ($item !== null) {
+            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $item['value']));
+
             return $item['value'];
         }
 
         return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
             $this->putInCache($feature, $scope, $value);
+
+            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $value));
         });
     }
 
@@ -313,7 +318,7 @@ class Decorator implements DriverContract
     {
         return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
             if (! in_array($name, $this->defined())) {
-                $this->container['events']->dispatch(new DynamicallyDefiningFeature($feature));
+                $this->container['events']->dispatch(new DynamicallyRegisteringFeatureClass($feature));
 
                 $this->define($feature);
             }
