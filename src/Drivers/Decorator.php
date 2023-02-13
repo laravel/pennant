@@ -5,11 +5,13 @@ namespace Laravel\Pennant\Drivers;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
+use Illuminate\Support\Str;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
+use Symfony\Component\Finder\Finder;
 
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
@@ -70,6 +72,25 @@ class Decorator implements DriverContract
     }
 
     /**
+     * Discover and register the application's feature classes.
+     *
+     * @param  string  $namespace
+     * @param  string|null  $path
+     * @return void
+     */
+    public function discover($namespace = '\\App\\Features', $path = null)
+    {
+        $namespace = Str::finish($namespace, '\\');
+
+        Collection::make((new Finder)
+                ->files()
+                ->name('*.php')
+                ->depth(0)
+                ->in($path ?? base_path('app/Features')))
+            ->each(fn ($file) => $this->define("{$namespace}{$file->getBasename('.php')}"));
+    }
+
+    /**
      * Define an initial feature flag state resolver.
      *
      * @param  string|class-string  $feature
@@ -98,6 +119,7 @@ class Decorator implements DriverContract
                 : $value;
         });
     }
+
 
     /**
      * Retrieve the names of all defined features.

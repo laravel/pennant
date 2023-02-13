@@ -835,6 +835,19 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::getDriver()->get('foo', 'tim'));
         $this->assertTrue(Feature::getDriver()->get('foo', 'taylor'));
     }
+
+    public function test_it_can_auto_register_feature_classes()
+    {
+        Feature::define('marketing-design', 'marketing-design-value');
+        Feature::discover('\\Tests\\FeatureClasses', __DIR__.'/../FeatureClasses');
+
+        $all = Feature::all();
+
+        $this->assertSame([
+            'marketing-design' => 'marketing-design-value',
+            '\\Tests\\FeatureClasses\\NewApi' => 'new-api-value',
+        ], $all);
+    }
 }
 
 class MyFeature
