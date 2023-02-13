@@ -591,10 +591,10 @@ class DatabaseDriverTest extends TestCase
 
     public function test_unknown_features_are_no_persisted_when_loading()
     {
-        Event::fake([RetrievingUnknownFeature::class]);
+        Event::fake([UnknownFeatureResolved::class]);
         Feature::load(['foo', 'bar']);
 
-        Event::assertDispatchedTimes(RetrievingUnknownFeature::class, 2);
+        Event::assertDispatchedTimes(UnknownFeatureResolved::class, 2);
         $this->assertCount(1, DB::getQueryLog());
         $this->assertCount(0, DB::table('features')->get());
     }
