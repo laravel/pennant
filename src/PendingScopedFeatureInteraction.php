@@ -119,9 +119,9 @@ class PendingScopedFeatureInteraction
      */
     public function someAreActive($features)
     {
-        return Collection::make($features)
-            ->crossJoin($this->scope())
-            ->some(fn ($bits) => $this->driver->get(...$bits) !== false);
+        return Collection::make($this->scope())
+            ->every(fn ($scope) => Collection::make($features)
+                ->some(fn ($feature) => $this->driver->get($feature, $scope) !== false));
     }
 
     /**
@@ -156,9 +156,9 @@ class PendingScopedFeatureInteraction
      */
     public function someAreInactive($features)
     {
-        return Collection::make($features)
-            ->crossJoin($this->scope())
-            ->some(fn ($bits) => $this->driver->get(...$bits) === false);
+        return Collection::make($this->scope())
+            ->every(fn ($scope) => Collection::make($features)
+                ->some(fn ($feature) => $this->driver->get($feature, $scope) === false));
     }
 
     /**
