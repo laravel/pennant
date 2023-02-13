@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
-use Laravel\Pennant\Events\ResolvingKnownFeature;
-use Laravel\Pennant\Events\ResolvingUnknownFeature;
+use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\UnknownFeatureResolved;
 use RuntimeException;
 use stdClass;
 
@@ -138,13 +138,13 @@ class DatabaseDriver implements Driver
     protected function resolveValue($feature, $scope)
     {
         if (! array_key_exists($feature, $this->featureStateResolvers)) {
-            $this->events->dispatch(new ResolvingUnknownFeature($feature, $scope));
+            $this->events->dispatch(new UnknownFeatureResolved($feature, $scope));
 
             return $this->unknownFeatureValue;
         }
 
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new ResolvingKnownFeature($feature, $scope, $value));
+            $this->events->dispatch(new FeatureResolved($feature, $scope, $value));
         });
     }
 

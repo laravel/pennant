@@ -6,8 +6,8 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
-use Laravel\Pennant\Events\ResolvingKnownFeature;
-use Laravel\Pennant\Events\ResolvingUnknownFeature;
+use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\UnknownFeatureResolved;
 use RuntimeException;
 use stdClass;
 
@@ -112,13 +112,13 @@ class ArrayDriver implements Driver
     protected function resolveValue($feature, $scope)
     {
         if ($this->missingResolver($feature)) {
-            $this->events->dispatch(new ResolvingUnknownFeature($feature, $scope));
+            $this->events->dispatch(new UnknownFeatureResolved($feature, $scope));
 
-            return false;
+            return $this->unknownFeatureValue;
         }
 
         return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new ResolvingKnownFeature($feature, $scope, $value));
+            $this->events->dispatch(new FeatureResolved($feature, $scope, $value));
         });
     }
 
