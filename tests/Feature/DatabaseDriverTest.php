@@ -1016,6 +1016,79 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::getDriver()->get('foo', 'tim'));
         $this->assertTrue(Feature::getDriver()->get('foo', 'taylor'));
     }
+
+    public function test_it_handles_multiscope_checks()
+    {
+        Feature::define('foo', false);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreInactive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreInactive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        Feature::for('tim')->activate('foo');
+
+        $result = Feature::for(['tim', 'taylor'])->allAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreInactive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        Feature::for('taylor')->activate('foo');
+
+        $result = Feature::for(['tim', 'taylor'])->allAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreInactive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreActive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        Feature::for('tim')->activate('bar');
+
+        $result = Feature::for(['tim', 'taylor'])->allAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreActive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        Feature::for('taylor')->activate('bar');
+
+        $result = Feature::for(['tim', 'taylor'])->allAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreInactive(['foo', 'bar']);
+        $this->assertFalse($result);
+
+        $result = Feature::for(['tim', 'taylor'])->someAreActive(['foo', 'bar']);
+        $this->assertTrue($result);
+
+        $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
+        $this->assertTrue($result);
+    }
 }
 
 class UnregisteredFeature
