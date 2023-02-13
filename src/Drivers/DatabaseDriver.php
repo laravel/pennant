@@ -91,6 +91,55 @@ class DatabaseDriver implements Driver
     }
 
     /**
+     * Get multiple feature flag values.
+     *
+     * @param  array<string, array<int, mixed>>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function getAll($features): array
+    {
+        $query = $this->newQuery();
+
+        $features = Collection::make($features)
+            ->map(fn ($scopes, $feature) => Collection::make($scopes)
+                ->each(fn ($scope) => $query->orWhere(
+                    fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope))
+                )));
+
+        $records = $query->get();
+
+        $inserts = new Collection;
+
+        $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
+            $filtered = $records->where('name', $feature)->where('scope', $this->serializeScope($scope));
+
+            if ($filtered->isNotEmpty()) {
+                return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+            }
+
+            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+                if ($value === $this->unknownFeatureValue) {
+                    return false;
+                }
+
+                $inserts[] = [
+                    'name' => $feature,
+                    'scope' => $this->serializeScope($scope),
+                    'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                ];
+
+                return $value;
+            });
+        })->all())->all();
+
+        if ($inserts->isNotEmpty()) {
+            $this->newQuery()->insert($inserts->all());
+        }
+
+        return $results;
+    }
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @param  string  $feature
@@ -255,55 +304,6 @@ class DatabaseDriver implements Driver
                 ->whereIn('name', $features)
                 ->delete();
         }
-    }
-
-    /**
-     * Get multiple feature flag values.
-     *
-     * @param  array<string, array<int, mixed>>  $features
-     * @return array<string, array<int, mixed>>
-     */
-    public function getAll($features): array
-    {
-        $query = $this->newQuery();
-
-        $features = Collection::make($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->each(fn ($scope) => $query->orWhere(
-                    fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope))
-                )));
-
-        $records = $query->get();
-
-        $inserts = new Collection;
-
-        $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            $filtered = $records->where('name', $feature)->where('scope', $this->serializeScope($scope));
-
-            if ($filtered->isNotEmpty()) {
-                return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
-            }
-
-            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
-                if ($value === $this->unknownFeatureValue) {
-                    return false;
-                }
-
-                $inserts[] = [
-                    'name' => $feature,
-                    'scope' => $this->serializeScope($scope),
-                    'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-                ];
-
-                return $value;
-            });
-        })->all())->all();
-
-        if ($inserts->isNotEmpty()) {
-            $this->newQuery()->insert($inserts->all());
-        }
-
-        return $results;
     }
 
     /**
