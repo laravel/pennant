@@ -8,6 +8,7 @@ use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
+use Laravel\Pennant\Feature;
 use RuntimeException;
 use stdClass;
 
@@ -100,7 +101,7 @@ class ArrayDriver implements Driver
      */
     public function get($feature, $scope): mixed
     {
-        $scopeKey = $this->serializeScope($scope);
+        $scopeKey = Feature::serializeScope($scope);
 
         if (isset($this->resolvedFeatureStates[$feature][$scopeKey])) {
             return $this->resolvedFeatureStates[$feature][$scopeKey];
@@ -148,7 +149,7 @@ class ArrayDriver implements Driver
     {
         $this->resolvedFeatureStates[$feature] ??= [];
 
-        $this->resolvedFeatureStates[$feature][$this->serializeScope($scope)] = $value;
+        $this->resolvedFeatureStates[$feature][Feature::serializeScope($scope)] = $value;
     }
 
     /**
@@ -174,7 +175,7 @@ class ArrayDriver implements Driver
      */
     public function delete($feature, $scope): void
     {
-        unset($this->resolvedFeatureStates[$feature][$this->serializeScope($scope)]);
+        unset($this->resolvedFeatureStates[$feature][Feature::serializeScope($scope)]);
     }
 
     /**
@@ -212,22 +213,5 @@ class ArrayDriver implements Driver
     public function flushCache()
     {
         $this->resolvedFeatureStates = [];
-    }
-
-    /**
-     * Serialize the given scope for storage.
-     *
-     * @param  mixed  $scope
-     * @return string
-     */
-    protected function serializeScope($scope)
-    {
-        return match (true) {
-            $scope === null => '__laravel_null',
-            is_string($scope) => $scope,
-            is_numeric($scope) => (string) $scope,
-            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
-            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
-        };
     }
 }

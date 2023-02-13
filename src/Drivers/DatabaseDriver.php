@@ -10,6 +10,7 @@ use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
+use Laravel\Pennant\Feature;
 use RuntimeException;
 use stdClass;
 
@@ -103,7 +104,7 @@ class DatabaseDriver implements Driver
         $features = Collection::make($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
                 ->each(fn ($scope) => $query->orWhere(
-                    fn ($q) => $q->where('name', $feature)->where('scope', $this->serializeScope($scope))
+                    fn ($q) => $q->where('name', $feature)->where('scope', Feature::serializeScope($scope))
                 )));
 
         $records = $query->get();
@@ -111,7 +112,7 @@ class DatabaseDriver implements Driver
         $inserts = new Collection;
 
         $results = $features->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            $filtered = $records->where('name', $feature)->where('scope', $this->serializeScope($scope));
+            $filtered = $records->where('name', $feature)->where('scope', Feature::serializeScope($scope));
 
             if ($filtered->isNotEmpty()) {
                 return json_decode($filtered->value('value'), flags:  JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
@@ -124,7 +125,7 @@ class DatabaseDriver implements Driver
 
                 $inserts[] = [
                     'name' => $feature,
-                    'scope' => $this->serializeScope($scope),
+                    'scope' => Feature::serializeScope($scope),
                     'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 ];
 
@@ -173,7 +174,7 @@ class DatabaseDriver implements Driver
     {
         return $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', $this->serializeScope($scope))
+            ->where('scope', Feature::serializeScope($scope))
             ->first();
     }
 
@@ -239,7 +240,7 @@ class DatabaseDriver implements Driver
     {
         $exists = $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', $serialized = $this->serializeScope($scope))
+            ->where('scope', $serialized = Feature::serializeScope($scope))
             ->exists();
 
         if (! $exists) {
@@ -269,7 +270,7 @@ class DatabaseDriver implements Driver
     {
         return $this->newQuery()->insert([
             'name' => $feature,
-            'scope' => $this->serializeScope($scope),
+            'scope' => Feature::serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
@@ -286,7 +287,7 @@ class DatabaseDriver implements Driver
     {
         $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', $this->serializeScope($scope))
+            ->where('scope', Feature::serializeScope($scope))
             ->delete();
     }
 
@@ -304,23 +305,6 @@ class DatabaseDriver implements Driver
                 ->whereIn('name', $features)
                 ->delete();
         }
-    }
-
-    /**
-     * Serialize the given scope for storage.
-     *
-     * @param  mixed  $scope
-     * @return string|null
-     */
-    protected function serializeScope($scope)
-    {
-        return match (true) {
-            $scope === null => '__laravel_null',
-            is_string($scope) => $scope,
-            is_numeric($scope) => (string) $scope,
-            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
-            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
-        };
     }
 
     /**
