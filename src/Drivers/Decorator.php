@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
+use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use Symfony\Component\Finder\Finder;
@@ -111,12 +112,14 @@ class Decorator implements DriverContract
             $resolver = fn () => $resolver;
         }
 
-        $this->driver->define($feature, function ($scope) use ($resolver) {
+        $this->driver->define($feature, function ($scope) use ($feature, $resolver) {
             $value = $resolver($scope);
 
-            return $value instanceof Lottery
-                ? $value()
-                : $value;
+            $value = $value instanceof Lottery ? $value() : $value;
+
+            $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
+
+            return $value;
         });
     }
 
