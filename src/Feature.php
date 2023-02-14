@@ -2,7 +2,9 @@
 
 namespace Laravel\Pennant;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
+use RuntimeException;
 
 /**
  * @method static mixed store(string|null $store = null)
@@ -59,5 +61,22 @@ class Feature extends Facade
     protected static function getFacadeAccessor()
     {
         return FeatureManager::class;
+    }
+
+    /**
+     * Serialize the given scope for storage.
+     *
+     * @param  mixed  $scope
+     * @return string|null
+     */
+    public static function serializeScope($scope)
+    {
+        return match (true) {
+            $scope === null => '__laravel_null',
+            is_string($scope) => $scope,
+            is_numeric($scope) => (string) $scope,
+            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+        };
     }
 }
