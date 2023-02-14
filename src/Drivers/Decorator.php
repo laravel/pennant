@@ -6,6 +6,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
@@ -18,6 +19,10 @@ use Symfony\Component\Finder\Finder;
  */
 class Decorator implements DriverContract
 {
+    use Macroable {
+        __call as macroCall;
+    }
+
     /**
      * The driver name.
      *
@@ -492,6 +497,10 @@ class Decorator implements DriverContract
      */
     public function __call($name, $parameters)
     {
+        if (static::hasMacro($name)) {
+            return $this->macroCall($name, $parameters);
+        }
+
         return tap(new PendingScopedFeatureInteraction($this), function ($interaction) use ($name) {
             if ($name !== 'for' && ($this->defaultScopeResolver)() !== null) {
                 $interaction->for(($this->defaultScopeResolver)());

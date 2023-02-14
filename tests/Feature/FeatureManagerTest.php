@@ -67,10 +67,14 @@ class FeatureManagerTest extends TestCase
 
     public function test_it_can_apply_macros()
     {
-        Feature::macro('foo', function () {
-            return 'bar';
+        Feature::macro('forSession', function () {
+            return $this->for('session|{Session::getId()');
         });
 
-        $this->assertEquals('bar', Feature::foo());
+        $this->assertFalse(Feature::forSession()->active('my-feature'));
+
+        Feature::for('session|{Session::getId()')->activate('my-feature');
+
+        $this->assertTrue(Feature::forSession()->active('my-feature'));
     }
 }

@@ -3,13 +3,10 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Support\Collection;
-use Illuminate\Support\Traits\Macroable;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
 {
-    use Macroable;
-
     /**
      * The feature driver.
      *
