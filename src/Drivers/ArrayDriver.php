@@ -6,7 +6,6 @@ use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
-use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use RuntimeException;
 use stdClass;
@@ -132,9 +131,7 @@ class ArrayDriver implements Driver
             return $this->unknownFeatureValue;
         }
 
-        return tap($this->featureStateResolvers[$feature]($scope), function ($value) use ($feature, $scope) {
-            $this->events->dispatch(new FeatureResolved($feature, $scope, $value));
-        });
+        return $this->featureStateResolvers[$feature]($scope);
     }
 
     /**
