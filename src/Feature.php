@@ -19,7 +19,7 @@ use RuntimeException;
  * @method static array getDrivers()
  * @method static \Illuminate\Contracts\Container\Container getContainer()
  * @method static \Laravel\Pennant\FeatureManager forgetDrivers()
- * @method static void discover(string $namespace = '\\App\\Features', string|null $path = null)
+ * @method static void discover(string $namespace = 'App\\Features', string|null $path = null)
  * @method static void define(string $feature, mixed $resolver = null)
  * @method static array defined()
  * @method static void activateForEveryone(string|array $feature, mixed $value = true)
