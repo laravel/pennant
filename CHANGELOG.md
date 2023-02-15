@@ -5,8 +5,6 @@
 ## [v1.1.0](https://github.com/laravel/pennant/compare/v1.0.0...v1.1.0) - 2023-02-15
 
 - Gracefully handles unexpected `null` scope by @timacdonald in https://github.com/laravel/pennant/pull/31
-- add facade workflow by @timacdonald in https://github.com/laravel/pennant/pull/32
-- Facade CI by @timacdonald in https://github.com/laravel/pennant/pull/33
 
 ## v1.0.0 - 2023-02-14
 
