@@ -47,6 +47,7 @@ use RuntimeException;
  * @method static mixed unless(string $feature, \Closure $whenInactive, \Closure|null $whenActive = null)
  * @method static void activate(string|array $feature, mixed $value = true)
  * @method static void deactivate(string|array $feature)
+ * @method static void forget(string|array $features)
  *
  * @see \Laravel\Pennant\FeatureManager
  */
