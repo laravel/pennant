@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use Illuminate\Container\Container;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
@@ -971,7 +970,8 @@ class ArrayDriverTest extends TestCase
         $createContainer = function () {
             $container = new Container();
             $container->singleton(FeatureDependency::class);
-            $container->instance('events', new class {
+            $container->instance('events', new class
+            {
                 public function dispatch()
                 {
                     //
