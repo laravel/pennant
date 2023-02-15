@@ -141,21 +141,6 @@ class Decorator implements DriverContract
     }
 
     /**
-     * Determine if the resolver accepts null scope.
-     *
-     * @param  callable  $resolver
-     * @return bool
-     */
-    protected function canHandleNullScope($resolver)
-    {
-        $function = new ReflectionFunction(Closure::fromCallable($resolver));
-
-        return $function->getNumberOfParameters() === 0 ||
-            ! $function->getParameters()[0]->hasType() ||
-            $function->getParameters()[0]->getType()->allowsNull();
-    }
-
-    /**
      * Resolve the feature value.
      *
      * @param  string  $feature
@@ -172,6 +157,21 @@ class Decorator implements DriverContract
         $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
 
         return $value;
+    }
+
+    /**
+     * Determine if the resolver accepts null scope.
+     *
+     * @param  callable  $resolver
+     * @return bool
+     */
+    protected function canHandleNullScope($resolver)
+    {
+        $function = new ReflectionFunction(Closure::fromCallable($resolver));
+
+        return $function->getNumberOfParameters() === 0 ||
+            ! $function->getParameters()[0]->hasType() ||
+            $function->getParameters()[0]->getType()->allowsNull();
     }
 
     /**
