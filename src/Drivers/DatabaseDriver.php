@@ -51,8 +51,6 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  \Illuminate\Database\Connection  $db
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @param  array<{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void

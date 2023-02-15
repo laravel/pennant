@@ -42,7 +42,6 @@ class ArrayDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
