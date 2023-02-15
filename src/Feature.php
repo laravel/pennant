@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Facade;
 use RuntimeException;
 
 /**
- * @method static mixed store(string|null $store = null)
+ * @method static \Laravel\Pennant\Drivers\Decorator store(string|null $store = null)
  * @method static \Laravel\Pennant\Drivers\ArrayDriver createArrayDriver()
  * @method static \Laravel\Pennant\Drivers\DatabaseDriver createDatabaseDriver()
  * @method static void flushCache()

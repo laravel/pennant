@@ -26,7 +26,7 @@ class FeatureManager extends Manager
      * Get a Pennant store instance.
      *
      * @param  string|null  $store
-     * @return mixed
+     * @return \Laravel\Pennant\Drivers\Decorator
      *
      * @throws \InvalidArgumentException
      */

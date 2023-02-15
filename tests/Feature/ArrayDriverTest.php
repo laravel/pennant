@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -964,6 +965,49 @@ class ArrayDriverTest extends TestCase
 
         $this->assertSame([$class, 'foo'], $result);
     }
+
+    public function test_feature_class_dependencies_do_not_go_stale()
+    {
+        $createContainer = function () {
+            $container = new Container();
+            $container->singleton(FeatureDependency::class);
+            $container->instance('events', new class {
+                public function dispatch()
+                {
+                    //
+                }
+            });
+
+            return $container;
+        };
+        $first = $createContainer();
+        $firstDependency = null;
+        $second = $createContainer();
+        $secondDependency = null;
+
+        Feature::define(MyFeatureWithDependency::class);
+
+        Feature::store()->setContainer($first);
+        $first->resolving(MyFeatureWithDependency::class, function (MyFeatureWithDependency $feature) use (&$firstDependency) {
+            $firstDependency = $feature->dependency;
+        });
+
+        Feature::active(MyFeatureWithDependency::class);
+        Feature::flushCache();
+
+        Feature::store()->setContainer($second);
+        $second->resolving(MyFeatureWithDependency::class, function (MyFeatureWithDependency $feature) use (&$secondDependency) {
+            $secondDependency = $feature->dependency;
+        });
+
+        Feature::active(MyFeatureWithDependency::class);
+
+        $this->assertInstanceOf(FeatureDependency::class, $first[FeatureDependency::class]);
+        $this->assertInstanceOf(FeatureDependency::class, $second[FeatureDependency::class]);
+        $this->assertNotSame($first[FeatureDependency::class], $second[FeatureDependency::class]);
+        $this->assertSame($first[FeatureDependency::class], $firstDependency);
+        $this->assertSame($second[FeatureDependency::class], $secondDependency);
+    }
 }
 
 class MyFeature
@@ -1030,4 +1074,22 @@ class MyFeatureWithNullableScope
     {
         return true;
     }
+}
+
+class MyFeatureWithDependency
+{
+    public function __construct(public FeatureDependency $dependency)
+    {
+        //
+    }
+
+    public function resolve()
+    {
+        return true;
+    }
+}
+
+class FeatureDependency
+{
+    //
 }

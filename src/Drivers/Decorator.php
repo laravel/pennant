@@ -14,6 +14,7 @@ use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use ReflectionFunction;
 use Symfony\Component\Finder\Finder;
@@ -108,13 +109,19 @@ class Decorator implements DriverContract
     public function define($feature, $resolver = null): void
     {
         if (func_num_args() === 1) {
-            [$feature, $resolver] = with($this->container[$feature], fn ($featureClass) => [
-                $featureClass->name ?? $feature,
-                method_exists($featureClass, 'resolve') ? $featureClass->resolve(...) : $featureClass(...),
-            ]);
+            [$feature, $resolver] = [
+                $this->container->make($feature)->name ?? $feature,
+                new LazilyResolvedFeature($feature),
+            ];
         }
 
         $this->driver->define($feature, function ($scope) use ($feature, $resolver) {
+            if ($resolver instanceof LazilyResolvedFeature) {
+                $resolver = with($this->container[$resolver->feature], fn ($instance) => method_exists($instance, 'resolve')
+                    ? $instance->resolve(...)
+                    : $instance(...));
+            }
+
             if (! $resolver instanceof Closure) {
                 return $this->resolve($feature, fn () => $resolver, $scope);
             }
