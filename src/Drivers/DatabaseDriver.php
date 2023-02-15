@@ -326,23 +326,6 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Serialize the given scope for storage.
-     *
-     * @param  mixed  $scope
-     * @return string|null
-     */
-    protected function serializeScope($scope)
-    {
-        return match (true) {
-            $scope === null => '__laravel_null',
-            is_string($scope) => $scope,
-            is_numeric($scope) => (string) $scope,
-            $scope instanceof Model => $scope::class.'|'.$scope->getKey(),
-            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
-        };
-    }
-
-    /**
      * Create a new table query.
      *
      * @return \Illuminate\Database\Query\Builder
