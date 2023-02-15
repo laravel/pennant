@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Container\Container;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
@@ -848,6 +850,164 @@ class ArrayDriverTest extends TestCase
             '\\Tests\\FeatureClasses\\NewApi' => 'new-api-value',
         ], $all);
     }
+
+    public function test_it_accepts_null_scope_for_parameterless_feature()
+    {
+        Feature::define('foo', fn () => true);
+
+        $result = Feature::for(null)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(null)->active(MyFeatureWithNoScope::class);
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active(MyFeatureWithNoScope::class);
+        $this->assertTrue($result);
+    }
+
+    public function test_it_accepts_null_scope_for_untyped_feature()
+    {
+        Feature::define('foo', fn ($user) => true);
+
+        $result = Feature::for(null)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(null)->active(MyFeatureWithUntypedScope::class);
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active(MyFeatureWithUntypedScope::class);
+        $this->assertTrue($result);
+    }
+
+    public function test_it_accepts_null_scope_for_mixed_typed_feature()
+    {
+        Feature::define('foo', fn (mixed $user) => true);
+
+        $result = Feature::for(null)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(null)->active(MyFeatureWithMixedScope::class);
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active(MyFeatureWithMixedScope::class);
+        $this->assertTrue($result);
+    }
+
+    public function test_it_accepts_null_scope_for_nullable_typed_feature()
+    {
+        Feature::define('foo', fn (?User $user) => true);
+
+        $result = Feature::for(null)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active('foo');
+        $this->assertTrue($result);
+
+        $result = Feature::for(null)->active(MyFeatureWithNullableScope::class);
+        $this->assertTrue($result);
+
+        $result = Feature::for(new User)->active(MyFeatureWithNullableScope::class);
+        $this->assertTrue($result);
+    }
+
+    public function test_it_gracefully_handles_null_scope_for_non_nullable_feature()
+    {
+        Event::fake([UnexpectedNullScopeEncountered::class]);
+        Feature::define('foo', function (User $user) {
+            return true;
+        });
+
+        $result = Feature::for(null)->active('foo');
+        $this->assertFalse($result);
+        Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 1);
+        Event::assertDispatched(function (UnexpectedNullScopeEncountered $event) {
+            return $event->feature === 'foo';
+        });
+
+        $result = Feature::for(new User)->active('foo');
+        $this->assertTrue($result);
+        Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 1);
+
+        $result = Feature::for(null)->active(MyFeatureWithUserScope::class);
+        $this->assertFalse($result);
+        Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 2);
+        Event::assertDispatched(function (UnexpectedNullScopeEncountered $event) {
+            return $event->feature === MyFeatureWithUserScope::class;
+        });
+
+        $result = Feature::for(new User)->active(MyFeatureWithUserScope::class);
+        $this->assertTrue($result);
+        Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 2);
+    }
+
+    public function test_it_does_not_interpret_array_as_callable()
+    {
+        $class = new class
+        {
+            public function foo()
+            {
+                return 'xxxx';
+            }
+        };
+        Feature::define('foo', [$class, 'foo']);
+
+        $result = Feature::value('foo');
+
+        $this->assertSame([$class, 'foo'], $result);
+    }
+
+    public function test_feature_class_dependencies_do_not_go_stale()
+    {
+        $createContainer = function () {
+            $container = new Container();
+            $container->singleton(FeatureDependency::class);
+            $container->instance('events', new class
+            {
+                public function dispatch()
+                {
+                    //
+                }
+            });
+
+            return $container;
+        };
+        $first = $createContainer();
+        $firstDependency = null;
+        $second = $createContainer();
+        $secondDependency = null;
+
+        Feature::define(MyFeatureWithDependency::class);
+
+        Feature::store()->setContainer($first);
+        $first->resolving(MyFeatureWithDependency::class, function (MyFeatureWithDependency $feature) use (&$firstDependency) {
+            $firstDependency = $feature->dependency;
+        });
+
+        Feature::active(MyFeatureWithDependency::class);
+        Feature::flushCache();
+
+        Feature::store()->setContainer($second);
+        $second->resolving(MyFeatureWithDependency::class, function (MyFeatureWithDependency $feature) use (&$secondDependency) {
+            $secondDependency = $feature->dependency;
+        });
+
+        Feature::active(MyFeatureWithDependency::class);
+
+        $this->assertInstanceOf(FeatureDependency::class, $first[FeatureDependency::class]);
+        $this->assertInstanceOf(FeatureDependency::class, $second[FeatureDependency::class]);
+        $this->assertNotSame($first[FeatureDependency::class], $second[FeatureDependency::class]);
+        $this->assertSame($first[FeatureDependency::class], $firstDependency);
+        $this->assertSame($second[FeatureDependency::class], $secondDependency);
+    }
 }
 
 class MyFeature
@@ -874,4 +1034,62 @@ class MyFeatureWithResolveMethod
     {
         return "{$scope}-resolve-123";
     }
+}
+
+class MyFeatureWithUserScope
+{
+    public function resolve(User $user)
+    {
+        return true;
+    }
+}
+
+class MyFeatureWithNoScope
+{
+    public function resolve()
+    {
+        return true;
+    }
+}
+
+class MyFeatureWithUntypedScope
+{
+    public function resolve($scope)
+    {
+        return true;
+    }
+}
+
+class MyFeatureWithMixedScope
+{
+    public function resolve(mixed $scope)
+    {
+        return true;
+    }
+}
+
+class MyFeatureWithNullableScope
+{
+    public function resolve(?User $scope)
+    {
+        return true;
+    }
+}
+
+class MyFeatureWithDependency
+{
+    public function __construct(public FeatureDependency $dependency)
+    {
+        //
+    }
+
+    public function resolve()
+    {
+        return true;
+    }
+}
+
+class FeatureDependency
+{
+    //
 }

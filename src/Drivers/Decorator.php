@@ -2,6 +2,7 @@
 
 namespace Laravel\Pennant\Drivers;
 
+use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Lottery;
@@ -12,7 +13,10 @@ use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
+use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
+use ReflectionFunction;
 use Symfony\Component\Finder\Finder;
 
 /**
@@ -107,25 +111,67 @@ class Decorator implements DriverContract
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
                 $this->container->make($feature)->name ?? $feature,
-                fn ($scope) => with($this->container[$feature], fn ($featureClass) => method_exists($featureClass, 'resolve')
-                    ? $featureClass->resolve($scope)
-                    : $featureClass($scope)),
+                new LazilyResolvedFeature($feature),
             ];
         }
 
-        if (is_string($resolver) || ! is_callable($resolver)) {
-            $resolver = fn () => $resolver;
-        }
-
         $this->driver->define($feature, function ($scope) use ($feature, $resolver) {
-            $value = $resolver($scope);
+            if ($resolver instanceof LazilyResolvedFeature) {
+                $resolver = with($this->container[$resolver->feature], fn ($instance) => method_exists($instance, 'resolve')
+                    ? $instance->resolve(...)
+                    : $instance(...));
+            }
 
-            $value = $value instanceof Lottery ? $value() : $value;
+            if (! $resolver instanceof Closure) {
+                return $this->resolve($feature, fn () => $resolver, $scope);
+            }
 
-            $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
+            if ($scope !== null) {
+                return $this->resolve($feature, $resolver, $scope);
+            }
 
-            return $value;
+            if ($this->canHandleNullScope($resolver)) {
+                return $this->resolve($feature, $resolver, $scope);
+            }
+
+            $this->container['events']->dispatch(new UnexpectedNullScopeEncountered($feature));
+
+            return $this->resolve($feature, fn () => false, $scope);
         });
+    }
+
+    /**
+     * Resolve the feature value.
+     *
+     * @param  string  $feature
+     * @param  callable  $resolver
+     * @param  mixed  $scope
+     * @return mixed
+     */
+    protected function resolve($feature, $resolver, $scope)
+    {
+        $value = $resolver($scope);
+
+        $value = $value instanceof Lottery ? $value() : $value;
+
+        $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
+
+        return $value;
+    }
+
+    /**
+     * Determine if the resolver accepts null scope.
+     *
+     * @param  callable  $resolver
+     * @return bool
+     */
+    protected function canHandleNullScope($resolver)
+    {
+        $function = new ReflectionFunction(Closure::fromCallable($resolver));
+
+        return $function->getNumberOfParameters() === 0 ||
+            ! $function->getParameters()[0]->hasType() ||
+            $function->getParameters()[0]->getType()->allowsNull();
     }
 
     /**
