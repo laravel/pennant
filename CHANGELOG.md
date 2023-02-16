@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.1.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.1.1...1.x)
+
+## [v1.1.1](https://github.com/laravel/pennant/compare/v1.1.0...v1.1.1) - 2023-02-16
+
+- Fix table name not being used and migration error by @bankorh in https://github.com/laravel/pennant/pull/36
 
 ## [v1.1.0](https://github.com/laravel/pennant/compare/v1.0.0...v1.1.0) - 2023-02-15
 
