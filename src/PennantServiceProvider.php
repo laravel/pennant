@@ -79,8 +79,6 @@ class PennantServiceProvider extends ServiceProvider
      */
     protected function offerPublishing()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-
         $this->publishes([
             __DIR__.'/../config/pennant.php' => config_path('pennant.php'),
         ], 'pennant-config');
