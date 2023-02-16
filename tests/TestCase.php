@@ -8,36 +8,36 @@ use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
 {
-/**
- * Define database migrations.
- *
- * @return void
- */
-protected function defineDatabaseMigrations()
-{
-    $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-}
-
     /**
-     * Get package providers.
+     * Define database migrations.
      *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
+     * @return void
      */
-    protected function getPackageProviders($app)
+    protected function defineDatabaseMigrations()
     {
-        return [
-            PennantServiceProvider::class,
-        ];
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
-    /**
-     * Create an instance of the manager.
-     *
-     * @return \Laravel\Pennant\FeatureManager
-     */
-    protected function createManager()
-    {
-        return new FeatureManager($this->app);
-    }
+        /**
+         * Get package providers.
+         *
+         * @param  \Illuminate\Foundation\Application  $app
+         * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
+         */
+        protected function getPackageProviders($app)
+        {
+            return [
+                PennantServiceProvider::class,
+            ];
+        }
+
+        /**
+         * Create an instance of the manager.
+         *
+         * @return \Laravel\Pennant\FeatureManager
+         */
+        protected function createManager()
+        {
+            return new FeatureManager($this->app);
+        }
 }
