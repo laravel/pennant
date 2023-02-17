@@ -51,7 +51,7 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  array<{connection?: string|null, table?: string|null}  $config
+     * @param  array{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
