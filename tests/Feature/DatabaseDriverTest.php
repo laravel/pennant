@@ -1123,6 +1123,17 @@ class DatabaseDriverTest extends TestCase
         $result = Feature::for(['tim', 'taylor'])->allAreActive(['foo', 'bar']);
         $this->assertTrue($result);
     }
+
+    public function test_bulk_insert_adds_timestamps()
+    {
+        Feature::define('foo', true);
+
+        Feature::values(['foo']);
+        $record = DB::table('features')->first();
+
+        $this->assertNotNull($record->updated_at);
+        $this->assertNotNull($record->created_at);
+    }
 }
 
 class UnregisteredFeature
