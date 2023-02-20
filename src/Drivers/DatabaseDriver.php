@@ -10,16 +10,10 @@ use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseDriver implements Driver
 {
-    /**
-     * The database connection.
-     *
-     * @var \Illuminate\Database\Connection
-     */
-    protected $db;
-
     /**
      * The user configuration.
      *
@@ -55,9 +49,8 @@ class DatabaseDriver implements Driver
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
-    public function __construct(Connection $db, Dispatcher $events, $config, $featureStateResolvers)
+    public function __construct(Dispatcher $events, $config, $featureStateResolvers)
     {
-        $this->db = $db;
         $this->events = $events;
         $this->config = $config;
         $this->featureStateResolvers = $featureStateResolvers;
@@ -313,6 +306,7 @@ class DatabaseDriver implements Driver
      */
     protected function newQuery()
     {
-        return $this->db->table($this->config['table'] ?? 'features');
+        $db = DB::connection($this->config['connection'] ?? null);
+        return $db->table($this->config['table'] ?? 'features');
     }
 }

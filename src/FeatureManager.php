@@ -79,7 +79,6 @@ class FeatureManager extends Manager
     {
         return with($this->container['config']->get('pennant.stores.database'), function ($config) {
             return new DatabaseDriver(
-                $this->container['db']->connection($config['connection'] ?? null),
                 $this->container['events'],
                 $config,
                 []
