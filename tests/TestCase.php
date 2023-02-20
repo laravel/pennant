@@ -8,15 +8,15 @@ use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
 abstract class TestCase extends OrchestraTestCase
 {
-/**
- * Define database migrations.
- *
- * @return void
- */
-protected function defineDatabaseMigrations()
-{
-    $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
-}
+    /**
+     * Define database migrations.
+     *
+     * @return void
+     */
+    protected function defineDatabaseMigrations()
+    {
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+    }
 
     /**
      * Get package providers.
