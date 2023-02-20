@@ -25,7 +25,7 @@ In order to ensure that the Laravel community is welcoming to all, please review
 
 ## Security Vulnerabilities
 
-Please review [our security policy](https://github.com/laravel/envoy/security/policy) on how to report security vulnerabilities.
+Please review [our security policy](https://github.com/laravel/pennant/security/policy) on how to report security vulnerabilities.
 
 ## License
 
