@@ -1134,6 +1134,39 @@ class DatabaseDriverTest extends TestCase
         $this->assertNotNull($record->updated_at);
         $this->assertNotNull($record->created_at);
     }
+
+    public function test_it_resolves_configured_database_connection_dynamically()
+    {
+        $this->app['config']->set('database.connections.foo', $this->app['config']->get('database.connections.testing'));
+        $this->app['config']->set('database.connections.bar', $this->app['config']->get('database.connections.testing'));
+        $driver = Feature::store()->getDriver();
+        $connectionResolver = (function () {
+            return $this->newQuery()->connection->getName();
+        })->bindTo($driver, $driver);
+
+        $this->app['config']->set('pennant.stores.database.connection', 'foo');
+        $this->assertSame('foo', $connectionResolver());
+
+        $this->app['config']->set('pennant.stores.database.connection', 'bar');
+        $this->assertSame('bar', $connectionResolver());
+    }
+
+    public function test_it_resolves_default_database_connection_dynamically()
+    {
+        $this->app['config']->set('database.connections.foo', $this->app['config']->get('database.connections.testing'));
+        $driver = Feature::store()->getDriver();
+        $connectionResolver = (function () {
+            return $this->newQuery()->connection->getName();
+        })->bindTo($driver, $driver);
+
+        $this->app['config']->set('database.default', 'testing');
+        $this->assertSame('testing', $connectionResolver());
+
+        $this->app['config']->set('database.default', 'foo');
+        $this->assertSame('foo', $connectionResolver());
+
+        $this->app['config']->set('database.default', 'testing');
+    }
 }
 
 class UnregisteredFeature

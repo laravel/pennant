@@ -2,6 +2,7 @@
 
 namespace Laravel\Pennant\Drivers;
 
+use Closure;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Support\Carbon;
@@ -14,11 +15,11 @@ use stdClass;
 class DatabaseDriver implements Driver
 {
     /**
-     * The database connection.
+     * The database connection resolver.
      *
-     * @var \Illuminate\Database\Connection
+     * @var (\Closure(): \Illuminate\Database\Connection)
      */
-    protected $db;
+    protected $connectionResolver;
 
     /**
      * The user configuration.
@@ -51,13 +52,14 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
+     * @param  (\Closure(): Illuminate\Database\Connection)  $connectionResolver
      * @param  array{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
-    public function __construct(Connection $db, Dispatcher $events, $config, $featureStateResolvers)
+    public function __construct(Closure $connectionResolver, Dispatcher $events, $config, $featureStateResolvers)
     {
-        $this->db = $db;
+        $this->connectionResolver = $connectionResolver;
         $this->events = $events;
         $this->config = $config;
         $this->featureStateResolvers = $featureStateResolvers;
@@ -313,6 +315,6 @@ class DatabaseDriver implements Driver
      */
     protected function newQuery()
     {
-        return $this->db->table($this->config['table'] ?? 'features');
+        return ($this->connectionResolver)()->table($this->config['table'] ?? 'features');
     }
 }
