@@ -51,7 +51,7 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  array<{connection?: string|null, table?: string|null}  $config
+     * @param  array{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
@@ -129,7 +129,13 @@ class DatabaseDriver implements Driver
         })->all())->all();
 
         if ($inserts->isNotEmpty()) {
-            $this->newQuery()->insert($inserts->all());
+            $now = Carbon::now();
+
+            $this->newQuery()->insert($inserts->map(fn ($insert) => [
+                ...$insert,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all());
         }
 
         return $results;
@@ -265,8 +271,8 @@ class DatabaseDriver implements Driver
             'name' => $feature,
             'scope' => Feature::serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => $now = Carbon::now(),
+            'updated_at' => $now,
         ]);
     }
 
