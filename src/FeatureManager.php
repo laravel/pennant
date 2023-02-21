@@ -24,7 +24,7 @@ class FeatureManager
     protected $container;
 
     /**
-     * The array of resolved cache stores.
+     * The array of resolved Pennant stores.
      *
      * @var array
      */
@@ -45,7 +45,7 @@ class FeatureManager
     protected $defaultScopeResolver;
 
     /**
-     * Create a new Cache manager instance.
+     * Create a new Pennant manager instance.
      *
      * @return void
      */
