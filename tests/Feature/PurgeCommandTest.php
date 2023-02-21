@@ -100,7 +100,7 @@ class PurgeCommandTest extends TestCase
         $this->assertSame(0, DB::table('features')->count());
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Pennant store [foo] is not defined or does not have a driver.');
+        $this->expectExceptionMessage('Pennant store [foo] is not defined.');
         $this->artisan('pennant:purge --store=foo');
     }
 }
