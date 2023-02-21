@@ -23,6 +23,13 @@ class FeatureManager extends Manager
     protected $defaultScopeResolver;
 
     /**
+     * The config resolver for the resolving store.
+     *
+     * @var null|(\Closure(): array)
+     */
+    protected $resolvingStoreConfigResolver;
+
+    /**
      * Get a Pennant store instance.
      *
      * @param  string|null  $store
@@ -51,13 +58,15 @@ class FeatureManager extends Manager
             throw new InvalidArgumentException("Pennant store [{$driver}] is not defined or does not have a driver.");
         }
 
-        return new Decorator(
+        $this->resolvingStoreConfigResolver = fn () => $this->container['config']->get("pennant.stores.{$driver}");
+
+        return tap(new Decorator(
             $driver,
             parent::createDriver($storeDriver),
             $this->defaultScopeResolver($driver),
             $this->container,
             new Collection
-        );
+        ), fn () => $this->resolvingStoreConfigResolver = null);
     }
 
     /**
@@ -78,9 +87,9 @@ class FeatureManager extends Manager
     public function createDatabaseDriver()
     {
         return new DatabaseDriver(
-            fn () => $this->container['db']->connection($this->container['config']->get('pennant.stores.database.connection')),
+            fn ($connection) => $this->container['db']->connection($connection),
             $this->container['events'],
-            $this->container['config']->get('pennant.stores.database'),
+            $this->resolvingStoreConfigResolver,
             []
         );
     }

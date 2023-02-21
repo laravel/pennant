@@ -1167,6 +1167,36 @@ class DatabaseDriverTest extends TestCase
 
         $this->app['config']->set('database.default', 'testing');
     }
+
+    public function test_stores_may_be_configured()
+    {
+        $this->app['config']->set('database.connections.foo_connection', $this->app['config']->get('database.connections.testing'));
+        $this->app['config']->set('database.connections.bar_connection', $this->app['config']->get('database.connections.testing'));
+        $this->app['config']->set('pennant.stores.foo', [
+            'driver' => 'database',
+            'connection' => 'foo_connection',
+            'table' => 'foo_features',
+        ]);
+        $this->app['config']->set('pennant.stores.bar', [
+            'driver' => 'database',
+            'connection' => 'bar_connection',
+            'table' => 'bar_features',
+        ]);
+        $connectionResolver = function () {
+            return $this->newQuery()->connection->getName();
+        };
+        $tableResolver = function () {
+            return $this->newQuery()->from;
+        };
+
+        $driver = Feature::store('foo')->getDriver();
+        $this->assertSame('foo_connection', $connectionResolver->bindTo($driver, $driver)());
+        $this->assertSame('foo_features', $tableResolver->bindTo($driver, $driver)());
+
+        $driver = Feature::store('bar')->getDriver();
+        $this->assertSame('bar_connection', $connectionResolver->bindTo($driver, $driver)());
+        $this->assertSame('bar_features', $tableResolver->bindTo($driver, $driver)());
+    }
 }
 
 class UnregisteredFeature

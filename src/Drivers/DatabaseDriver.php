@@ -3,8 +3,10 @@
 namespace Laravel\Pennant\Drivers;
 
 use Closure;
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
@@ -17,16 +19,16 @@ class DatabaseDriver implements Driver
     /**
      * The database connection resolver.
      *
-     * @var (\Closure(): \Illuminate\Database\Connection)
+     * @var (\Closure(string|null): \Illuminate\Database\Connection)
      */
     protected $connectionResolver;
 
     /**
      * The user configuration.
      *
-     * @var array{connection?: string|null, table?: string|null}
+     * @var (\Closure(): array)
      */
-    protected $config;
+    protected $configResolver;
 
     /**
      * The event dispatcher.
@@ -52,16 +54,16 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  (\Closure(): Illuminate\Database\Connection)  $connectionResolver
-     * @param  array{connection?: string|null, table?: string|null}  $config
+     * @param  (\Closure(string|null): Illuminate\Database\Connection)  $connectionResolver
+     * @param  (\Closure(): array)  $configResolver
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
-    public function __construct(Closure $connectionResolver, Dispatcher $events, $config, $featureStateResolvers)
+    public function __construct(Closure $connectionResolver, Dispatcher $events, Closure $configResolver, $featureStateResolvers)
     {
         $this->connectionResolver = $connectionResolver;
         $this->events = $events;
-        $this->config = $config;
+        $this->configResolver = $configResolver;
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
@@ -315,6 +317,27 @@ class DatabaseDriver implements Driver
      */
     protected function newQuery()
     {
-        return ($this->connectionResolver)()->table($this->config['table'] ?? 'features');
+        return $this->connection()->table(($this->config('table') ?? 'features'));
+    }
+
+    /**
+     * Retrieve the database connection.
+     *
+     * @return \Illuminate\Database\Connection
+     */
+    protected function connection()
+    {
+        return ($this->connectionResolver)($this->config('connection'));
+    }
+
+    /**
+     * Get a configuration value.
+     *
+     * @param  string  $key
+     * @return mixed
+     */
+    protected function config($key)
+    {
+        return Arr::get(($this->configResolver)(), $key);
     }
 }
