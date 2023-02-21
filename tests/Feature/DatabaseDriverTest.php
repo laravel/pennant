@@ -1134,6 +1134,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertNotNull($record->updated_at);
         $this->assertNotNull($record->created_at);
     }
+
     public function test_stores_may_be_configured()
     {
         $this->app['config']->set('database.connections.foo_connection', $this->app['config']->get('database.connections.testing'));
