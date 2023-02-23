@@ -25,7 +25,9 @@
         "symfony/finder": "^6.0"
     },
     "require-dev": {
+        "laravel/octane": "^1.4",
         "orchestra/testbench": "^8.0",
+        "phpstan/phpstan": "^1.10",
         "phpunit/phpunit": "^9.0"
     },
     "autoload": {

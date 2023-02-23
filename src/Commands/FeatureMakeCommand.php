@@ -3,6 +3,7 @@
 namespace Laravel\Pennant\Commands;
 
 use Illuminate\Console\GeneratorCommand;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(name: 'pennant:feature')]
