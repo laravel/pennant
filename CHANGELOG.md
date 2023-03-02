@@ -1,6 +1,13 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.1.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.2.0...1.x)
+
+## [v1.2.0](https://github.com/laravel/pennant/compare/v1.1.1...v1.2.0) - 2023-02-24
+
+- Fixed phpdoc type syntax by @korkoshko in https://github.com/laravel/pennant/pull/38
+- Adds timestamps to bulk updates by @timacdonald in https://github.com/laravel/pennant/pull/37
+- Improved manager by @taylorotwell in https://github.com/laravel/pennant/pull/44
+- Ensure global helper does not conflict with another function by @ChenRuiWang in https://github.com/laravel/pennant/pull/46
 
 ## [v1.1.1](https://github.com/laravel/pennant/compare/v1.1.0...v1.1.1) - 2023-02-16
 
