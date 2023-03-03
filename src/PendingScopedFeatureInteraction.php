@@ -208,7 +208,9 @@ class PendingScopedFeatureInteraction
             return $whenActive($this->value($feature), $this);
         }
 
-        return $whenInactive($this);
+        if ($whenInactive !== null) {
+            return $whenInactive($this);
+        }
     }
 
     /**
