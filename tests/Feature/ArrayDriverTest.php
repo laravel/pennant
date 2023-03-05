@@ -724,6 +724,17 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue($inactive);
     }
 
+    public function test_it_can_conditionally_execute_code_block_providing_closure_for_only_active()
+    {
+        $active = null;
+
+        Feature::when('foo', function () use (&$active) {
+            $active = true;
+        });
+
+        $this->assertNull($active);
+    }
+
     public function test_it_can_conditionally_execute_code_block_for_active_feature()
     {
         $active = $inactive = null;
