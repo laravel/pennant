@@ -80,4 +80,15 @@ class FeatureManagerTest extends TestCase
         $this->assertTrue(Feature::forSession()->active('my-feature'));
         $this->assertFalse(Feature::for('default-scope')->active('my-feature'));
     }
+
+    public function test_it_can_return_before_callbacks()
+    {
+        Feature::before(fn () => false);
+
+        Feature::define('foo', true);
+
+        Feature::load('foo');
+
+        $this->assertFalse(Feature::active('foo'));
+    }
 }

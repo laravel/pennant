@@ -45,6 +45,13 @@ class FeatureManager
     protected $defaultScopeResolver;
 
     /**
+     * All of the registered before callbacks.
+     *
+     * @var array
+     */
+    protected $beforeCallbacks = [];
+
+    /**
      * Create a new Pennant manager instance.
      *
      * @return void
@@ -125,6 +132,7 @@ class FeatureManager
             $name,
             $driver,
             $this->defaultScopeResolver($name),
+            $this->beforeCallbacks,
             $this->container,
             new Collection
         );
@@ -281,6 +289,19 @@ class FeatureManager
     public function extend($driver, Closure $callback)
     {
         $this->customCreators[$driver] = $callback->bindTo($this, $this);
+
+        return $this;
+    }
+
+    /**
+     * Register a callback to run before the features are resolved.
+     *
+     * @param  callable  $callback
+     * @return $this
+     */
+    public function before(callable $callback)
+    {
+        $this->beforeCallbacks[] = $callback;
 
         return $this;
     }

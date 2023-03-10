@@ -50,6 +50,13 @@ class Decorator implements DriverContract
     protected $defaultScopeResolver;
 
     /**
+     * All of the registered before callbacks.
+     *
+     * @var array
+     */
+    protected $beforeCallbacks = [];
+
+    /**
      * The container instance.
      *
      * @var \Illuminate\Contracts\Container\Container
@@ -72,11 +79,12 @@ class Decorator implements DriverContract
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
-    public function __construct($name, $driver, $defaultScopeResolver, $container, $cache)
+    public function __construct($name, $driver, $defaultScopeResolver, $beforeCallbacks, $container, $cache)
     {
         $this->name = $name;
         $this->driver = $driver;
         $this->defaultScopeResolver = $defaultScopeResolver;
+        $this->beforeCallbacks = $beforeCallbacks;
         $this->container = $container;
         $this->cache = $cache;
     }
@@ -150,6 +158,14 @@ class Decorator implements DriverContract
      */
     protected function resolve($feature, $resolver, $scope)
     {
+        $result = $this->callBeforeCallbacks(
+            $feature, $scope
+        );
+
+        if (! is_null($result)) {
+            return $result;
+        }
+
         $value = $resolver($scope);
 
         $value = $value instanceof Lottery ? $value() : $value;
@@ -382,6 +398,22 @@ class Decorator implements DriverContract
                         $this->cache->whereInStrict('feature', $features)->keys()->all()
                     );
                 });
+        }
+    }
+
+    /**
+     * Call all of the before callbacks and return if a result is given.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @return bool|null
+     */
+    protected function callBeforeCallbacks($feature, mixed $scope)
+    {
+        foreach ($this->beforeCallbacks as $before) {
+            if (! is_null($result = $before($feature, $scope))) {
+                return $result;
+            }
         }
     }
 

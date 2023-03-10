@@ -18,6 +18,7 @@ use RuntimeException;
  * @method static \Laravel\Pennant\FeatureManager forgetDriver(array|string|null $name = null)
  * @method static \Laravel\Pennant\FeatureManager forgetDrivers()
  * @method static \Laravel\Pennant\FeatureManager extend(string $driver, \Closure $callback)
+ * @method static \Laravel\Pennant\FeatureManager before(callable $callable)
  * @method static void setContainer(\Illuminate\Container\Container $container)
  * @method static void discover(string $namespace = 'App\\Features', string|null $path = null)
  * @method static void define(string $feature, mixed $resolver = null)
