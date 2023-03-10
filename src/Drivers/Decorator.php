@@ -159,14 +159,6 @@ class Decorator implements DriverContract
      */
     protected function resolve($feature, $resolver, $scope)
     {
-        $result = $this->callBeforeCallbacks(
-            $feature, $scope
-        );
-
-        if (! is_null($result)) {
-            return $result;
-        }
-
         $value = $resolver($scope);
 
         $value = $value instanceof Lottery ? $value() : $value;
@@ -276,6 +268,14 @@ class Decorator implements DriverContract
         $feature = $this->resolveFeature($feature);
 
         $scope = $this->resolveScope($scope);
+
+        $result = $this->callBeforeCallbacks(
+            $feature, $scope
+        );
+
+        if (! is_null($result)) {
+            return $result;
+        }
 
         $item = $this->cache
             ->whereStrict('scope', $scope)
