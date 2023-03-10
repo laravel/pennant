@@ -76,6 +76,7 @@ class Decorator implements DriverContract
      * @param  string  $name
      * @param  \Laravel\Pennant\Contracts\Driver  $driver
      * @param  (callable(): mixed)  $defaultScopeResolver
+     * @param  array  $beforeCallbacks
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
