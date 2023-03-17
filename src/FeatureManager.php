@@ -289,7 +289,7 @@ class FeatureManager
      * Set the container instance used by the manager.
      *
      * @param  \Illuminate\Container\Container  $container
-     * @return void
+     * @return $this
      */
     public function setContainer(Container $container)
     {
@@ -298,6 +298,8 @@ class FeatureManager
         foreach ($this->stores as $store) {
             $store->setContainer($container);
         }
+        
+        return $this;
     }
 
     /**
