@@ -298,7 +298,7 @@ class FeatureManager
         foreach ($this->stores as $store) {
             $store->setContainer($container);
         }
-        
+
         return $this;
     }
 
