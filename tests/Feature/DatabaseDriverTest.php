@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Schema;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeaturesPurgedAll;
+use Laravel\Pennant\Events\FeatureUpdated;
+use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\FeatureValueDeleted;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
@@ -1163,6 +1168,79 @@ class DatabaseDriverTest extends TestCase
         $driver = Feature::store('bar')->getDriver();
         $this->assertSame('bar_connection', $connectionResolver->bindTo($driver, $driver)());
         $this->assertSame('bar_features', $tableResolver->bindTo($driver, $driver)());
+    }
+
+    public function test_it_dispatches_events_when_purging_features()
+    {
+        Event::fake([FeaturesPurged::class]);
+
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+
+        Feature::purge(['foo', 'bar', 'baz']);
+
+        Event::assertDispatchedTimes(FeaturesPurged::class, 1);
+        Event::assertDispatched(function (FeaturesPurged $event) {
+            return $event->features === ['foo', 'bar', 'baz'];
+        });
+    }
+
+    public function test_it_dispatches_events_when_purging_all_features()
+    {
+        Event::fake([FeaturesPurgedAll::class]);
+
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+
+        Feature::purge();
+
+        Event::assertDispatchedTimes(FeaturesPurgedAll::class, 1);
+    }
+
+    public function test_it_dispatches_events_when_updating_a_scoped_feature()
+    {
+        Event::fake([FeatureUpdated::class]);
+
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo');
+
+        Event::assertDispatchedTimes(FeatureUpdated::class, 1);
+        Event::assertDispatched(function (FeatureUpdated $event) {
+            return $event->feature === 'foo'
+                && $event->scope === 'tim'
+                && $event->value === true;
+        });
+    }
+
+    public function test_it_dispatches_events_when_updating_a_feature_for_all_scopes()
+    {
+        Event::fake([FeatureUpdatedForAllScopes::class]);
+
+        Feature::define('foo', fn () => false);
+
+        Feature::activateForEveryone('foo', true);
+
+        Event::assertDispatchedTimes(FeatureUpdatedForAllScopes::class, 1);
+        Event::assertDispatched(function (FeatureUpdatedForAllScopes $event) {
+            return $event->feature === 'foo'
+                && $event->value === true;
+        });
+    }
+
+    public function test_it_dispatches_events_when_deleting_a_feature_value()
+    {
+        Event::fake([FeatureValueDeleted::class]);
+
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->forget('foo');
+
+        Event::assertDispatchedTimes(FeatureValueDeleted::class, 1);
+        Event::assertDispatched(function (FeatureValueDeleted $event) {
+            return $event->feature === 'foo'
+                && $event->scope === 'tim';
+        });
     }
 }
 

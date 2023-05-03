@@ -13,6 +13,11 @@ use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
+use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeaturesPurgedAll;
+use Laravel\Pennant\Events\FeatureUpdated;
+use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\FeatureValueDeleted;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
@@ -296,6 +301,8 @@ class Decorator implements DriverContract
         $this->driver->set($feature, $scope, $value);
 
         $this->putInCache($feature, $scope, $value);
+
+        $this->container['events']->dispatch(new FeatureUpdated($feature, $scope, $value));
     }
 
     /**
@@ -340,6 +347,8 @@ class Decorator implements DriverContract
         $this->cache = $this->cache->reject(
             fn ($item) => $item['feature'] === $feature
         );
+
+        $this->container['events']->dispatch(new FeatureUpdatedForAllScopes($feature, $value));
     }
 
     /**
@@ -359,6 +368,8 @@ class Decorator implements DriverContract
         $this->driver->delete($feature, $scope);
 
         $this->removeFromCache($feature, $scope);
+
+        $this->container['events']->dispatch(new FeatureValueDeleted($feature, $scope));
     }
 
     /**
@@ -372,6 +383,8 @@ class Decorator implements DriverContract
             $this->driver->purge(null);
 
             $this->cache = new Collection;
+
+            $this->container['events']->dispatch(new FeaturesPurgedAll);
         } else {
             Collection::wrap($features)
                 ->map($this->resolveFeature(...))
@@ -381,6 +394,8 @@ class Decorator implements DriverContract
                     $this->cache->forget(
                         $this->cache->whereInStrict('feature', $features)->keys()->all()
                     );
+
+                    $this->container['events']->dispatch(new FeaturesPurged($features->all()));
                 });
         }
     }
