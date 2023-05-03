@@ -2,12 +2,8 @@
 
 namespace Laravel\Pennant\Events;
 
-use Illuminate\Queue\SerializesModels;
-
 class FeaturesPurged
 {
-    use SerializesModels;
-
     /**
      * The feature names.
      *
