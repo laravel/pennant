@@ -99,10 +99,10 @@ class Decorator implements DriverContract
         $namespace = Str::finish($namespace, '\\');
 
         Collection::make((new Finder)
-                ->files()
-                ->name('*.php')
-                ->depth(0)
-                ->in($path ?? base_path('app/Features')))
+            ->files()
+            ->name('*.php')
+            ->depth(0)
+            ->in($path ?? base_path('app/Features')))
             ->each(fn ($file) => $this->define("{$namespace}{$file->getBasename('.php')}"));
     }
 
