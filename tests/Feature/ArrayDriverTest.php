@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\AllFeaturesPurged;
+use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeaturesPurgedAll;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
-use Laravel\Pennant\Events\FeatureValueDeleted;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
@@ -1042,14 +1042,14 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_dispatches_events_when_purging_all_features()
     {
-        Event::fake([FeaturesPurgedAll::class]);
+        Event::fake([AllFeaturesPurged::class]);
 
         Feature::define('foo', fn () => true);
         Feature::define('bar', fn () => true);
 
         Feature::purge();
 
-        Event::assertDispatchedTimes(FeaturesPurgedAll::class, 1);
+        Event::assertDispatchedTimes(AllFeaturesPurged::class, 1);
     }
 
     public function test_it_dispatches_events_when_updating_a_scoped_feature()
@@ -1085,14 +1085,14 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_dispatches_events_when_deleting_a_feature_value()
     {
-        Event::fake([FeatureValueDeleted::class]);
+        Event::fake([FeatureDeleted::class]);
 
         Feature::define('foo', fn () => false);
 
         Feature::for('tim')->forget('foo');
 
-        Event::assertDispatchedTimes(FeatureValueDeleted::class, 1);
-        Event::assertDispatched(function (FeatureValueDeleted $event) {
+        Event::assertDispatchedTimes(FeatureDeleted::class, 1);
+        Event::assertDispatched(function (FeatureDeleted $event) {
             return $event->feature === 'foo'
                 && $event->scope === 'tim';
         });

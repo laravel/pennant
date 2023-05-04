@@ -2,7 +2,7 @@
 
 namespace Laravel\Pennant\Events;
 
-class FeaturesPurgedAll
+class AllFeaturesPurged
 {
     //
 }

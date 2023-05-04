@@ -4,7 +4,7 @@ namespace Laravel\Pennant\Events;
 
 use Illuminate\Queue\SerializesModels;
 
-class FeatureValueDeleted
+class FeatureDeleted
 {
     use SerializesModels;
 

@@ -10,14 +10,14 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
+use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeaturesPurgedAll;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
-use Laravel\Pennant\Events\FeatureValueDeleted;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
@@ -369,7 +369,7 @@ class Decorator implements DriverContract
 
         $this->removeFromCache($feature, $scope);
 
-        $this->container['events']->dispatch(new FeatureValueDeleted($feature, $scope));
+        $this->container['events']->dispatch(new FeatureDeleted($feature, $scope));
     }
 
     /**
@@ -384,7 +384,7 @@ class Decorator implements DriverContract
 
             $this->cache = new Collection;
 
-            $this->container['events']->dispatch(new FeaturesPurgedAll);
+            $this->container['events']->dispatch(new AllFeaturesPurged);
         } else {
             Collection::wrap($features)
                 ->map($this->resolveFeature(...))
