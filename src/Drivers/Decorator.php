@@ -5,6 +5,7 @@ namespace Laravel\Pennant\Drivers;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
@@ -139,7 +140,7 @@ class Decorator implements DriverContract
                 return $this->resolve($feature, $resolver, $scope);
             }
 
-            $this->container['events']->dispatch(new UnexpectedNullScopeEncountered($feature));
+            Event::dispatch(new UnexpectedNullScopeEncountered($feature));
 
             return $this->resolve($feature, fn () => false, $scope);
         });
@@ -159,7 +160,7 @@ class Decorator implements DriverContract
 
         $value = $value instanceof Lottery ? $value() : $value;
 
-        $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
+        Event::dispatch(new FeatureResolved($feature, $scope, $value));
 
         return $value;
     }
@@ -271,7 +272,7 @@ class Decorator implements DriverContract
             ->first();
 
         if ($item !== null) {
-            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $item['value']));
+            Event::dispatch(new FeatureRetrieved($feature, $scope, $item['value']));
 
             return $item['value'];
         }
@@ -279,7 +280,7 @@ class Decorator implements DriverContract
         return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
             $this->putInCache($feature, $scope, $value);
 
-            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $value));
+            Event::dispatch(new FeatureRetrieved($feature, $scope, $value));
         });
     }
 
@@ -302,7 +303,7 @@ class Decorator implements DriverContract
 
         $this->putInCache($feature, $scope, $value);
 
-        $this->container['events']->dispatch(new FeatureUpdated($feature, $scope, $value));
+        Event::dispatch(new FeatureUpdated($feature, $scope, $value));
     }
 
     /**
@@ -348,7 +349,7 @@ class Decorator implements DriverContract
             fn ($item) => $item['feature'] === $feature
         );
 
-        $this->container['events']->dispatch(new FeatureUpdatedForAllScopes($feature, $value));
+        Event::dispatch(new FeatureUpdatedForAllScopes($feature, $value));
     }
 
     /**
@@ -369,7 +370,7 @@ class Decorator implements DriverContract
 
         $this->removeFromCache($feature, $scope);
 
-        $this->container['events']->dispatch(new FeatureDeleted($feature, $scope));
+        Event::dispatch(new FeatureDeleted($feature, $scope));
     }
 
     /**
@@ -384,7 +385,7 @@ class Decorator implements DriverContract
 
             $this->cache = new Collection;
 
-            $this->container['events']->dispatch(new AllFeaturesPurged);
+            Event::dispatch(new AllFeaturesPurged);
         } else {
             Collection::wrap($features)
                 ->map($this->resolveFeature(...))
@@ -395,7 +396,7 @@ class Decorator implements DriverContract
                         $this->cache->whereInStrict('feature', $features)->keys()->all()
                     );
 
-                    $this->container['events']->dispatch(new FeaturesPurged($features->all()));
+                    Event::dispatch(new FeaturesPurged($features->all()));
                 });
         }
     }
@@ -436,7 +437,7 @@ class Decorator implements DriverContract
     {
         return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
             if (! in_array($name, $this->defined())) {
-                $this->container['events']->dispatch(new DynamicallyRegisteringFeatureClass($feature));
+                Event::dispatch(new DynamicallyRegisteringFeatureClass($feature));
 
                 $this->define($feature);
             }

@@ -16,7 +16,7 @@ class FeatureUpdatedForAllScopes
     public $feature;
 
     /**
-     * The result value of the feature update.
+     * The new feature value.
      *
      * @var mixed
      */

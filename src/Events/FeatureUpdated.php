@@ -23,7 +23,7 @@ class FeatureUpdated
     public $scope;
 
     /**
-     * The result value of the feature update.
+     * The new feature value.
      *
      * @var mixed
      */
