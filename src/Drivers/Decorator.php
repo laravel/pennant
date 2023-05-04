@@ -5,14 +5,20 @@ namespace Laravel\Pennant\Drivers;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
+use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
+use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeatureUpdated;
+use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
@@ -134,7 +140,7 @@ class Decorator implements DriverContract
                 return $this->resolve($feature, $resolver, $scope);
             }
 
-            $this->container['events']->dispatch(new UnexpectedNullScopeEncountered($feature));
+            Event::dispatch(new UnexpectedNullScopeEncountered($feature));
 
             return $this->resolve($feature, fn () => false, $scope);
         });
@@ -154,7 +160,7 @@ class Decorator implements DriverContract
 
         $value = $value instanceof Lottery ? $value() : $value;
 
-        $this->container['events']->dispatch(new FeatureResolved($feature, $scope, $value));
+        Event::dispatch(new FeatureResolved($feature, $scope, $value));
 
         return $value;
     }
@@ -266,7 +272,7 @@ class Decorator implements DriverContract
             ->first();
 
         if ($item !== null) {
-            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $item['value']));
+            Event::dispatch(new FeatureRetrieved($feature, $scope, $item['value']));
 
             return $item['value'];
         }
@@ -274,7 +280,7 @@ class Decorator implements DriverContract
         return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
             $this->putInCache($feature, $scope, $value);
 
-            $this->container['events']->dispatch(new FeatureRetrieved($feature, $scope, $value));
+            Event::dispatch(new FeatureRetrieved($feature, $scope, $value));
         });
     }
 
@@ -296,6 +302,8 @@ class Decorator implements DriverContract
         $this->driver->set($feature, $scope, $value);
 
         $this->putInCache($feature, $scope, $value);
+
+        Event::dispatch(new FeatureUpdated($feature, $scope, $value));
     }
 
     /**
@@ -340,6 +348,8 @@ class Decorator implements DriverContract
         $this->cache = $this->cache->reject(
             fn ($item) => $item['feature'] === $feature
         );
+
+        Event::dispatch(new FeatureUpdatedForAllScopes($feature, $value));
     }
 
     /**
@@ -359,6 +369,8 @@ class Decorator implements DriverContract
         $this->driver->delete($feature, $scope);
 
         $this->removeFromCache($feature, $scope);
+
+        Event::dispatch(new FeatureDeleted($feature, $scope));
     }
 
     /**
@@ -372,6 +384,8 @@ class Decorator implements DriverContract
             $this->driver->purge(null);
 
             $this->cache = new Collection;
+
+            Event::dispatch(new AllFeaturesPurged);
         } else {
             Collection::wrap($features)
                 ->map($this->resolveFeature(...))
@@ -381,6 +395,8 @@ class Decorator implements DriverContract
                     $this->cache->forget(
                         $this->cache->whereInStrict('feature', $features)->keys()->all()
                     );
+
+                    Event::dispatch(new FeaturesPurged($features->all()));
                 });
         }
     }
@@ -421,7 +437,7 @@ class Decorator implements DriverContract
     {
         return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
             if (! in_array($name, $this->defined())) {
-                $this->container['events']->dispatch(new DynamicallyRegisteringFeatureClass($feature));
+                Event::dispatch(new DynamicallyRegisteringFeatureClass($feature));
 
                 $this->define($feature);
             }
