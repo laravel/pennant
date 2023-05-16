@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.2.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.3.0...1.x)
+
+## [v1.3.0](https://github.com/laravel/pennant/compare/v1.2.1...v1.3.0) - 2023-05-04
+
+- Events for Feature Updates and More by @tylernathanreed in https://github.com/laravel/pennant/pull/59
 
 ## [v1.2.1](https://github.com/laravel/pennant/compare/v1.2.0...v1.2.1) - 2023-03-17
 
