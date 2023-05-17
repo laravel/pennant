@@ -90,7 +90,7 @@ class PendingScopedFeatureInteraction
     public function values($features)
     {
         if (count($this->scope()) > 1) {
-            throw new RuntimeException('It is not possible to retrieve the values for mutliple scopes.');
+            throw new RuntimeException('It is not possible to retrieve the values for multiple scopes.');
         }
 
         $this->loadMissing($features);
