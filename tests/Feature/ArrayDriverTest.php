@@ -523,7 +523,7 @@ class ArrayDriverTest extends TestCase
     public function test_it_throws_when_calling_value_with_multiple_scope()
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('It is not possible to retrieve the values for mutliple scopes.');
+        $this->expectExceptionMessage('It is not possible to retrieve the values for multiple scopes.');
 
         Feature::for([1, 2, 3])->value('foo');
     }
