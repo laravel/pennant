@@ -13,7 +13,7 @@ Laravel Pennant is a simple, lightweight library for managing feature flags.
 
 ## Official Documentation
 
-Documentation for Laravel Pennant can be found on the [Laravel website](https://laravel.com/docs/10.x/pennant).
+Documentation for Laravel Pennant can be found on the [Laravel website](https://laravel.com/docs/pennant).
 
 ## Contributing
 
