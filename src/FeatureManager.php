@@ -5,7 +5,6 @@ namespace Laravel\Pennant;
 use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
 use InvalidArgumentException;

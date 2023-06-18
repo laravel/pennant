@@ -1248,7 +1248,7 @@ class DatabaseDriverTest extends TestCase
     {
         $model = new User(['id' => 6]);
         Relation::morphMap([
-            'user-morph' => $model::class ,
+            'user-morph' => $model::class,
         ]);
         $scopes = [];
         Feature::define('foo', fn () => true);
