@@ -36,7 +36,11 @@ class PennantServiceProvider extends ServiceProvider
         }
 
         $this->callAfterResolving('blade.compiler', function ($blade) {
-            $blade->if('feature', function ($feature, $value = null) {
+            $blade->if('feature', function ($feature, $value = null, $scope = null) {
+                if ($feature && $scope) {
+                    return Feature::for($scope)->active($feature);
+                }
+
                 if (func_num_args() === 2) {
                     return Feature::value($feature) === $value;
                 }
