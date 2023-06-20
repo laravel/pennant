@@ -3,21 +3,8 @@
 namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Schema;
-use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Events\AllFeaturesPurged;
-use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
-use Laravel\Pennant\Events\FeatureDeleted;
-use Laravel\Pennant\Events\FeatureResolved;
-use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeatureUpdated;
-use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
-use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
