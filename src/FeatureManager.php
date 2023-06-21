@@ -4,12 +4,14 @@ namespace Laravel\Pennant;
 
 use Closure;
 use Illuminate\Contracts\Container\Container;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Manager;
 use InvalidArgumentException;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
+use RuntimeException;
 
 /**
  * @mixin \Laravel\Pennant\Drivers\Decorator
@@ -43,6 +45,13 @@ class FeatureManager
      * @var (callable(string): mixed)|null
      */
     protected $defaultScopeResolver;
+
+    /**
+     * Determine if the morph map should be used when serializing.
+     *
+     * @var bool
+     */
+    protected $useMorphMap = false;
 
     /**
      * Create a new Pennant manager instance.
@@ -163,6 +172,36 @@ class FeatureManager
             $config,
             []
         );
+    }
+
+    /**
+     * Serialize the given scope for storage.
+     *
+     * @param  mixed  $scope
+     * @return string|null
+     */
+    public function serializeScope($scope)
+    {
+        return match (true) {
+            $scope === null => '__laravel_null',
+            is_string($scope) => $scope,
+            is_numeric($scope) => (string) $scope,
+            $scope instanceof Model && $this->useMorphMap => $scope->getMorphClass().'|'.$scope->getKey(),
+            $scope instanceof Model && ! $this->useMorphMap => $scope::class.'|'.$scope->getKey(),
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+        };
+    }
+
+    /**
+     * Use the morph map when serializing.
+     *
+     * @return $this
+     */
+    public function useMorphMap($value = true)
+    {
+        $this->useMorphMap = $value;
+
+        return $this;
     }
 
     /**

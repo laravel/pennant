@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -1241,6 +1242,25 @@ class DatabaseDriverTest extends TestCase
             return $event->feature === 'foo'
                 && $event->scope === 'tim';
         });
+    }
+
+    public function test_it_can_use_eloquent_morph_map_for_scope_serialization()
+    {
+        $model = new User(['id' => 6]);
+        Relation::morphMap([
+            'user-morph' => $model::class,
+        ]);
+        $scopes = [];
+        Feature::define('foo', fn () => true);
+
+        Feature::useMorphMap();
+        Feature::for($model)->active('foo');
+
+        $this->assertDatabaseHas('features', [
+            'name' => 'foo',
+            'scope' => 'user-morph|6',
+            'value' => 'true',
+        ]);
     }
 }
 
