@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pennant\Drivers\Decorator driver(string|null $name = null)
  * @method static \Laravel\Pennant\Drivers\ArrayDriver createArrayDriver()
  * @method static \Laravel\Pennant\Drivers\DatabaseDriver createDatabaseDriver(array $config)
+ * @method static string|null serializeScope(mixed $scope)
+ * @method static \Laravel\Pennant\FeatureManager useMorphMap(bool $value = true)
  * @method static void flushCache()
  * @method static void resolveScopeUsing(callable $resolver)
  * @method static string getDefaultDriver()
