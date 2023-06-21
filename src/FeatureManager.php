@@ -46,7 +46,7 @@ class FeatureManager
     protected $defaultScopeResolver;
 
     /**
-     * Determine if the morph map should be used when serializing.
+     * Indicates if the Eloquent "morph map" should be used when serializing.
      *
      * @var bool
      */
@@ -192,8 +192,9 @@ class FeatureManager
     }
 
     /**
-     * Use the morph map when serializing.
+     * Specify that the Eloquent morph map should be used when serializing.
      *
+     * @param  bool  $value
      * @return $this
      */
     public function useMorphMap($value = true)
