@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Manager;
 use InvalidArgumentException;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
