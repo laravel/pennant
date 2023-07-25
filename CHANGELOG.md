@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.3.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.4.0...1.x)
+
+## [v1.4.0](https://github.com/laravel/pennant/compare/v1.3.1...v1.4.0) - 2023-06-21
+
+- [1.x] Add feature blade directive tests by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/66
+- [1.x] Provide hook to use morph map while serializing models by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/64
 
 ## [v1.3.1](https://github.com/laravel/pennant/compare/v1.3.0...v1.3.1) - 2023-05-17
 
