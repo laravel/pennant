@@ -49,5 +49,5 @@ interface Driver
     /**
      * Purge the given features from storage.
      */
-    public function purge(array|null $features): void;
+    public function purge(?array $features): void;
 }
