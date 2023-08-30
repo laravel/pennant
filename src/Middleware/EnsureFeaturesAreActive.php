@@ -33,4 +33,9 @@ class EnsureFeaturesAreActive
     {
         static::$respondUsing = $callback;
     }
+
+    public static function all(string ...$features): string
+    {
+        return static::class.':'.implode(',', $features);
+    }
 }
