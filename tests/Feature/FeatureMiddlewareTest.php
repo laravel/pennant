@@ -54,6 +54,8 @@ class FeatureMiddlewareTest extends TestCase
 
     public function it_throws_an_exception_if_one_of_the_features_is_not_active(): void
     {
+        dd("I won't be run");
+
         $this->expectException(HttpException::class);
         $this->assertFalse(Feature::active('test'));
 
@@ -66,6 +68,8 @@ class FeatureMiddlewareTest extends TestCase
 
     public function it_allows_custom_responses(): void
     {
+        dd("I won't be run");
+
         $this->assertFalse(Feature::active('test'));
 
         EnsureFeaturesAreActive::whenInactive(fn (Request $request, array $features) => 'test-response');
@@ -83,6 +87,8 @@ class FeatureMiddlewareTest extends TestCase
 
     public function it_passes_if_all_features_are_enabled(): void
     {
+        dd("I won't be run");
+
         Feature::define('test', true);
         Feature::define('another', true);
 
