@@ -29,7 +29,7 @@ class EnsureFeaturesAreActive
     /**
      * Specify the features for the middleware.
      */
-    public static function all(string ...$features): string
+    public static function using(string ...$features): string
     {
         return static::class.':'.implode(',', $features);
     }
