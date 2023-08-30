@@ -52,7 +52,7 @@ class FeatureMiddlewareTest extends TestCase
         );
     }
 
-    public function it_throws_an_exception_if_one_of_the_features_is_not_active(): void
+    public function test_it_throws_an_exception_if_one_of_the_features_is_not_active(): void
     {
         $this->expectException(HttpException::class);
         $this->assertFalse(Feature::active('test'));
@@ -64,7 +64,7 @@ class FeatureMiddlewareTest extends TestCase
         );
     }
 
-    public function it_allows_custom_responses(): void
+    public function test_it_allows_custom_responses(): void
     {
         $this->assertFalse(Feature::active('test'));
 
@@ -81,7 +81,7 @@ class FeatureMiddlewareTest extends TestCase
         EnsureFeaturesAreActive::whenInactive(null);
     }
 
-    public function it_passes_if_all_features_are_enabled(): void
+    public function test_it_passes_if_all_features_are_enabled(): void
     {
         Feature::define('test', true);
         Feature::define('another', true);
