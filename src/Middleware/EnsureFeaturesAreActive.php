@@ -34,6 +34,9 @@ class EnsureFeaturesAreActive
         static::$respondUsing = $callback;
     }
 
+    /**
+     * Specify the features for the middleware.
+     */
     public static function all(string ...$features): string
     {
         return static::class.':'.implode(',', $features);
