@@ -27,6 +27,14 @@ class EnsureFeaturesAreActive
     }
 
     /**
+     * Specify the features for the middleware.
+     */
+    public static function all(string ...$features): string
+    {
+        return static::class.':'.implode(',', $features);
+    }
+
+    /**
      * Specify a callback that should be used to generate responses for failed feature checks.
      */
     public static function whenInactive(?Closure $callback): void

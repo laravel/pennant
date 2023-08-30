@@ -98,6 +98,14 @@ class FeatureMiddlewareTest extends TestCase
         );
     }
 
+    public function test_middleware_string_can_be_returned(): void
+    {
+        $this->assertEquals(
+            'Laravel\Pennant\Middleware\EnsureFeaturesAreActive:test,another',
+            EnsureFeaturesAreActive::all('test', 'another'),
+        );
+    }
+
     protected function createRequest(string $uri, string $method): Request
     {
         $request = SymfonyRequest::create(
