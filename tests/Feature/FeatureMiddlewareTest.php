@@ -102,7 +102,7 @@ class FeatureMiddlewareTest extends TestCase
     {
         $this->assertEquals(
             'Laravel\Pennant\Middleware\EnsureFeaturesAreActive:test,another',
-            EnsureFeaturesAreActive::all('test', 'another'),
+            EnsureFeaturesAreActive::using('test', 'another'),
         );
     }
 
