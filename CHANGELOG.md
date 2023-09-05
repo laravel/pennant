@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.4.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.5.0...1.x)
+
+## [v1.5.0](https://github.com/laravel/pennant/compare/v1.4.0...v1.5.0) - 2023-08-31
+
+- [1.x] Added "all" method to "EnsureFeaturesAreActive" middleware. by [@ash-jc-allen](https://github.com/ash-jc-allen) in https://github.com/laravel/pennant/pull/70
+- [1.x] Rename to match framework by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/72
 
 ## [v1.4.0](https://github.com/laravel/pennant/compare/v1.3.1...v1.4.0) - 2023-06-21
 
