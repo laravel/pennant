@@ -11,15 +11,17 @@ use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
-use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\User;
+
+use function Orchestra\Testbench\workbench_path;
 
 class ArrayDriverTest extends TestCase
 {
@@ -858,13 +860,13 @@ class ArrayDriverTest extends TestCase
     public function test_it_can_auto_register_feature_classes()
     {
         Feature::define('marketing-design', 'marketing-design-value');
-        Feature::discover('Tests\\FeatureClasses', __DIR__.'/../FeatureClasses');
+        Feature::discover('Workbench\\App\\Features', workbench_path('app/Features'));
 
         $all = Feature::all();
 
         $this->assertSame([
             'marketing-design' => 'marketing-design-value',
-            'Tests\\FeatureClasses\\NewApi' => 'new-api-value',
+            'Workbench\\App\\Features\\NewApi' => 'new-api-value',
         ], $all);
     }
 
