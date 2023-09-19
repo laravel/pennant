@@ -1,0 +1,8 @@
+providers:
+  - Laravel\Pennant\PennantServiceProvider
+
+migrations:
+  - database/migrations
+
+workbench:
+  install: true

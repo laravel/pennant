@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Schema;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
@@ -20,6 +19,10 @@ use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
+use Workbench\App\Models\User;
+use Workbench\Database\Factories\UserFactory;
+
+use function Orchestra\Testbench\workbench_path;
 
 class DatabaseDriverTest extends TestCase
 {
@@ -365,15 +368,11 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_serializes_eloquent_models()
     {
-        Schema::create('users', function ($table) {
-            $table->id();
-            $table->timestamps();
-        });
-        Feature::for(User::create())->activate('foo');
+        Feature::for(UserFactory::new()->create())->activate('foo');
 
         $scope = DB::table('features')->value('scope');
 
-        $this->assertStringContainsString('Tests\Feature\User|1', $scope);
+        $this->assertStringContainsString('Workbench\App\Models\User|1', $scope);
     }
 
     public function test_it_can_load_feature_state_into_memory()
@@ -1047,13 +1046,13 @@ class DatabaseDriverTest extends TestCase
     public function test_it_can_auto_register_feature_classes()
     {
         Feature::define('marketing-design', 'marketing-design-value');
-        Feature::discover('Tests\\FeatureClasses', __DIR__.'/../FeatureClasses');
+        Feature::discover('Workbench\\App\\Features', workbench_path('app/Features'));
 
         $all = Feature::all();
 
         $this->assertSame([
             'marketing-design' => 'marketing-design-value',
-            'Tests\\FeatureClasses\\NewApi' => 'new-api-value',
+            'Workbench\\App\\Features\\NewApi' => 'new-api-value',
         ], $all);
     }
 

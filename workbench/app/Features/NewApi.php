@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\FeatureClasses;
+namespace Workbench\App\Features;
 
 class NewApi
 {
