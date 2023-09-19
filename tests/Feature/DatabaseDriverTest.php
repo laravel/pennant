@@ -14,12 +14,14 @@ use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
-use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
+use Workbench\App\Models\User;
+use Workbench\Database\Factories\UserFactory;
 
 class DatabaseDriverTest extends TestCase
 {
@@ -365,15 +367,11 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_serializes_eloquent_models()
     {
-        Schema::create('users', function ($table) {
-            $table->id();
-            $table->timestamps();
-        });
-        Feature::for(User::create())->activate('foo');
+        Feature::for(UserFactory::new()->create())->activate('foo');
 
         $scope = DB::table('features')->value('scope');
 
-        $this->assertStringContainsString('Tests\Feature\User|1', $scope);
+        $this->assertStringContainsString('Workbench\App\Models\User|1', $scope);
     }
 
     public function test_it_can_load_feature_state_into_memory()

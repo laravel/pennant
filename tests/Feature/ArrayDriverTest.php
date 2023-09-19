@@ -11,14 +11,15 @@ use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
-use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
+use Workbench\App\Models\User;
 
 class ArrayDriverTest extends TestCase
 {

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
+use Workbench\App\Models\User;
 
 class FeatureManagerTest extends TestCase
 {
