@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Laravel\Pennant\Feature;
@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class PurgeCommandTest extends TestCase
 {
-    use RefreshDatabase;
+    use LazilyRefreshDatabase;
 
     public function test_it_can_purge_flags()
     {
