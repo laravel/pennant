@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
+use Laravel\Pennant\Drivers\RedisFeatureDriver;
 use RuntimeException;
 
 /**
@@ -169,6 +170,20 @@ class FeatureManager
             $this->container['db']->connection($config['connection'] ?? null),
             $this->container['events'],
             $config,
+            []
+        );
+    }
+
+    /**
+     * Create an instance of the redis driver.
+     *
+     * @return \Laravel\Pennant\Drivers\RedisFeatureDriver
+     */
+    public function createRedisDriver()
+    {
+        return new RedisFeatureDriver(
+            $this->container['redis'],
+            $this->container['events'],
             []
         );
     }

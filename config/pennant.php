@@ -40,5 +40,10 @@ return [
             'table' => 'features',
         ],
 
+        'redis' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+        ],
+
     ],
 ];
