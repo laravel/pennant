@@ -21,7 +21,14 @@ class PurgeCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Purge features from storage';
+    protected $description = 'Delete Pennant features from storage';
+
+    /**
+     * The console command name aliases.
+     *
+     * @var array
+     */
+    protected $aliases = ['pennant:clear'];
 
     /**
      * Execute the console command.
