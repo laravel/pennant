@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.5.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.5.1...1.x)
+
+## [v1.5.1](https://github.com/laravel/pennant/compare/v1.5.0...v1.5.1) - 2023-12-14
+
+* Alias command by [@taylorotwell](https://github.com/taylorotwell) in https://github.com/laravel/pennant/commit/6464d2aeb6cd8d1ad493b6cb101cdea552451f67
 
 ## [v1.5.0](https://github.com/laravel/pennant/compare/v1.4.0...v1.5.0) - 2023-08-31
 
