@@ -1273,7 +1273,7 @@ class DatabaseDriverTest extends TestCase
         Config::set('pennant.stores.database.connection', 'xxxx');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Database connection [xxxx] not configured.");
+        $this->expectExceptionMessage('Database connection [xxxx] not configured.');
         Feature::store('database')->active('feature-name');
     }
 }
