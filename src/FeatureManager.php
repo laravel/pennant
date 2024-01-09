@@ -123,7 +123,7 @@ class FeatureManager
             $driverMethod = 'create'.ucfirst($config['driver']).'Driver';
 
             if (method_exists($this, $driverMethod)) {
-                $driver = $this->{$driverMethod}($config);
+                $driver = $this->{$driverMethod}($config, $name);
             } else {
                 throw new InvalidArgumentException("Driver [{$config['driver']}] is not supported.");
             }
@@ -163,12 +163,13 @@ class FeatureManager
      *
      * @return \Laravel\Pennant\Drivers\DatabaseDriver
      */
-    public function createDatabaseDriver(array $config)
+    public function createDatabaseDriver(array $config, string $name)
     {
         return new DatabaseDriver(
-            $this->container['db']->connection($config['connection'] ?? null),
+            $this->container['db'],
             $this->container['events'],
-            $config,
+            $this->container['config'],
+            $name,
             []
         );
     }
