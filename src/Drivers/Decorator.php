@@ -20,6 +20,7 @@ use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\Feature;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use ReflectionFunction;
@@ -267,7 +268,7 @@ class Decorator implements DriverContract
         $scope = $this->resolveScope($scope);
 
         $item = $this->cache
-            ->whereStrict('scope', $scope)
+            ->whereStrict('scope', Feature::serializeScope($scope))
             ->whereStrict('feature', $feature)
             ->first();
 
@@ -466,6 +467,8 @@ class Decorator implements DriverContract
      */
     protected function isCached($feature, $scope)
     {
+        $scope = Feature::serializeScope($scope);
+
         return $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
         ) !== false;
@@ -481,6 +484,8 @@ class Decorator implements DriverContract
      */
     protected function putInCache($feature, $scope, $value)
     {
+        $scope = Feature::serializeScope($scope);
+
         $position = $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
         );
@@ -501,6 +506,8 @@ class Decorator implements DriverContract
      */
     protected function removeFromCache($feature, $scope)
     {
+        $scope = Feature::serializeScope($scope);
+
         $position = $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
         );
