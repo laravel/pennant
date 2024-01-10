@@ -1100,6 +1100,50 @@ class ArrayDriverTest extends TestCase
                 && $event->scope === 'tim';
         });
     }
+
+    public function test_it_caches_by_identifier_for_feature_scopable_objects()
+    {
+        $factory = fn () => new class implements FeatureScopeable
+        {
+            public function toFeatureIdentifier(string $driver): mixed
+            {
+                return 'foo';
+            }
+        };
+
+        Feature::for($object = $factory())->activate('foo');
+
+        $this->assertTrue(Feature::for($object)->active('foo'));
+        $this->assertTrue(Feature::for($factory())->active('foo'));
+    }
+
+    public function test_it_caches_by_identification_for_other_objects()
+    {
+        $factory = fn ($name) => new User(['id' => 123, 'name' => $name]);
+
+        Feature::for($object = $factory('Tim'))->activate('foo');
+
+        $this->assertTrue(Feature::for($object)->active('foo'));
+        $this->assertTrue(Feature::for($factory('Taylor'))->active('foo'));
+    }
+
+    public function test_caching_of_features(): void
+    {
+        $factory = fn () => new User(['id' => 123]);
+        $user1 = $factory();
+        $user2 = $factory();
+
+        Feature::for($user1)->activate('myflag', 2);
+        $this->assertEquals(2, Feature::for($user1)->active('myflag'));
+
+        Feature::for($user1)->activate('myflag', 3);
+        $this->assertEquals(3, Feature::for($user1)->active('myflag'));
+
+        Feature::for($user2)->activate('myflag', 4);
+
+        $this->assertEquals(4, Feature::for($user1)->value('myflag'));
+        $this->assertEquals(4, Feature::for($user2)->value('myflag'));
+    }
 }
 
 class MyFeature
