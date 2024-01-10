@@ -1103,7 +1103,8 @@ class ArrayDriverTest extends TestCase
 
     public function test_it_caches_by_identifier_for_feature_scopable_objects()
     {
-        $factory = fn () => new class implements FeatureScopeable {
+        $factory = fn () => new class implements FeatureScopeable
+        {
             public function toFeatureIdentifier(string $driver): mixed
             {
                 return 'foo';
@@ -1143,7 +1144,6 @@ class ArrayDriverTest extends TestCase
         $this->assertEquals(4, Feature::for($user1)->value('myflag'));
         $this->assertEquals(4, Feature::for($user2)->value('myflag'));
     }
-
 }
 
 class MyFeature
