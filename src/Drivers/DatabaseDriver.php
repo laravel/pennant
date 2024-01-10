@@ -2,8 +2,10 @@
 
 namespace Laravel\Pennant\Drivers;
 
+use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
+use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\Driver;
@@ -16,16 +18,23 @@ class DatabaseDriver implements Driver
     /**
      * The database connection.
      *
-     * @var \Illuminate\Database\Connection
+     * @var \Illuminate\Database\DatabaseManager
      */
     protected $db;
 
     /**
      * The user configuration.
      *
-     * @var array{connection?: string|null, table?: string|null}
+     * @var \Illuminate\Config\Repository
      */
     protected $config;
+
+    /**
+     * The store's name.
+     *
+     * @var string
+     */
+    protected $name;
 
     /**
      * The event dispatcher.
@@ -51,15 +60,15 @@ class DatabaseDriver implements Driver
     /**
      * Create a new driver instance.
      *
-     * @param  array{connection?: string|null, table?: string|null}  $config
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
      * @return void
      */
-    public function __construct(Connection $db, Dispatcher $events, $config, $featureStateResolvers)
+    public function __construct(DatabaseManager $db, Dispatcher $events, Repository $config, string $name, $featureStateResolvers)
     {
         $this->db = $db;
         $this->events = $events;
         $this->config = $config;
+        $this->name = $name;
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
@@ -313,6 +322,20 @@ class DatabaseDriver implements Driver
      */
     protected function newQuery()
     {
-        return $this->db->table($this->config['table'] ?? 'features');
+        return $this->connection()->table(
+            $this->config->get("pennant.stores.{$this->name}.table") ?? 'features'
+        );
+    }
+
+    /**
+     * The database connection.
+     *
+     * @return \Illuminate\Database\Connection
+     */
+    protected function connection()
+    {
+        return $this->db->connection(
+            $this->config->get("pennant.stores.{$this->name}.connection") ?? null
+        );
     }
 }

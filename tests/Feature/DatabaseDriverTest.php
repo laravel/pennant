@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use InvalidArgumentException;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
@@ -1260,6 +1261,20 @@ class DatabaseDriverTest extends TestCase
             'scope' => 'user-morph|6',
             'value' => 'true',
         ]);
+    }
+
+    public function test_it_respects_updated_connection_configuration()
+    {
+        Feature::flushCache();
+        Config::set('pennant.stores.database.connection', null);
+        Feature::store('database')->active('feature-name');
+
+        Feature::flushCache();
+        Config::set('pennant.stores.database.connection', 'xxxx');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Database connection [xxxx] not configured.');
+        Feature::store('database')->active('feature-name');
     }
 }
 
