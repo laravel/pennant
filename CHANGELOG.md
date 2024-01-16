@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.5.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.6.0...1.x)
+
+## [v1.6.0](https://github.com/laravel/pennant/compare/v1.5.1...v1.6.0) - 2024-01-15
+
+* [1.x] Ensure cache holds serialized values only by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/83
+* [1.x] Respect configuration changes by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/81
+* [1.x] Laravel v11 support by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pennant/pull/84
 
 ## [v1.5.1](https://github.com/laravel/pennant/compare/v1.5.0...v1.5.1) - 2023-12-14
 
