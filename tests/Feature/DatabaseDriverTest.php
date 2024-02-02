@@ -20,6 +20,7 @@ use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
+use Workbench\App\Features\NewApi;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
 
@@ -1275,6 +1276,20 @@ class DatabaseDriverTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Database connection [xxxx] not configured.');
         Feature::store('database')->active('feature-name');
+    }
+
+    public function test_it_can_use_name_map()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::enforceNameMap([
+            'foo' => NewApi::class,
+        ]);
+        Feature::active('foo');
+
+        $this->assertDatabaseHas('features', [
+            'name' => 'foo',
+            'value' => 'true',
+        ]);
     }
 }
 

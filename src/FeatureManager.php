@@ -53,6 +53,13 @@ class FeatureManager
     protected $useMorphMap = false;
 
     /**
+     * The feature names should be mapped to their respective names.
+     *
+     * @var array
+     */
+    protected $nameMap = []; 
+
+    /**
      * Create a new Pennant manager instance.
      *
      * @return void
@@ -203,6 +210,29 @@ class FeatureManager
         $this->useMorphMap = $value;
 
         return $this;
+    }
+
+    /**
+     * The feature names should be mapped to their respective names.
+     *
+     * @param  array  $names
+     * @return $this
+     */
+    public function enforceNameMap($names = [])
+    {
+        $this->nameMap = $names;
+
+        return $this;
+    }
+
+    /**
+     * Get the feature names map.
+     *
+     * @return array
+     */
+    public function getNameMap()
+    {
+        return array_flip($this->nameMap);
     }
 
     /**

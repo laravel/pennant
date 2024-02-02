@@ -410,6 +410,10 @@ class Decorator implements DriverContract
      */
     protected function resolveFeature($feature)
     {
+        if (isset(Feature::getNameMap()[$feature])) {
+            $feature = Feature::getNameMap()[$feature];
+        }
+
         return $this->shouldDynamicallyDefine($feature)
             ? $this->ensureDynamicFeatureIsDefined($feature)
             : $feature;
