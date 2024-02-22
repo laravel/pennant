@@ -208,4 +208,15 @@ class ArrayDriver implements Driver
     {
         $this->resolvedFeatureStates = [];
     }
+
+    public function prune(): void
+    {
+        foreach ($this->resolvedFeatureStates as $feature => $scopes) {
+            if (in_array($feature, $this->defined())) {
+                continue;
+            }
+
+            unset($this->resolvedFeatureStates[$feature]);
+        }
+    }
 }

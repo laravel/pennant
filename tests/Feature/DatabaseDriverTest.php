@@ -1276,6 +1276,23 @@ class DatabaseDriverTest extends TestCase
         $this->expectExceptionMessage('Database connection [xxxx] not configured.');
         Feature::store('database')->active('feature-name');
     }
+
+    public function test_it_can_prune_undefined_features()
+    {
+        Feature::define('foo', fn () => true);
+
+        Feature::getDriver()->set('foo', 'tim', true);
+        Feature::getDriver()->set('bar', 'tim', true);
+
+        Feature::prune();
+
+        $this->assertDatabaseMissing('features', [
+            'name' => 'bar',
+            'scope' => 'tim',
+        ]);
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+    }
 }
 
 class UnregisteredFeature

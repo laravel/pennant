@@ -338,4 +338,14 @@ class DatabaseDriver implements Driver
             $this->config->get("pennant.stores.{$this->name}.connection") ?? null
         );
     }
+
+    /**
+     * Prune undefined features from storage.
+     */
+    public function prune(): void
+    {
+        $this->newQuery()
+            ->whereNotIn('name', $this->defined())
+            ->delete();
+    }
 }

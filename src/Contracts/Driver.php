@@ -50,4 +50,9 @@ interface Driver
      * Purge the given features from storage.
      */
     public function purge(?array $features): void;
+
+    /**
+     * Prune undefined features from storage.
+     */
+    public function prune(): void;
 }

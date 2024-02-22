@@ -1144,6 +1144,19 @@ class ArrayDriverTest extends TestCase
         $this->assertEquals(4, Feature::for($user1)->value('myflag'));
         $this->assertEquals(4, Feature::for($user2)->value('myflag'));
     }
+
+    public function test_it_can_prune_undefined_features()
+    {
+        Feature::define('foo', fn () => true);
+
+        Feature::getDriver()->set('foo', 'tim', true);
+        Feature::getDriver()->set('bar', 'tim', true);
+
+        Feature::prune();
+
+        $this->assertFalse(Feature::for('tim')->active('bar'));
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+    }
 }
 
 class MyFeature

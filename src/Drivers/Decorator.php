@@ -578,4 +578,12 @@ class Decorator implements DriverContract
             }
         })->{$name}(...$parameters);
     }
+
+    /**
+     * Prune undefined features from storage.
+     */
+    public function prune(): void
+    {
+        $this->driver->prune();
+    }
 }

@@ -32,6 +32,7 @@ class PennantServiceProvider extends ServiceProvider
             $this->commands([
                 \Laravel\Pennant\Commands\FeatureMakeCommand::class,
                 \Laravel\Pennant\Commands\PurgeCommand::class,
+                \Laravel\Pennant\Commands\PruneCommand::class,
             ]);
         }
 
