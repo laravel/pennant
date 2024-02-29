@@ -215,8 +215,10 @@ class DatabaseDriver implements Driver
      */
     public function set($feature, $scope, $value): void
     {
-        if (! $this->update($feature, $scope, $value)) {
-            $this->insert($feature, $scope, $value);
+        $serializedScope = Feature::serializeScope($scope);
+
+        if (! $this->update($feature, $serializedScope, $value)) {
+            $this->insert($feature, $serializedScope, $value);
         }
     }
 

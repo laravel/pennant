@@ -247,10 +247,7 @@ class Decorator implements DriverContract
                 : [$key => Collection::wrap($value)])
             ->mapWithKeys(fn ($scopes, $feature) => [
                 $this->resolveFeature($feature) => $scopes,
-            ])
-            ->map(
-                fn ($scopes) => $scopes->map(fn ($scope) => $this->resolveScope($scope))->all()
-            );
+            ]);
     }
 
     /**
@@ -264,8 +261,6 @@ class Decorator implements DriverContract
     public function get($feature, $scope): mixed
     {
         $feature = $this->resolveFeature($feature);
-
-        $scope = $this->resolveScope($scope);
 
         $item = $this->cache
             ->whereStrict('scope', Feature::serializeScope($scope))
@@ -297,8 +292,6 @@ class Decorator implements DriverContract
     public function set($feature, $scope, $value): void
     {
         $feature = $this->resolveFeature($feature);
-
-        $scope = $this->resolveScope($scope);
 
         $this->driver->set($feature, $scope, $value);
 
@@ -364,8 +357,6 @@ class Decorator implements DriverContract
     public function delete($feature, $scope): void
     {
         $feature = $this->resolveFeature($feature);
-
-        $scope = $this->resolveScope($scope);
 
         $this->driver->delete($feature, $scope);
 
@@ -450,6 +441,7 @@ class Decorator implements DriverContract
      *
      * @param  mixed  $scope
      * @return mixed
+     * @deprecated
      */
     protected function resolveScope($scope)
     {
@@ -577,5 +569,15 @@ class Decorator implements DriverContract
                 $interaction->for(($this->defaultScopeResolver)());
             }
         })->{$name}(...$parameters);
+    }
+
+    /**
+     * Get the name
+     *
+     * @returns string
+     */
+    public function getName()
+    {
+        return $this->name;
     }
 }
