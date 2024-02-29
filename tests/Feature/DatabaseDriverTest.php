@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use Workbench\App\Models\Team;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -1276,15 +1275,6 @@ class DatabaseDriverTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Database connection [xxxx] not configured.');
         Feature::store('database')->active('feature-name');
-    }
-
-    public function test_feature_resolve_receives_scope_object_when_using_models()
-    {
-        $scope = new Team();
-
-        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
-
-        $this->assertIsObject(Feature::for($scope)->value('resolve-returns-the-scope'));
     }
 }
 

@@ -19,6 +19,7 @@ use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
+use Workbench\App\Models\Team;
 use Workbench\App\Models\User;
 
 use function Orchestra\Testbench\workbench_path;
@@ -1158,6 +1159,16 @@ class ArrayDriverTest extends TestCase
         Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
 
         $this->assertIsObject(Feature::for($scopeable)->value('resolve-returns-the-scope'));
+    }
+
+
+    public function test_feature_resolve_receives_scope_object_when_using_models()
+    {
+        $scope = new Team();
+
+        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
+
+        $this->assertIsObject(Feature::for($scope)->value('resolve-returns-the-scope'));
     }
 }
 
