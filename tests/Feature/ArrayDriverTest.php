@@ -323,7 +323,7 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::for($scopeable())->active('foo'));
     }
 
-    public function test_scope_remains_an_object_seperate_from_feature_identifier()
+    public function test_feature_receives_scope_object_when_using_scopeable_objects()
     {
         $scopeable = fn () => new class extends User implements FeatureScopeable
         {
