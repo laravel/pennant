@@ -323,6 +323,19 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::for($scopeable())->active('foo'));
     }
 
+    public function test_scope_remains_an_object_seperate_from_feature_identifier()
+    {
+        $scopeable = fn () => new class extends User implements FeatureScopeable
+        {
+            public function toFeatureIdentifier($driver): mixed
+            {
+                return 'tim@laravel.com';
+            }
+        };
+
+        $this->assertIsObject(Feature::for($scopeable())->value(FeatureThatReturnsObjectScope::class));
+    }
+
     public function test_it_can_load_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
@@ -1228,4 +1241,12 @@ class MyFeatureWithDependency
 class FeatureDependency
 {
     //
+}
+
+class FeatureThatReturnsObjectScope
+{
+    public function resolve($scope)
+    {
+        return is_object($scope) ? $scope : null;
+    }
 }
