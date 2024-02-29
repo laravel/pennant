@@ -368,11 +368,13 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(3, DB::getQueryLog());
     }
 
-    public function test_feature_receives_scope_object_when_using_model()
+    public function test_feature_resolve_receives_scope_object_when_using_models()
     {
         $scope = new Team();
 
-        $this->assertIsObject(Feature::for($scope)->value(FeatureThatReturnsModel::class));
+        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
+
+        $this->assertIsObject(Feature::for($scope)->value('resolve-returns-the-scope'));
     }
 
     public function test_it_serializes_eloquent_models()
@@ -1309,13 +1311,5 @@ class UnregisteredFeatureWithName
     public function __invoke()
     {
         return 'unregistered-value';
-    }
-}
-
-class FeatureThatReturnsModel
-{
-    public function resolve($scope)
-    {
-        return $scope;
     }
 }

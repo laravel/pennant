@@ -323,9 +323,9 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::for($scopeable())->active('foo'));
     }
 
-    public function test_feature_receives_scope_object_when_using_scopeable_objects()
+    public function test_feature_resolve_receives_scope_object_when_using_feature_scopeable_objects()
     {
-        $scopeable = fn () => new class extends User implements FeatureScopeable
+        $scopeable = new class extends User implements FeatureScopeable
         {
             public function toFeatureIdentifier($driver): mixed
             {
@@ -333,7 +333,9 @@ class ArrayDriverTest extends TestCase
             }
         };
 
-        $this->assertIsObject(Feature::for($scopeable())->value(FeatureThatReturnsScope::class));
+        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
+
+        $this->assertIsObject(Feature::for($scopeable)->value('resolve-returns-the-scope'));
     }
 
     public function test_it_can_load_feature_state_into_memory()
@@ -1241,12 +1243,4 @@ class MyFeatureWithDependency
 class FeatureDependency
 {
     //
-}
-
-class FeatureThatReturnsScope
-{
-    public function resolve($scope)
-    {
-        return $scope;
-    }
 }
