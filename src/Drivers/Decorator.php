@@ -576,7 +576,7 @@ class Decorator implements DriverContract
      *
      * @returns string
      */
-    public function getName()
+    public function name()
     {
         return $this->name;
     }

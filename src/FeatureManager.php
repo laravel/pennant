@@ -187,7 +187,7 @@ class FeatureManager
             $scope === null => '__laravel_null',
             is_string($scope) => $scope,
             is_numeric($scope) => (string)$scope,
-            $scope instanceof FeatureScopeable => $scope->toFeatureIdentifier($this->driver()->getName()),
+            $scope instanceof FeatureScopeable => $scope->toFeatureIdentifier($this->driver()->name()),
             $scope instanceof Model && $this->useMorphMap => $scope->getMorphClass() . '|' . $scope->getKey(),
             $scope instanceof Model && !$this->useMorphMap => $scope::class . '|' . $scope->getKey(),
             default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')

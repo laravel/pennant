@@ -333,7 +333,7 @@ class ArrayDriverTest extends TestCase
             }
         };
 
-        $this->assertIsObject(Feature::for($scopeable())->value(FeatureThatReturnsObjectScope::class));
+        $this->assertIsObject(Feature::for($scopeable())->value(FeatureThatReturnsScope::class));
     }
 
     public function test_it_can_load_feature_state_into_memory()
@@ -1243,10 +1243,10 @@ class FeatureDependency
     //
 }
 
-class FeatureThatReturnsObjectScope
+class FeatureThatReturnsScope
 {
     public function resolve($scope)
     {
-        return is_object($scope) ? $scope : null;
+        return $scope;
     }
 }
