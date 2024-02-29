@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Workbench\App\Models\Team;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -365,6 +366,13 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($scopeable())->active('foo'));
 
         $this->assertCount(3, DB::getQueryLog());
+    }
+
+    public function test_feature_receives_scope_object_when_using_model()
+    {
+        $scope = new Team();
+
+        $this->assertIsObject(Feature::for($scope)->value(FeatureThatReturnsModel::class));
     }
 
     public function test_it_serializes_eloquent_models()
@@ -1301,5 +1309,13 @@ class UnregisteredFeatureWithName
     public function __invoke()
     {
         return 'unregistered-value';
+    }
+}
+
+class FeatureThatReturnsModel
+{
+    public function resolve($scope)
+    {
+        return $scope;
     }
 }
