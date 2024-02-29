@@ -323,21 +323,6 @@ class ArrayDriverTest extends TestCase
         $this->assertTrue(Feature::for($scopeable())->active('foo'));
     }
 
-    public function test_feature_resolve_receives_scope_object_when_using_feature_scopeable_objects()
-    {
-        $scopeable = new class extends User implements FeatureScopeable
-        {
-            public function toFeatureIdentifier($driver): mixed
-            {
-                return 'tim@laravel.com';
-            }
-        };
-
-        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
-
-        $this->assertIsObject(Feature::for($scopeable)->value('resolve-returns-the-scope'));
-    }
-
     public function test_it_can_load_feature_state_into_memory()
     {
         $called = ['foo' => 0, 'bar' => 0];
@@ -1158,6 +1143,21 @@ class ArrayDriverTest extends TestCase
 
         $this->assertEquals(4, Feature::for($user1)->value('myflag'));
         $this->assertEquals(4, Feature::for($user2)->value('myflag'));
+    }
+
+    public function test_feature_resolve_receives_scope_object_when_using_feature_scopeable_objects()
+    {
+        $scopeable = new class extends User implements FeatureScopeable
+        {
+            public function toFeatureIdentifier($driver): mixed
+            {
+                return 'tim@laravel.com';
+            }
+        };
+
+        Feature::define('resolve-returns-the-scope', static fn ($scope) => $scope);
+
+        $this->assertIsObject(Feature::for($scopeable)->value('resolve-returns-the-scope'));
     }
 }
 
