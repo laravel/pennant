@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void discover(string $namespace = 'App\\Features', string|null $path = null)
  * @method static void define(string $feature, mixed $resolver = null)
  * @method static array defined()
+ * @method static array stored()
  * @method static void activateForEveryone(string|array $feature, mixed $value = true)
  * @method static void deactivateForEveryone(string|array $feature)
  * @method static void purge(string|array|null $features = null)
