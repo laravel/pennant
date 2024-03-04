@@ -58,6 +58,20 @@ class DatabaseDriver implements Driver
     protected $unknownFeatureValue;
 
     /**
+     * The name of the "created at" column.
+     *
+     * @var string|null
+     */
+    const CREATED_AT = 'created_at';
+
+    /**
+     * The name of the "updated at" column.
+     *
+     * @var string|null
+     */
+    const UPDATED_AT = 'updated_at';
+
+    /**
      * Create a new driver instance.
      *
      * @param  array<string, (callable(mixed $scope): mixed)>  $featureStateResolvers
@@ -142,8 +156,8 @@ class DatabaseDriver implements Driver
 
             $this->newQuery()->insert($inserts->map(fn ($insert) => [
                 ...$insert,
-                'created_at' => $now,
-                'updated_at' => $now,
+                static::CREATED_AT => $now,
+                static::UPDATED_AT => $now,
             ])->all());
         }
 
@@ -232,7 +246,7 @@ class DatabaseDriver implements Driver
             ->where('name', $feature)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-                'updated_at' => Carbon::now(),
+                static::UPDATED_AT => Carbon::now(),
             ]);
     }
 
@@ -260,7 +274,7 @@ class DatabaseDriver implements Driver
             ->where('scope', $serialized)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-                'updated_at' => Carbon::now(),
+                static::UPDATED_AT => Carbon::now(),
             ]);
 
         return true;
@@ -280,8 +294,8 @@ class DatabaseDriver implements Driver
             'name' => $feature,
             'scope' => Feature::serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-            'created_at' => $now = Carbon::now(),
-            'updated_at' => $now,
+            static::CREATED_AT => $now = Carbon::now(),
+            static::UPDATED_AT => $now,
         ]);
     }
 
