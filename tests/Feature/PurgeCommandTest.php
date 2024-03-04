@@ -103,4 +103,92 @@ class PurgeCommandTest extends TestCase
         $this->expectExceptionMessage('Pennant store [foo] is not defined.');
         $this->artisan('pennant:purge --store=foo');
     }
+
+    public function test_it_can_exclude_features_to_purge_from_storage()
+    {
+        Feature::define('foo', true);
+        Feature::define('bar', false);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+
+        Feature::for('taylor')->active('bar');
+
+        DB::table('features')->insert([
+            'name' => 'baz',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+
+        $this->assertCount(3, DB::table('features')->get()->unique('name'));
+
+        $this->artisan('pennant:purge --except=foo')->expectsOutputToContain('bar, baz successfully purged from storage.');
+
+        $this->assertCount(1, DB::table('features')->get()->unique('name'));
+
+        $this->artisan('pennant:purge foo')->expectsOutputToContain('foo successfully purged from storage.');
+
+        $this->assertSame(0, DB::table('features')->count());
+    }
+
+    public function test_it_can_combine_except_and_features_as_arguments()
+    {
+        DB::table('features')->insert([
+            'name' => 'foo',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+        DB::table('features')->insert([
+            'name' => 'bar',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+        DB::table('features')->insert([
+            'name' => 'baz',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+
+        $this->artisan('pennant:purge foo bar --except=bar')->expectsOutputToContain('foo successfully purged from storage.');
+
+        $this->assertSame(['bar', 'baz'], DB::table('features')->pluck('name')->all());
+    }
+
+    public function test_it_can_purge_features_except_those_registered()
+    {
+        Feature::define('foo', fn () => true);
+        DB::table('features')->insert([
+            'name' => 'foo',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+        DB::table('features')->insert([
+            'name' => 'bar',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+        DB::table('features')->insert([
+            'name' => 'baz',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+
+        $this->artisan('pennant:purge --except-registered')->expectsOutputToContain('bar, baz successfully purged from storage.');
+
+        $this->assertSame(['foo'], DB::table('features')->pluck('name')->all());
+    }
 }

@@ -14,6 +14,8 @@ class PurgeCommand extends Command
      */
     protected $signature = 'pennant:purge
                             {features?* : The features to purge}
+                            {--except=* : The features that should be excluded from purging}
+                            {--except-registered : Purge all features except those registered}
                             {--store= : The store to purge the features from}';
 
     /**
@@ -37,9 +39,27 @@ class PurgeCommand extends Command
      */
     public function handle(FeatureManager $manager)
     {
-        $manager->store($this->option('store'))->purge($this->argument('features') ?: null);
+        $store = $manager->store($this->option('store'));
 
-        with($this->argument('features') ?: ['All features'], function ($names) {
+        $features = $this->argument('features') ?: null;
+
+        $except = collect($this->option('except'))
+            ->when($this->option('except-registered'), fn ($except) => $except->merge($store->defined()))
+            ->unique()
+            ->all();
+
+        if ($except) {
+            $features = collect($features ?: $store->stored())
+                ->flip()
+                ->forget($except)
+                ->flip()
+                ->values()
+                ->all();
+        }
+
+        $store->purge($features);
+
+        with($features ?: ['All features'], function ($names) {
             $this->components->info(implode(', ', $names).' successfully purged from storage.');
         });
 

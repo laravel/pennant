@@ -1144,6 +1144,16 @@ class ArrayDriverTest extends TestCase
         $this->assertEquals(4, Feature::for($user1)->value('myflag'));
         $this->assertEquals(4, Feature::for($user2)->value('myflag'));
     }
+
+    public function test_it_can_list_stored_features()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+
+        Feature::for('Tim')->active('bar');
+
+        $this->assertSame(Feature::stored(), ['bar']);
+    }
 }
 
 class MyFeature

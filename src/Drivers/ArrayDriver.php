@@ -4,12 +4,13 @@ namespace Laravel\Pennant\Drivers;
 
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
+use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class ArrayDriver implements Driver
+class ArrayDriver implements CanListStoredFeatures, Driver
 {
     /**
      * The event dispatcher.
@@ -72,6 +73,16 @@ class ArrayDriver implements Driver
     public function defined(): array
     {
         return array_keys($this->featureStateResolvers);
+    }
+
+    /**
+     * Retrieve the names of all stored features.
+     *
+     * @return array<string>
+     */
+    public function stored(): array
+    {
+        return array_keys($this->resolvedFeatureStates);
     }
 
     /**
