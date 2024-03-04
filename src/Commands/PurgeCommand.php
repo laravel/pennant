@@ -14,7 +14,7 @@ class PurgeCommand extends Command
      */
     protected $signature = 'pennant:purge
                             {features?* : The features to purge}
-                            {--except=* : Feature names to be excluded from purging}
+                            {--except=* : The features that should be excluded from purging}
                             {--except-registered : Purge all features except those registered}
                             {--store= : The store to purge the features from}';
 
