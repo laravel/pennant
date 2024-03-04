@@ -14,7 +14,7 @@ use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class DatabaseDriver implements Driver, CanListStoredFeatures
+class DatabaseDriver implements CanListStoredFeatures, Driver
 {
     /**
      * The database connection.

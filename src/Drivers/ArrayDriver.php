@@ -10,7 +10,7 @@ use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class ArrayDriver implements Driver, CanListStoredFeatures
+class ArrayDriver implements CanListStoredFeatures, Driver
 {
     /**
      * The event dispatcher.

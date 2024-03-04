@@ -31,7 +31,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
-class Decorator implements Driver, CanListStoredFeatures
+class Decorator implements CanListStoredFeatures, Driver
 {
     use Macroable {
         __call as macroCall;

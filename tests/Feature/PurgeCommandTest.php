@@ -157,7 +157,7 @@ class PurgeCommandTest extends TestCase
             'updated_at' => now()->toDateTimeString(),
         ]);
 
-        $this->artisan('pennant:purge foo bar --except=bar')->expectsOutputToContain('foo successfully purged from storage.');;
+        $this->artisan('pennant:purge foo bar --except=bar')->expectsOutputToContain('foo successfully purged from storage.');
 
         $this->assertSame(['bar', 'baz'], DB::table('features')->pluck('name')->all());
     }
@@ -187,7 +187,7 @@ class PurgeCommandTest extends TestCase
             'updated_at' => now()->toDateTimeString(),
         ]);
 
-        $this->artisan('pennant:purge --except-registered')->expectsOutputToContain('bar, baz successfully purged from storage.');;
+        $this->artisan('pennant:purge --except-registered')->expectsOutputToContain('bar, baz successfully purged from storage.');
 
         $this->assertSame(['foo'], DB::table('features')->pluck('name')->all());
     }
