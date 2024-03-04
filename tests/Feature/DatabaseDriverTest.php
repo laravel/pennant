@@ -1276,6 +1276,23 @@ class DatabaseDriverTest extends TestCase
         $this->expectExceptionMessage('Database connection [xxxx] not configured.');
         Feature::store('database')->active('feature-name');
     }
+
+    public function test_it_can_list_stored_features()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+
+        Feature::for('tim')->active('bar');
+        DB::table('features')->insert([
+            'name' => 'baz',
+            'scope' => 'Tim',
+            'value' => true,
+            'created_at' => now()->toDateTimeString(),
+            'updated_at' => now()->toDateTimeString(),
+        ]);
+
+        $this->assertSame(Feature::stored(), ['bar', 'baz']);
+    }
 }
 
 class UnregisteredFeature

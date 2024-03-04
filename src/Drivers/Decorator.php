@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\Driver as DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
@@ -24,12 +25,13 @@ use Laravel\Pennant\Feature;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use ReflectionFunction;
+use RuntimeException;
 use Symfony\Component\Finder\Finder;
 
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
-class Decorator implements DriverContract
+class Decorator implements DriverContract, CanListStoredFeatures
 {
     use Macroable {
         __call as macroCall;
@@ -189,6 +191,20 @@ class Decorator implements DriverContract
     public function defined(): array
     {
         return $this->driver->defined();
+    }
+
+    /**
+     * Retrieve the names of all stored features.
+     *
+     * @return array<string>
+     */
+    public function stored(): array
+    {
+        if (! $this->driver instanceof CanListStoredFeatures) {
+            throw new RuntimeException("The [{$this->name}] driver does not support listing stored features.");
+        }
+
+        return $this->driver->stored();
     }
 
     /**
@@ -391,7 +407,7 @@ class Decorator implements DriverContract
             Collection::wrap($features)
                 ->map($this->resolveFeature(...))
                 ->pipe(function ($features) {
-                    $this->driver->purge($features);
+                    $this->driver->purge($features->all());
 
                     $this->cache->forget(
                         $this->cache->whereInStrict('feature', $features)->keys()->all()

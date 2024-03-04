@@ -8,12 +8,13 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class DatabaseDriver implements Driver
+class DatabaseDriver implements Driver, CanListStoredFeatures
 {
     /**
      * The database connection.
@@ -86,13 +87,28 @@ class DatabaseDriver implements Driver
     }
 
     /**
-     * Define the names of all defined features.
+     * Retrieve the names of all defined features.
      *
      * @return array<string>
      */
     public function defined(): array
     {
         return array_keys($this->featureStateResolvers);
+    }
+
+    /**
+     * Retrieve the names of all stored features.
+     *
+     * @return array<string>
+     */
+    public function stored(): array
+    {
+        return $this->newQuery()
+            ->select('name')
+            ->distinct()
+            ->get()
+            ->pluck('name')
+            ->all();
     }
 
     /**
