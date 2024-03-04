@@ -10,7 +10,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
-use Laravel\Pennant\Contracts\Driver as DriverContract;
+use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
@@ -31,7 +31,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
-class Decorator implements DriverContract, CanListStoredFeatures
+class Decorator implements Driver, CanListStoredFeatures
 {
     use Macroable {
         __call as macroCall;
