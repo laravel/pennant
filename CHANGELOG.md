@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.6.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.7.0...1.x)
+
+## [v1.7.0](https://github.com/laravel/pennant/compare/v1.6.0...v1.7.0) - 2024-03-04
+
+* Make timestamp column names easy to change by [@thijsvdanker](https://github.com/thijsvdanker) in https://github.com/laravel/pennant/pull/90
+* [1.x] Allow excluding features from purge command by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/89
+* Ensure strings by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/91
 
 ## [v1.6.0](https://github.com/laravel/pennant/compare/v1.5.1...v1.6.0) - 2024-01-15
 
