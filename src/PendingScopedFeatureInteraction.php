@@ -254,6 +254,19 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Toggle the feature.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function toggle($feature)
+    {
+        Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], ! $this->driver->get($bits[0], $bits[1])));
+    }
+
+    /**
      * Forget the flags value.
      *
      * @param  string|array<string>  $features
