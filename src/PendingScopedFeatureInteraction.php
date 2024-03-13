@@ -254,7 +254,7 @@ class PendingScopedFeatureInteraction
     }
 
     /**
-     * Toggle the feature.
+     * Toggle the feature's value.
      *
      * @param  string|array<string>  $feature
      * @return void
