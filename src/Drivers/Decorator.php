@@ -99,6 +99,10 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     public function discover($namespace = 'App\\Features', $path = null)
     {
+        if (!$path && !is_dir(base_path('app/Features'))) {
+            return;
+        }
+    
         $namespace = Str::finish($namespace, '\\');
 
         Collection::make((new Finder)
