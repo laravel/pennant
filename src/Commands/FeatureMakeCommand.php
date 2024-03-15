@@ -6,7 +6,7 @@ use Illuminate\Console\GeneratorCommand;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputOption;
 
-#[AsCommand(name: 'pennant:feature')]
+#[AsCommand(name: 'make:feature')]
 class FeatureMakeCommand extends GeneratorCommand
 {
     /**
@@ -14,7 +14,7 @@ class FeatureMakeCommand extends GeneratorCommand
      *
      * @var string
      */
-    protected $name = 'pennant:feature';
+    protected $name = 'make:feature';
 
     /**
      * The console command description.
@@ -22,6 +22,13 @@ class FeatureMakeCommand extends GeneratorCommand
      * @var string
      */
     protected $description = 'Create a new feature class';
+
+    /**
+     * The console command name aliases.
+     *
+     * @var array<int, string>
+     */
+    protected $aliases = ['pennant:feature'];
 
     /**
      * The type of class being generated.
