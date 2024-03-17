@@ -1293,6 +1293,36 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertSame(Feature::stored(), ['bar', 'baz']);
     }
+
+    public function test_it_can_toggle_features()
+    {
+        // Can toggle unresolved feature to on.
+        Feature::for('scope')->toggle('feature');
+        $this->assertTrue(Feature::for('scope')->value('feature'));
+
+        // Can toggle active feature off.
+        Feature::for('scope')->toggle('feature');
+        $this->assertFalse(Feature::for('scope')->value('feature'));
+
+        // Can toggle inactive feature on.
+        Feature::for('scope')->toggle('feature');
+        $this->assertTrue(Feature::for('scope')->value('feature'));
+    }
+
+    public function test_it_can_toggle_feature_with_value()
+    {
+        // Can toggle unresolved feature to on.
+        Feature::for('scope')->toggle('feature', 'value');
+        $this->assertSame('value', Feature::for('scope')->value('feature'));
+
+        // Can toggle active feature off.
+        Feature::for('scope')->toggle('feature', 'value');
+        $this->assertFalse(Feature::for('scope')->value('feature'));
+
+        // Can toggle inactive feature on.
+        Feature::for('scope')->toggle('feature', 'value');
+        $this->assertSame('value', Feature::for('scope')->value('feature'));
+    }
 }
 
 class UnregisteredFeature
