@@ -1323,6 +1323,23 @@ class DatabaseDriverTest extends TestCase
         Feature::for('scope')->toggle('feature', 'value');
         $this->assertSame('value', Feature::for('scope')->value('feature'));
     }
+
+    public function test_it_will_toggle_non_booleans_correctly()
+    {
+        // Will treat '0' as rich value
+        Feature::for('scope')->toggle('feature', '0');
+        $this->assertSame('0', Feature::for('scope')->value('feature'));
+        
+        Feature::for('scope')->toggle('feature');
+        $this->assertFalse(Feature::for('scope')->value('feature'));
+
+        // Will treat 0 as rich value
+        Feature::for('scope')->toggle('feature', 0);
+        $this->assertSame(0, Feature::for('scope')->value('feature'));
+
+        Feature::for('scope')->toggle('feature');
+        $this->assertFalse(Feature::for('scope')->value('feature'));
+    }
 }
 
 class UnregisteredFeature
