@@ -257,13 +257,18 @@ class PendingScopedFeatureInteraction
      * Toggle the feature's value.
      *
      * @param  string|array<string>  $feature
+     * @param  mixed  $value
      * @return void
      */
-    public function toggle($feature)
+    public function toggle($feature, $value = null)
     {
         Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], ! $this->driver->get($bits[0], $bits[1])));
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], match (true) {
+                $value !== null && $this->driver->get($bits[0], $bits[1]) => false,
+                $value !== null => $value,
+                default => ! $this->driver->get($bits[0], $bits[1]),
+            }));
     }
 
     /**
