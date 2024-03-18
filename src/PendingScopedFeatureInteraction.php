@@ -265,9 +265,8 @@ class PendingScopedFeatureInteraction
         Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], match (true) {
-                $value === null && is_bool($this->driver->get($bits[0], $bits[1])) => ! $this->driver->get($bits[0], $bits[1]),
-                $value === null => false,
-                is_bool($this->driver->get($bits[0], $bits[1])) && $this->driver->get($bits[0], $bits[1]) === false => $value,
+                null === $value => false === $this->driver->get($bits[0], $bits[1]) ? true : false,
+                false === $this->driver->get($bits[0], $bits[1]) => $value,
                 default => false,
             }));
     }
