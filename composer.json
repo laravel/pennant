@@ -22,6 +22,7 @@
         "illuminate/database": "^10.0|^11.0",
         "illuminate/queue": "^10.0|^11.0",
         "illuminate/support": "^10.0|^11.0",
+        "symfony/console": "^6.0|^7.0",
         "symfony/finder": "^6.0|^7.0"
     },
     "require-dev": {
