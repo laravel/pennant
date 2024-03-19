@@ -4,6 +4,7 @@ namespace Laravel\Pennant\Commands;
 
 use Illuminate\Console\Command;
 use Laravel\Pennant\FeatureManager;
+use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'pennant:purge', aliases: ['pennant:clear'])]
 class PurgeCommand extends Command
