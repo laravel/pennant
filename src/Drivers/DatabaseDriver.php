@@ -170,11 +170,11 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
         if ($inserts->isNotEmpty()) {
             $now = Carbon::now();
 
-            $this->newQuery()->insert($inserts->map(fn ($insert) => [
+            $this->newQuery()->upsert($inserts->map(fn ($insert) => [
                 ...$insert,
                 static::CREATED_AT => $now,
                 static::UPDATED_AT => $now,
-            ])->all());
+            ])->all(), uniqueBy: ['name', 'scope'], update: ['value', 'updated_at']);
         }
 
         return $results;
@@ -245,13 +245,13 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      */
     public function set($feature, $scope, $value): void
     {
-        return $this->newQuery()->upsert([
+        $this->newQuery()->upsert([
             'name' => $feature,
             'scope' => Feature::serializeScope($scope),
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             static::CREATED_AT => $now = Carbon::now(),
             static::UPDATED_AT => $now,
-        ], uniqueBy: ['name', 'scope'], update: ['value']);
+        ], uniqueBy: ['name', 'scope'], update: ['value', 'updated_at']);
     }
 
     /**
