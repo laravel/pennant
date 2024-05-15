@@ -307,8 +307,6 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      * @param  mixed  $scope
      * @param  mixed  $value
      * @return bool
-     *
-     * @deprecated
      */
     protected function insert($feature, $scope, $value)
     {
