@@ -197,7 +197,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
                 return false;
             }
 
-            $this->insert($feature, $scope, $value);
+            $this->set($feature, $scope, $value);
 
             return $value;
         });
@@ -245,9 +245,13 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      */
     public function set($feature, $scope, $value): void
     {
-        if (! $this->update($feature, $scope, $value)) {
-            $this->insert($feature, $scope, $value);
-        }
+        return $this->newQuery()->upsert([
+            'name' => $feature,
+            'scope' => Feature::serializeScope($scope),
+            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+            static::CREATED_AT => $now = Carbon::now(),
+            static::UPDATED_AT => $now,
+        ], uniqueBy: ['name', 'scope'], update: ['value']);
     }
 
     /**
@@ -303,6 +307,8 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      * @param  mixed  $scope
      * @param  mixed  $value
      * @return bool
+     *
+     * @deprecated
      */
     protected function insert($feature, $scope, $value)
     {
