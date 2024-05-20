@@ -280,24 +280,13 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      */
     protected function update($feature, $scope, $value)
     {
-        $exists = $this->newQuery()
-            ->where('name', $feature)
-            ->where('scope', $serialized = Feature::serializeScope($scope))
-            ->exists();
-
-        if (! $exists) {
-            return false;
-        }
-
-        $this->newQuery()
+        return (bool) $this->newQuery()
             ->where('name', $feature)
             ->where('scope', $serialized)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 static::UPDATED_AT => Carbon::now(),
             ]);
-
-        return true;
     }
 
     /**
