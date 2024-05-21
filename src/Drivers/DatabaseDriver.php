@@ -186,9 +186,11 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
                     static::UPDATED_AT => $now,
                 ])->all());
             } catch (UniqueConstraintViolationException $e) {
-                if (++$this->retryDepth === 3) {
+                if ($this->retryDepth === 3) {
                     throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
                 }
+
+                $this->retryDepth++;
 
                 return $this->getAll($features);
             } finally {
@@ -218,11 +220,12 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
 
             try {
                 $this->insert($feature, $scope, $value);
-
             } catch (UniqueConstraintViolationException $e) {
-                if (++$this->retryDepth === 2) {
+                if ($this->retryDepth === 2) {
                     throw new RuntimeException('Unable to insert feature value from the database.', previous: $e);
                 }
+
+                $this->retryDepth++;
 
                 return $this->get($feature, $scope);
             } finally {
@@ -312,7 +315,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     {
         return (bool) $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', $serialized)
+            ->where('scope', Feature::serializeScope($scope))
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 static::UPDATED_AT => Carbon::now(),
