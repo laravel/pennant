@@ -6,12 +6,14 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use RuntimeException;
 use stdClass;
 
 class DatabaseDriver implements CanListStoredFeatures, Driver
@@ -57,6 +59,13 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      * @var \stdClass
      */
     protected $unknownFeatureValue;
+
+    /**
+     * The current retry depth for retrieving values from the database.
+     *
+     * @var int
+     */
+    protected $retryDepth = 0;
 
     /**
      * The name of the "created at" column.
@@ -170,11 +179,21 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
         if ($inserts->isNotEmpty()) {
             $now = Carbon::now();
 
-            $this->newQuery()->insert($inserts->map(fn ($insert) => [
-                ...$insert,
-                static::CREATED_AT => $now,
-                static::UPDATED_AT => $now,
-            ])->all());
+            try {
+                $this->newQuery()->insert($inserts->map(fn ($insert) => [
+                    ...$insert,
+                    static::CREATED_AT => $now,
+                    static::UPDATED_AT => $now,
+                ])->all());
+            } catch (UniqueConstraintViolationException $e) {
+                if (++$this->retryDepth === 3) {
+                    throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
+                }
+
+                return $this->getAll($features);
+            } finally {
+                $this->retryDepth = 0;
+            }
         }
 
         return $results;
@@ -197,7 +216,18 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
                 return false;
             }
 
-            $this->insert($feature, $scope, $value);
+            try {
+                $this->insert($feature, $scope, $value);
+
+            } catch (UniqueConstraintViolationException $e) {
+                if (++$this->retryDepth === 2) {
+                    throw new RuntimeException('Unable to insert feature value from the database.', previous: $e);
+                }
+
+                return $this->get($feature, $scope);
+            } finally {
+                $this->retryDepth = 0;
+            }
 
             return $value;
         });
