@@ -186,7 +186,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
                     static::UPDATED_AT => $now,
                 ])->all());
             } catch (UniqueConstraintViolationException $e) {
-                if ($this->retryDepth === 3) {
+                if ($this->retryDepth === 2) {
                     throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
                 }
 
@@ -221,7 +221,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             try {
                 $this->insert($feature, $scope, $value);
             } catch (UniqueConstraintViolationException $e) {
-                if ($this->retryDepth === 2) {
+                if ($this->retryDepth === 1) {
                     throw new RuntimeException('Unable to insert feature value from the database.', previous: $e);
                 }
 
