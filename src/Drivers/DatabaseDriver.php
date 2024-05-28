@@ -168,8 +168,8 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
 
                 $inserts[] = [
                     'name' => $feature,
-                    'scope' => Feature::serializeScope($scope),
-                    'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                    'scope' => $scope,
+                    'value' => $value,
                 ];
 
                 return $value;
@@ -177,14 +177,8 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
         })->all())->all();
 
         if ($inserts->isNotEmpty()) {
-            $now = Carbon::now();
-
             try {
-                $this->newQuery()->insert($inserts->map(fn ($insert) => [
-                    ...$insert,
-                    static::CREATED_AT => $now,
-                    static::UPDATED_AT => $now,
-                ])->all());
+                $this->insertMany($inserts->all());
             } catch (UniqueConstraintViolationException $e) {
                 if ($this->retryDepth === 2) {
                     throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
@@ -339,6 +333,25 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             static::CREATED_AT => $now = Carbon::now(),
             static::UPDATED_AT => $now,
         ]);
+    }
+
+    /**
+     * Insert the value for the given feature and scope into storage.
+     *
+     * @param  array<int, array{name: string, scope: mixed, value: mixed}>  $inserts
+     * @return bool
+     */
+    protected function insertMany($inserts)
+    {
+        $now = Carbon::now();
+
+        return $this->newQuery()->insert(array_map(fn ($insert) => [
+            'name' => $insert['name'],
+            'scope' => Feature::serializeScope($insert['scope']),
+            'value' => json_encode($insert['value'], flags: JSON_THROW_ON_ERROR),
+            static::CREATED_AT => $now,
+            static::UPDATED_AT => $now,
+        ], $inserts));
     }
 
     /**
