@@ -1312,7 +1312,6 @@ class DatabaseDriverTest extends TestCase
             }
         });
 
-
         try {
             Feature::for('tim')->loadMissing(['foo', 'bar']);
             $this->fail('Should have failed.');
