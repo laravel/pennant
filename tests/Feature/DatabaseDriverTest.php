@@ -2,12 +2,16 @@
 
 namespace Tests\Feature;
 
+use Exception;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
@@ -19,6 +23,7 @@ use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
@@ -1292,6 +1297,91 @@ class DatabaseDriverTest extends TestCase
         ]);
 
         $this->assertSame(Feature::stored(), ['bar', 'baz']);
+    }
+
+    public function test_it_retries_3_times_and_then_fails()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+        $insertAttempts = 0;
+        DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
+            if (Str::startsWith($event->sql, 'insert into "features"')) {
+                $insertAttempts++;
+                DB::table('features')->delete();
+                throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException());
+            }
+        });
+
+
+        try {
+            Feature::for('tim')->loadMissing(['foo', 'bar']);
+            $this->fail('Should have failed.');
+        } catch (Exception $e) {
+            $this->assertInstanceOf(RuntimeException::class, $e);
+            $this->assertSame('Unable to insert feature values into the database.', $e->getMessage());
+            $this->assertInstanceOf(UniqueConstraintViolationException::class, $e->getPrevious());
+        }
+
+        $this->assertSame(3, $insertAttempts);
+    }
+
+    public function test_it_only_retries_on_conflicts()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+        $insertAttempts = 0;
+        DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
+            if (Str::startsWith($event->sql, 'insert into "features"')) {
+                $insertAttempts++;
+                throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException());
+            }
+        });
+
+        Feature::for('tim')->loadMissing(['foo', 'bar']);
+
+        $this->assertSame(1, $insertAttempts);
+    }
+
+    public function test_it_retries_2_times_and_then_fails_for_individual_queries()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+        $insertAttempts = 0;
+        DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
+            if (Str::startsWith($event->sql, 'insert into "features"')) {
+                $insertAttempts++;
+                DB::table('features')->delete();
+                throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException());
+            }
+        });
+
+        try {
+            Feature::driver('database')->get('foo', 'tim');
+            $this->fail('Should have failed.');
+        } catch (Exception $e) {
+            $this->assertInstanceOf(RuntimeException::class, $e);
+            $this->assertSame('Unable to insert feature value into the database.', $e->getMessage());
+            $this->assertInstanceOf(UniqueConstraintViolationException::class, $e->getPrevious());
+        }
+
+        $this->assertSame(2, $insertAttempts);
+    }
+
+    public function test_it_only_retries_on_conflicts_for_individual_queries()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+        $insertAttempts = 0;
+        DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
+            if (Str::startsWith($event->sql, 'insert into "features"')) {
+                $insertAttempts++;
+                throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException());
+            }
+        });
+
+        Feature::driver('database')->get('foo', 'tim');
+
+        $this->assertSame(1, $insertAttempts);
     }
 }
 
