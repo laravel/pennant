@@ -336,7 +336,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     }
 
     /**
-     * Insert the value for the given feature and scope into storage.
+     * Insert the given feature values into storage.
      *
      * @param  array<int, array{name: string, scope: mixed, value: mixed}>  $inserts
      * @return bool
