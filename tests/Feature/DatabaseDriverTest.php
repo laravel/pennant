@@ -1382,6 +1382,63 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertSame(1, $insertAttempts);
     }
+
+    public function test_it_keys_by_feature_name()
+    {
+        Feature::define(FeatureWithName::class);
+        Feature::define(FeatureWithoutName::class);
+
+        $this->assertSame([
+            'feature-with-name' => 'feature-with-name-value',
+            'Tests\\Feature\\FeatureWithoutName' => 'feature-without-name-value',
+        ], Feature::all());
+
+        $this->assertSame([
+            'feature-with-name' => 'feature-with-name-value',
+            'feature-with-name' => 'feature-with-name-value',
+            'Tests\\Feature\\FeatureWithoutName' => 'feature-without-name-value',
+        ], Feature::values([
+            'feature-with-name',
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::load([
+            'feature-with-name',
+            FeatureWithoutName::class,
+        ]));
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::load([
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+
+        Feature::flushCache();
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::loadMissing([
+            'feature-with-name',
+            FeatureWithoutName::class,
+        ]));
+
+        Feature::flushCache();
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::loadMissing([
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+    }
 }
 
 class UnregisteredFeature
@@ -1407,5 +1464,23 @@ class UnregisteredFeatureWithName
     public function __invoke()
     {
         return 'unregistered-value';
+    }
+}
+
+class FeatureWithoutName
+{
+    public function __invoke()
+    {
+        return 'feature-without-name-value';
+    }
+}
+
+class FeatureWithName
+{
+    public $name = 'feature-with-name';
+
+    public function __invoke()
+    {
+        return 'feature-with-name-value';
     }
 }

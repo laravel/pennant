@@ -78,7 +78,7 @@ class PendingScopedFeatureInteraction
      */
     public function value($feature)
     {
-        return $this->values([$feature])[$feature];
+        return head($this->values([$feature]));
     }
 
     /**
@@ -97,7 +97,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($features)
             ->mapWithKeys(fn ($feature) => [
-                $feature => $this->driver->get($feature, $this->scope()[0]),
+                $this->driver->name($feature) => $this->driver->get($feature, $this->scope()[0]),
             ])
             ->all();
     }

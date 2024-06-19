@@ -419,6 +419,17 @@ class Decorator implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Retrieve the feature's name.
+     *
+     * @param  string  $feature
+     * @return string
+     */
+    public function name($feature)
+    {
+        return $this->resolveFeature($feature);
+    }
+
+    /**
      * Resolve the feature name and ensure it is defined.
      *
      * @param  string  $feature
