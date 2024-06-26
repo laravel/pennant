@@ -278,7 +278,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             static::CREATED_AT => $now = Carbon::now(),
             static::UPDATED_AT => $now,
-        ], uniqueBy: ['name', 'scope'], update: ['value', static::CREATED_AT]);
+        ], uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
     }
 
     /**
