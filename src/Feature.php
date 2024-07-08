@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void activateForEveryone(string|array $feature, mixed $value = true)
  * @method static void deactivateForEveryone(string|array $feature)
  * @method static void purge(string|array|null $features = null)
+ * @method static string name(string $feature)
  * @method static \Laravel\Pennant\Contracts\Driver getDriver()
  * @method static void macro(string $name, object|callable $macro)
  * @method static void mixin(object $mixin, bool $replace = true)

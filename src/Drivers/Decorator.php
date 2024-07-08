@@ -223,12 +223,46 @@ class Decorator implements CanListStoredFeatures, Driver
             return [];
         }
 
-        return tap($this->driver->getAll($features->all()), function ($results) use ($features) {
-            $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
-                ->zip($results[$key])
-                ->map(fn ($scopes) => $scopes->push($key)))
-                ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
-        });
+        $hasUnresolvedFeatures = false;
+
+        $resolvedBefore = $features->reduce(function ($resolved, $scopes, $feature) use (&$hasUnresolvedFeatures) {
+            $resolved[$feature] = [];
+
+            if (! method_exists($feature, 'before')) {
+                $hasUnresolvedFeatures = true;
+
+                return $resolved;
+            }
+
+            $before = $this->container->make($feature)->before(...);
+
+            foreach ($scopes as $index => $scope) {
+                $value = $this->resolveBeforeHook($feature, $scope, $before);
+
+                if ($value !== null) {
+                    $resolved[$feature][$index] = $value;
+                } else {
+                    $hasUnresolvedFeatures = true;
+                }
+            }
+
+            return $resolved;
+        }, []);
+
+        $results = array_replace_recursive(
+            $features->all(),
+            $resolvedBefore,
+            $hasUnresolvedFeatures ? $this->driver->getAll($features->map(function ($scopes, $feature) use ($resolvedBefore) {
+                return array_diff_key($scopes, $resolvedBefore[$feature]);
+            })->all()) : [],
+        );
+
+        $features->flatMap(fn ($scopes, $key) => Collection::make($scopes)
+            ->zip($results[$key])
+            ->map(fn ($scopes) => $scopes->push($key)))
+            ->each(fn ($value) => $this->putInCache($value[2], $value[0], $value[1]));
+
+        return $results;
     }
 
     /**
@@ -294,11 +328,36 @@ class Decorator implements CanListStoredFeatures, Driver
             return $item['value'];
         }
 
-        return tap($this->driver->get($feature, $scope), function ($value) use ($feature, $scope) {
-            $this->putInCache($feature, $scope, $value);
+        $before = method_exists($feature, 'before')
+            ? $this->container->make($feature)->before(...)
+            : fn () => null;
 
-            Event::dispatch(new FeatureRetrieved($feature, $scope, $value));
-        });
+        $value = $this->resolveBeforeHook($feature, $scope, $before) ?? $this->driver->get($feature, $scope);
+
+        $this->putInCache($feature, $scope, $value);
+
+        Event::dispatch(new FeatureRetrieved($feature, $scope, $value));
+
+        return $value;
+    }
+
+    /**
+     * Resolve the before hook value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  callable  $hook
+     * @return mixed
+     */
+    protected function resolveBeforeHook($feature, $scope, $hook)
+    {
+        if ($scope === null && ! $this->canHandleNullScope($hook)) {
+            Event::dispatch(new UnexpectedNullScopeEncountered($feature));
+
+            return null;
+        }
+
+        return $hook($scope);
     }
 
     /**
@@ -416,6 +475,17 @@ class Decorator implements CanListStoredFeatures, Driver
                     Event::dispatch(new FeaturesPurged($features->all()));
                 });
         }
+    }
+
+    /**
+     * Retrieve the feature's name.
+     *
+     * @param  string  $feature
+     * @return string
+     */
+    public function name($feature)
+    {
+        return $this->resolveFeature($feature);
     }
 
     /**

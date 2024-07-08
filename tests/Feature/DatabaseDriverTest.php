@@ -21,6 +21,7 @@ use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
+use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
@@ -1382,6 +1383,160 @@ class DatabaseDriverTest extends TestCase
 
         $this->assertSame(1, $insertAttempts);
     }
+
+    public function test_it_can_intercept_feature_values_using_before_hook()
+    {
+        $queries = 0;
+        FeatureWithBeforeHook::$before = fn ($scope) => 'before';
+        Feature::define(FeatureWithBeforeHook::class);
+        Feature::activate(FeatureWithBeforeHook::class, 'stored-value');
+        Feature::flushCache();
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+
+        $value = Feature::for(null)->value(FeatureWithBeforeHook::class);
+
+        $this->assertSame('before', $value);
+        $this->assertSame(0, $queries);
+    }
+
+    public function test_it_can_merges_before_with_resolved_features()
+    {
+        $queries = 0;
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+        FeatureWithBeforeHook::$before = fn ($scope) => ['before' => 'value'];
+        Feature::define('foo', 'bar');
+        Feature::define(FeatureWithBeforeHook::class);
+
+        $values = Feature::for('user:1')->all();
+
+        $this->assertSame([
+            'foo' => 'bar',
+            'Tests\Feature\FeatureWithBeforeHook' => ['before' => 'value'],
+        ], $values);
+        $this->assertSame(2, $queries);
+    }
+
+    public function test_it_can_get_features_with_before_hook()
+    {
+        $queries = 0;
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+        FeatureWithBeforeHook::$before = fn ($scope) => ['before' => 'value'];
+
+        $value = Feature::get(FeatureWithBeforeHook::class, null);
+
+        $this->assertSame(['before' => 'value'], $value);
+        $this->assertSame(0, $queries);
+    }
+
+    public function test_it_handles_null_scope_for_before_hook()
+    {
+        Event::fake(UnexpectedNullScopeEncountered::class);
+        $queries = 0;
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+        FeatureWithTypedBeforeHook::$before = fn ($scope) => 'before-value';
+        Feature::define(FeatureWithTypedBeforeHook::class);
+
+        $values = Feature::for(null)->value(FeatureWithTypedBeforeHook::class);
+
+        $this->assertSame('feature-value', $values);
+        $this->assertSame(2, $queries);
+
+        Feature::flushCache();
+
+        $value = Feature::get(FeatureWithTypedBeforeHook::class, null);
+
+        $this->assertSame('feature-value', $values);
+        $this->assertSame(3, $queries);
+        Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 2);
+    }
+
+    public function test_it_maintains_scope_feature_keys()
+    {
+        $count = 0;
+        FeatureWithBeforeHook::$before = function ($scope) use (&$count) {
+            if ($scope === 'user:2') {
+                return null;
+            }
+
+            $count++;
+
+            return "before-value-{$count}";
+        };
+        Feature::define(FeatureWithBeforeHook::class);
+
+        $values = Feature::getAll([
+            FeatureWithBeforeHook::class => ['user:1', 'user:2', 'user:3'],
+        ]);
+
+        $this->assertSame([
+            'Tests\Feature\FeatureWithBeforeHook' => ['before-value-1', 'feature-value', 'before-value-2'],
+        ], $values);
+    }
+
+    public function test_it_keys_by_feature_name()
+    {
+        Feature::define(FeatureWithName::class);
+        Feature::define(FeatureWithoutName::class);
+
+        $this->assertSame([
+            'feature-with-name' => 'feature-with-name-value',
+            'Tests\\Feature\\FeatureWithoutName' => 'feature-without-name-value',
+        ], Feature::all());
+
+        $this->assertSame([
+            'feature-with-name' => 'feature-with-name-value',
+            'feature-with-name' => 'feature-with-name-value',
+            'Tests\\Feature\\FeatureWithoutName' => 'feature-without-name-value',
+        ], Feature::values([
+            'feature-with-name',
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::load([
+            'feature-with-name',
+            FeatureWithoutName::class,
+        ]));
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::load([
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+
+        Feature::flushCache();
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::loadMissing([
+            'feature-with-name',
+            FeatureWithoutName::class,
+        ]));
+
+        Feature::flushCache();
+
+        $this->assertSame([
+            'feature-with-name' => ['feature-with-name-value'],
+            'Tests\\Feature\\FeatureWithoutName' => ['feature-without-name-value'],
+        ], Feature::loadMissing([
+            FeatureWithName::class,
+            FeatureWithoutName::class,
+        ]));
+    }
 }
 
 class UnregisteredFeature
@@ -1407,5 +1562,53 @@ class UnregisteredFeatureWithName
     public function __invoke()
     {
         return 'unregistered-value';
+    }
+}
+
+class FeatureWithBeforeHook
+{
+    public static $before;
+
+    public function resolve()
+    {
+        return 'feature-value';
+    }
+
+    public function before()
+    {
+        return (static::$before)(...func_get_args());
+    }
+}
+
+class FeatureWithTypedBeforeHook
+{
+    public static $before;
+
+    public function resolve()
+    {
+        return 'feature-value';
+    }
+
+    public function before(string $scope)
+    {
+        return (static::$before)(...func_get_args());
+    }
+}
+
+class FeatureWithoutName
+{
+    public function __invoke()
+    {
+        return 'feature-without-name-value';
+    }
+}
+
+class FeatureWithName
+{
+    public $name = 'feature-with-name';
+
+    public function __invoke()
+    {
+        return 'feature-with-name-value';
     }
 }
