@@ -1537,6 +1537,37 @@ class DatabaseDriverTest extends TestCase
             FeatureWithoutName::class,
         ]));
     }
+
+    public function testItCanLoadAllFeaturesForScope()
+    {
+        Feature::define('bar', fn ($scope) => $scope === 'taylor');
+        Feature::define('foo', fn ($scope) => $scope === 'tim');
+
+        Feature::for(['tim', 'taylor'])->loadAll();
+
+        $records = DB::table('features')->orderBy('scope')->orderBy('name')->get(['name', 'scope', 'value'])->all();
+        $this->assertCount(4, $records);
+        $this->assertEquals(literal(
+            scope: 'taylor',
+            value: 'true',
+            name: 'bar',
+        ), $records[0]);
+        $this->assertEquals(literal(
+            scope: 'taylor',
+            value: 'false',
+            name: 'foo',
+        ), $records[1]);
+        $this->assertEquals(literal(
+            scope: 'tim',
+            value: 'false',
+            name: 'bar',
+        ), $records[2]);
+        $this->assertEquals(literal(
+            scope: 'tim',
+            value: 'true',
+            name: 'foo',
+        ), $records[3]);
+    }
 }
 
 class UnregisteredFeature

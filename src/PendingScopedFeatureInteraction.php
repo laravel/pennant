@@ -71,6 +71,17 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Load all defined features into memory.
+     *
+     * @param  string|array<int, string>  $features
+     * @return array<string, array<int, mixed>>
+     */
+    public function loadAll()
+    {
+        return $this->load($this->driver->defined());
+    }
+
+    /**
      * Get the value of the flag.
      *
      * @param  string  $feature
