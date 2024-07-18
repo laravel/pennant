@@ -63,7 +63,7 @@ class PurgeCommand extends Command
 
         if ($features) {
             $this->components->info(implode(', ', $features).' successfully purged from storage.');
-        } else if ($except) {
+        } elseif ($except) {
             $this->components->info('No features to purge from storage.');
         } else {
             $this->components->info('All features successfully purged from storage.');
