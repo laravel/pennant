@@ -1547,26 +1547,26 @@ class DatabaseDriverTest extends TestCase
 
         $records = DB::table('features')->orderBy('scope')->orderBy('name')->get(['name', 'scope', 'value'])->all();
         $this->assertCount(4, $records);
-        $this->assertEquals(literal(
-            scope: 'taylor',
-            value: 'true',
-            name: 'bar',
-        ), $records[0]);
-        $this->assertEquals(literal(
-            scope: 'taylor',
-            value: 'false',
-            name: 'foo',
-        ), $records[1]);
-        $this->assertEquals(literal(
-            scope: 'tim',
-            value: 'false',
-            name: 'bar',
-        ), $records[2]);
-        $this->assertEquals(literal(
-            scope: 'tim',
-            value: 'true',
-            name: 'foo',
-        ), $records[3]);
+        $this->assertEquals((object) [
+            'scope' => 'taylor',
+            'value' => 'true',
+            'name' => 'bar',
+        ], $records[0]);
+        $this->assertEquals((object) [
+            'scope' => 'taylor',
+            'value' => 'false',
+            'name' => 'foo',
+        ], $records[1]);
+        $this->assertEquals((object) [
+            'scope' => 'tim',
+            'value' => 'false',
+            'name' => 'bar',
+        ], $records[2]);
+        $this->assertEquals((object) [
+            'scope' => 'tim',
+            'value' => 'true',
+            'name' => 'foo',
+        ], $records[3]);
     }
 }
 
