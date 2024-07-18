@@ -61,9 +61,13 @@ class PurgeCommand extends Command
 
         $store->purge($features);
 
-        with($features ?: ['All features'], function ($names) {
-            $this->components->info(implode(', ', $names).' successfully purged from storage.');
-        });
+        if ($features) {
+            $this->components->info(implode(', ', $features).' successfully purged from storage.');
+        } else if ($except) {
+            $this->components->info('No features to purge from storage.');
+        } else {
+            $this->components->info('All features successfully purged from storage.');
+        }
 
         return self::SUCCESS;
     }

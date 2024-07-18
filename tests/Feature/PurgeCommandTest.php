@@ -133,6 +133,20 @@ class PurgeCommandTest extends TestCase
         $this->assertSame(0, DB::table('features')->count());
     }
 
+    public function test_it_outputs_that_no_features_have_been_purged()
+    {
+        Feature::define('foo', true);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+
+        $this->assertSame(2, DB::table('features')->where('name', 'foo')->count());
+
+        $this->artisan('pennant:purge --except=foo')->expectsOutputToContain('No features to purge from storage.');
+
+        $this->assertSame(2, DB::table('features')->where('name', 'foo')->count());
+    }
+
     public function test_it_can_combine_except_and_features_as_arguments()
     {
         DB::table('features')->insert([
