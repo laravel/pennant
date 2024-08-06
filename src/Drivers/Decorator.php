@@ -73,6 +73,11 @@ class Decorator implements CanListStoredFeatures, Driver
     protected $cache;
 
     /**
+     * Map of feature names to their implementations.
+     */
+    protected $nameMap = [];
+
+    /**
      * Create a new driver decorator instance.
      *
      * @param  string  $name
@@ -122,6 +127,10 @@ class Decorator implements CanListStoredFeatures, Driver
                 $this->container->make($feature)->name ?? $feature,
                 new LazilyResolvedFeature($feature),
             ];
+
+            $this->nameMap[$feature] = $resolver->feature;
+        } else {
+            $this->nameMap[$feature] = $resolver;
         }
 
         $this->driver->define($feature, function ($scope) use ($feature, $resolver) {
@@ -486,6 +495,27 @@ class Decorator implements CanListStoredFeatures, Driver
     public function name($feature)
     {
         return $this->resolveFeature($feature);
+    }
+
+    /**
+     * Retrieve the feature's class.
+     *
+     * @param  string  $feature
+     * @return mixed
+     */
+    public function instance($name)
+    {
+        $feature = $this->nameMap[$name] ?? $name;
+
+        if (is_string($feature) && class_exists($feature)) {
+            return $this->container->make($feature);
+        }
+
+        if ($feature instanceof Closure || $feature instanceof Lottery) {
+            return $feature;
+        }
+
+        return fn () => $feature;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Closure;
 use Illuminate\Container\Container;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
@@ -1153,6 +1154,29 @@ class ArrayDriverTest extends TestCase
         Feature::for('Tim')->active('bar');
 
         $this->assertSame(Feature::stored(), ['bar']);
+    }
+
+    public function test_it_can_resolve_feature_instance()
+    {
+        Feature::define(MyFeature::class);
+        $this->assertInstanceOf(MyFeature::class, Feature::instance('my-feature'));
+        $this->assertInstanceOf(MyFeature::class, Feature::instance(MyFeature::class));
+
+        Feature::define(MyUnnamedFeature::class);
+        $this->assertInstanceOf(MyUnnamedFeature::class, Feature::instance(MyUnnamedFeature::class));
+
+        Feature::define('closure-based-feature', $closure = fn () => true);
+        $this->assertSame($closure, Feature::instance('closure-based-feature'));
+
+        Feature::define('value-based-feature', '123');
+        $feature = Feature::instance('value-based-feature');
+        $this->assertInstanceOf(Closure::class, $feature);
+        $this->assertSame('123', $feature());
+
+        Feature::define('lottery-based-feature', Lottery::odds(1, 1)->winner(fn () => '345'));
+        $feature = Feature::instance('lottery-based-feature');
+        $this->assertInstanceOf(Lottery::class, $feature);
+        $this->assertSame('345', $feature());
     }
 }
 
