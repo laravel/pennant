@@ -74,6 +74,8 @@ class Decorator implements CanListStoredFeatures, Driver
 
     /**
      * Map of feature names to their implementations.
+     *
+     * @var array<string, mixed>
      */
     protected $nameMap = [];
 
