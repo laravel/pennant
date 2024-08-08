@@ -502,7 +502,7 @@ class Decorator implements CanListStoredFeatures, Driver
     /**
      * Retrieve the feature's class.
      *
-     * @param  string  $feature
+     * @param  string  $name
      * @return mixed
      */
     public function instance($name)
