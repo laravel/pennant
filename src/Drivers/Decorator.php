@@ -18,16 +18,17 @@ use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Feature;
-use Laravel\Pennant\FeatureDoesNotMatchScope;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
-use Laravel\SerializableClosure\Support\ReflectionClosure;
+use ReflectionClass;
 use ReflectionFunction;
+use ReflectionIntersectionType;
+use ReflectionNamedType;
+use ReflectionUnionType;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
 
@@ -173,12 +174,6 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function resolve($feature, $resolver, $scope)
     {
-        if (! $this->isResolverValidForScope($resolver, $scope)) {
-            Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
-
-            return FeatureDoesNotMatchScope::instance();
-        }
-
         $value = $resolver($scope);
 
         $value = $value instanceof Lottery ? $value() : $value;
@@ -191,44 +186,98 @@ class Decorator implements CanListStoredFeatures, Driver
     /**
      * Determine if the resolver can handle the scope.
      *
-     * @param  callable  $resolver
+     * @param  callable|class-string  $resolver
      * @param  mixed  $scope
      * @return bool
      */
-    protected function isResolverValidForScope($resolver, $scope)
+    public function isResolverValidForScope($resolver, $scope)
     {
-        $function = new ReflectionClosure(Closure::fromCallable($resolver));
+        if (is_string($resolver) && class_exists($resolver)) {
+            $class = new ReflectionClass($resolver);
+
+            $function = $class->hasMethod('resolve')
+                ? $class->getMethod('resolve')
+                : $class->getMethod('__invoke');
+        } else {
+            $function = new ReflectionFunction(Closure::fromCallable($resolver));
+        }
 
         if ($function->getNumberOfParameters() === 0) {
             return true;
         }
 
-        if ($scope === null && $this->canHandleNullScope($function)) {
+        $type = $function->getParameters()[0]->getType();
+
+        if ($type === null) {
             return true;
         }
 
-        if (! $type = $function->getParameters()[0]->getType()) {
-             return true;
+        return $this->typeAllowsScope($type, $scope, $function);
+    }
+
+    /**
+     * Determine if the type can handle the scope.
+     *
+     * @param  \ReflectionType  $type
+     * @param  mixed  $scope
+     * @param  \ReflectionMethod|\ReflectionFunction  $function
+     * @return bool
+     */
+    protected function typeAllowsScope($type, $scope, $function)
+    {
+        if ($type instanceof ReflectionUnionType) {
+            foreach ($type->getTypes() as $type) {
+                if ($this->typeAllowsScope($type, $scope, $function)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        if (($name = $type->getName()) === 'mixed') {
+        if ($type instanceof ReflectionIntersectionType) {
+            foreach ($type->getTypes() as $type) {
+                if (! $this->typeAllowsScope($type, $scope, $function)) {
+                    return false;
+                }
+            }
+
             return true;
         }
 
-        return is_a($scope, $name);
+        if ($type instanceof ReflectionNamedType) {
+            if ($type->getName() === 'mixed') {
+                return true;
+            }
+
+            return match (gettype($scope)) {
+                'boolean',
+                'integer',
+                'double',
+                'string',
+                'array',
+                'resource',
+                'resource (closed)' => gettype($scope) === $type->getName(),
+                'NULL' => $this->canHandleNullScope($function),
+                'object' => $scope instanceof ($type->getName()),
+                'unknown type' => false,
+            };
+        }
+
+        throw new RuntimeException('Unknown reflection type encoutered.');
     }
 
     /**
      * Determine if the resolver accepts null scope.
      *
-     * @param  callable|ReflectionFunction  $resolver
+     * @param  callable|\ReflectionFunction|\ReflectionMethod  $resolver
      * @return bool
      */
     protected function canHandleNullScope($resolver)
     {
-        $function = $resolver instanceof ReflectionFunction
-            ? $resolver
-            : new ReflectionFunction(Closure::fromCallable($resolver));
+        $function = is_callable($resolver)
+            ? new ReflectionFunction(Closure::fromCallable($resolver))
+            : $resolver;
 
         return $function->getNumberOfParameters() === 0 ||
             ! $function->getParameters()[0]->hasType() ||
@@ -559,6 +608,28 @@ class Decorator implements CanListStoredFeatures, Driver
         }
 
         return fn () => $feature;
+    }
+
+    /**
+     * Retrieve the defined features for the given scope.
+     *
+     * @internal
+     *
+     * @param  mixed  $scope
+     * @return \Illuminate\Support\Collection<int, string>
+     */
+    public function definedFeaturesForScope($scope)
+    {
+        return collect($this->nameMap)
+            ->only($this->defined())
+            ->filter(function ($resolver) use ($scope) {
+                if (is_callable($resolver) || (is_string($resolver) && class_exists($resolver))) {
+                    return $this->isResolverValidForScope($resolver, $scope);
+                }
+
+                return true;
+            })
+            ->keys();
     }
 
     /**
