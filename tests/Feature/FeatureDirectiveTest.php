@@ -76,4 +76,27 @@ class FeatureDirectiveTest extends TestCase
         $output = trim(Blade::render($blade));
         $this->assertSame('foo is 888', $output);
     }
+
+    public function test_it_renders_any_active_features()
+    {
+        $blade = <<<'BLADE'
+        @featureany(['foo', 'bar'])
+            foo or bar is active
+        @else
+            foo and bar are inactive
+        @endfeatureany
+        BLADE;
+
+        $output = trim(Blade::render($blade));
+        $this->assertSame('foo and bar are inactive', $output);
+
+        Feature::activate('foo');
+        $output = trim(Blade::render($blade));
+        $this->assertSame('foo or bar is active', $output);
+
+        Feature::deactivate('foo');
+        Feature::activate('bar');
+        $output = trim(Blade::render($blade));
+        $this->assertSame('foo or bar is active', $output);
+    }
 }
