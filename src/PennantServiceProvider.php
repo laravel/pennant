@@ -43,6 +43,10 @@ class PennantServiceProvider extends ServiceProvider
 
                 return Feature::active($feature);
             });
+
+            $blade->if('featureany', function ($features) {
+                return Feature::someAreActive($features);
+            });
         });
 
         $this->listenForEvents();
