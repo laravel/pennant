@@ -3,6 +3,7 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Support\Collection;
+use Laravel\Pennant\Exceptions\FeatureInactiveException;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
@@ -132,6 +133,21 @@ class PendingScopedFeatureInteraction
     public function active($feature)
     {
         return $this->allAreActive([$feature]);
+    }
+
+    /**
+     * Determine if the feature is active, or throw an exception if it is not.
+     *
+     * @param  string  $feature
+     * @return bool
+     */
+    public function activeOrFail($feature)
+    {
+        if ($this->allAreActive([$feature])) {
+            return true;
+        }
+
+        throw new FeatureInactiveException($feature);
     }
 
     /**

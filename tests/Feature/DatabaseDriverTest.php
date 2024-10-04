@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use Exception;
+use function Orchestra\Testbench\workbench_path;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -23,13 +24,13 @@ use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
+use Laravel\Pennant\Exceptions\FeatureInactiveException;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\User;
-use Workbench\Database\Factories\UserFactory;
 
-use function Orchestra\Testbench\workbench_path;
+use Workbench\Database\Factories\UserFactory;
 
 class DatabaseDriverTest extends TestCase
 {
@@ -1567,6 +1568,17 @@ class DatabaseDriverTest extends TestCase
             'value' => 'true',
             'name' => 'foo',
         ], $records[3]);
+    }
+
+    public function test_exception_is_thrown_if_feature_is_inactive(): void
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => false);
+
+        $this->assertTrue(Feature::activeOrFail('foo'));
+
+        $this->expectException(FeatureInactiveException::class);
+        Feature::activeOrFail('bar');
     }
 }
 
