@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Laravel\Pennant\Contracts\FeatureScopeable;
+use Laravel\Pennant\Contracts\FeatureScopeSerializeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
@@ -356,21 +357,27 @@ class DatabaseDriverTest extends TestCase
 
     public function test_it_can_handle_feature_scopeable_objects()
     {
-        $scopeable = fn () => new class extends User implements FeatureScopeable
+        Feature::define('foo', function ($scope) {
+            return $scope === 'tim@laravel.com';
+        });
+        $scopeable = fn ($email) => new class(['email' => $email]) extends User implements FeatureScopeable
         {
             public function toFeatureIdentifier($driver): mixed
             {
-                return 'tim@laravel.com';
+                return $this->email;
             }
         };
 
-        Feature::for($scopeable())->activate('foo');
+        $this->assertTrue(Feature::for($scopeable('tim@laravel.com'))->active('foo'));
+        $this->assertFalse(Feature::for($scopeable('james@laravel.com'))->active('foo'));
 
-        $this->assertFalse(Feature::for('james@laravel.com')->active('foo'));
-        $this->assertTrue(Feature::for('tim@laravel.com')->active('foo'));
-        $this->assertTrue(Feature::for($scopeable())->active('foo'));
+        $this->assertCount(4, DB::getQueryLog());
 
-        $this->assertCount(2, DB::getQueryLog());
+        $scope = DB::table('features')->get('scope');
+        $this->assertSame([
+            'james@laravel.com',
+            'tim@laravel.com',
+        ], $scope->pluck('scope')->all());
     }
 
     public function test_it_serializes_eloquent_models()
@@ -380,6 +387,31 @@ class DatabaseDriverTest extends TestCase
         $scope = DB::table('features')->value('scope');
 
         $this->assertStringContainsString('Workbench\App\Models\User|1', $scope);
+    }
+
+    public function test_it_can_manually_serialize_scope()
+    {
+        Feature::define('foo', function ($scope) {
+            return $scope->email === 'tim@laravel.com';
+        });
+        $scopeable = fn ($email) => new class(['email' => $email]) extends User implements FeatureScopeSerializeable
+        {
+            public function featureScopeSerialize(string $driver): string
+            {
+                return $this->email;
+            }
+        };
+
+        $this->assertTrue(Feature::for($scopeable('tim@laravel.com'))->active('foo'));
+        $this->assertFalse(Feature::for($scopeable('james@laravel.com'))->active('foo'));
+
+        $this->assertCount(4, DB::getQueryLog());
+
+        $scope = DB::table('features')->get('scope');
+        $this->assertSame([
+            'james@laravel.com',
+            'tim@laravel.com',
+        ], $scope->pluck('scope')->all());
     }
 
     public function test_it_can_load_feature_state_into_memory()

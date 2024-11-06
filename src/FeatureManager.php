@@ -7,6 +7,7 @@ use Illuminate\Contracts\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use InvalidArgumentException;
+use Laravel\Pennant\Contracts\FeatureScopeSerializeable;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
@@ -178,17 +179,19 @@ class FeatureManager
      * Serialize the given scope for storage.
      *
      * @param  mixed  $scope
+     * @param  string  $driver
      * @return string|null
      */
-    public function serializeScope($scope)
+    public function serializeScope($scope, $driver = '')
     {
         return match (true) {
+            $scope instanceof FeatureScopeSerializeable => $scope->featureScopeSerialize($driver),
             $scope === null => '__laravel_null',
             is_string($scope) => $scope,
             is_numeric($scope) => (string) $scope,
             $scope instanceof Model && $this->useMorphMap => $scope->getMorphClass().'|'.$scope->getKey(),
             $scope instanceof Model && ! $this->useMorphMap => $scope::class.'|'.$scope->getKey(),
-            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeable contract.')
+            default => throw new RuntimeException('Unable to serialize the feature scope to a string. You should implement the FeatureScopeSerializeable contract.')
         };
     }
 
