@@ -1585,9 +1585,6 @@ class DatabaseDriverTest extends TestCase
         Feature::define('array', fn (array $t) => 7);
         Feature::define('string', fn (string $str) => 8);
         Feature::define('team-or-user', fn (Team|User $model) => 9);
-        if ($supportsIntersectionTypes = version_compare(PHP_VERSION, '8.1', '>')) {
-            Feature::define('team-or-user-intersection', fn (Team|(Authenticatable&Authorizable) $model) => 10);
-        }
 
         $features = Feature::for(new User)->all();
         $this->assertSame([
@@ -1596,10 +1593,9 @@ class DatabaseDriverTest extends TestCase
             'mixed' => 5,
             'none' => 6,
             'team-or-user' => 9,
-            ...$supportsIntersectionTypes ? ['team-or-user-intersection' => 10] : [],
         ], $features);
         $this->assertCount(2, DB::getQueryLog());
-        $this->assertCount(6, DB::table('features')->get()); // query
+        $this->assertCount(5, DB::table('features')->get()); // query
 
         $features = Feature::for(new Team)->all();
         $this->assertSame([
@@ -1608,10 +1604,9 @@ class DatabaseDriverTest extends TestCase
             'mixed' => 5,
             'none' => 6,
             'team-or-user' => 9,
-            ...$supportsIntersectionTypes ? ['team-or-user-intersection' => 10] : [],
         ], $features);
         $this->assertCount(5, DB::getQueryLog());
-        $this->assertCount(12, DB::table('features')->get()); // query
+        $this->assertCount(10, DB::table('features')->get()); // query
 
         $features = Feature::for('scope')->all();
         $this->assertSame([
@@ -1620,7 +1615,7 @@ class DatabaseDriverTest extends TestCase
             'string' => 8,
         ], $features);
         $this->assertCount(8, DB::getQueryLog());
-        $this->assertCount(15, DB::table('features')->get());
+        $this->assertCount(13, DB::table('features')->get());
     }
 }
 

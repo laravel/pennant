@@ -46,4 +46,9 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress
 
       - name: Execute tests
+        if: ${{ matrix.php == 8.1 }}
+        run: vendor/bin/phpunit --testsuite="Feature"
+
+      - name: Execute tests
+        if: ${{ matrix.php != 8.1 }}
         run: vendor/bin/phpunit
