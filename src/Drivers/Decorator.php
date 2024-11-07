@@ -419,7 +419,7 @@ class Decorator implements CanListStoredFeatures, Driver
         $scope = $this->resolveScope($scope);
 
         $item = $this->cache
-            ->whereStrict('scope', Feature::serializeScope($scope, $this->name))
+            ->whereStrict('scope', Feature::serializeScope($scope))
             ->whereStrict('feature', $feature)
             ->first();
 
@@ -697,7 +697,7 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function isCached($feature, $scope)
     {
-        $scope = Feature::serializeScope($scope, $this->name, $this->name, $this->name, $this->name, $this->name, $this->name, $this->name, $this->name);
+        $scope = Feature::serializeScope($scope);
 
         return $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
@@ -714,7 +714,7 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function putInCache($feature, $scope, $value)
     {
-        $scope = Feature::serializeScope($scope, $this->name);
+        $scope = Feature::serializeScope($scope);
 
         $position = $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
@@ -736,7 +736,7 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function removeFromCache($feature, $scope)
     {
-        $scope = Feature::serializeScope($scope, $this->name);
+        $scope = Feature::serializeScope($scope);
 
         $position = $this->cache->search(
             fn ($item) => $item['feature'] === $feature && $item['scope'] === $scope
