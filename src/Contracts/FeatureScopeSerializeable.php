@@ -7,5 +7,5 @@ interface FeatureScopeSerializeable
     /**
      * Serialize the feature scope for storage.
      */
-    public function featureScopeSerialize(string $driver): string;
+    public function featureScopeSerialize(): string;
 }

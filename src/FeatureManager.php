@@ -179,13 +179,12 @@ class FeatureManager
      * Serialize the given scope for storage.
      *
      * @param  mixed  $scope
-     * @param  string  $driver
-     * @return string|null
+     * @return string
      */
-    public function serializeScope($scope, $driver = '')
+    public function serializeScope($scope)
     {
         return match (true) {
-            $scope instanceof FeatureScopeSerializeable => $scope->featureScopeSerialize($driver),
+            $scope instanceof FeatureScopeSerializeable => $scope->featureScopeSerialize(),
             $scope === null => '__laravel_null',
             is_string($scope) => $scope,
             is_numeric($scope) => (string) $scope,

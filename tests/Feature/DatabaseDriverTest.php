@@ -396,7 +396,7 @@ class DatabaseDriverTest extends TestCase
         });
         $scopeable = fn ($email) => new class(['email' => $email]) extends User implements FeatureScopeSerializeable
         {
-            public function featureScopeSerialize(string $driver): string
+            public function featureScopeSerialize(): string
             {
                 return $this->email;
             }
