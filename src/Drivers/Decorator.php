@@ -142,7 +142,7 @@ class Decorator implements CanListStoredFeatures, Driver
         $this->driver->define($feature, function ($scope) use ($feature, $resolver) {
             if ($resolver instanceof LazilyResolvedFeature) {
                 $resolver = with($this->container[$resolver->feature], fn ($instance) => method_exists($instance, 'resolve')
-                    ? $instance->resolve(...)
+                    ? $instance->resolve(...) // @phpstan-ignore callable.nonNativeMethod
                     : $instance(...));
             }
 

@@ -4,4 +4,4 @@ parameters:
     - database
     - src
 
-  level: 0
+  level: 5

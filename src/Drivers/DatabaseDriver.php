@@ -166,7 +166,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
                     return false;
                 }
 
-                $inserts[] = [
+                $inserts[] = [ // @phpstan-ignore offsetAssign.valueType
                     'name' => $feature,
                     'scope' => $scope,
                     'value' => $value,
@@ -176,7 +176,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             });
         })->all())->all();
 
-        if ($inserts->isNotEmpty()) {
+        if ($inserts->isNotEmpty()) { // @phpstan-ignore method.impossibleType
             try {
                 $this->insertMany($inserts->all());
             } catch (UniqueConstraintViolationException $e) {
