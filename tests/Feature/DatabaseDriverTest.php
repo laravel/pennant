@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use Exception;
-use Illuminate\Contracts\Auth\Access\Authorizable;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -22,13 +20,11 @@ use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
-use Laravel\Pennant\FeatureDoesNotMatchScope;
 use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\Team;
