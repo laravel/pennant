@@ -78,7 +78,7 @@ class PendingScopedFeatureInteraction
     public function loadAll()
     {
         return $this->load(
-            $this->driver->definedFeaturesForScope($this->scope()[0])
+            $this->driver->definedFeaturesForScope($this->scope()[0])->all()
         );
     }
 
@@ -122,7 +122,7 @@ class PendingScopedFeatureInteraction
     public function all()
     {
         return $this->values(
-            $this->driver->definedFeaturesForScope($this->scope()[0])
+            $this->driver->definedFeaturesForScope($this->scope()[0])->all()
         );
     }
 
