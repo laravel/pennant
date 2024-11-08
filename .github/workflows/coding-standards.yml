@@ -5,3 +5,5 @@ on: [push]
 jobs:
   lint:
     uses: laravel/.github/.github/workflows/coding-standards.yml@main
+    with:
+      php: "8.3"
