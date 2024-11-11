@@ -10,6 +10,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
@@ -620,6 +621,10 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     public function definedFeaturesForScope($scope)
     {
+        if ($this->driver instanceof DefinesFeaturesExternally) {
+            return collect($this->driver->definedFeaturesForScope($scope));
+        }
+
         return collect($this->nameMap)
             ->only($this->defined())
             ->filter(function ($resolver) use ($scope) {
