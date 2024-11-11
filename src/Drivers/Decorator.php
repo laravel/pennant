@@ -621,6 +621,8 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     public function definedFeaturesForScope($scope)
     {
+        $scope = $this->resolveScope($scope);
+
         if ($this->driver instanceof DefinesFeaturesExternally) {
             return collect($this->driver->definedFeaturesForScope($scope));
         }
