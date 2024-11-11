@@ -38,4 +38,3 @@ class DefinesFeaturesExternallyTest extends TestCase
         ], $features);
     }
 }
-
