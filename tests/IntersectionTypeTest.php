@@ -24,7 +24,7 @@ class IntersectionTypeTest extends TestCase
         DB::enableQueryLog();
     }
 
-    public function testCanRetrieveAllFeaturesForDifferingScopeTypes(): void
+    public function test_can_retrieve_all_features_for_differing_scope_types(): void
     {
         Feature::define('user', fn (User $user) => 1);
         Feature::define('nullable-user', fn (?User $user) => 2);

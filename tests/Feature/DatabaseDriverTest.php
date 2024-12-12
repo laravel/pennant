@@ -1460,10 +1460,21 @@ class DatabaseDriverTest extends TestCase
             $queries++;
         });
         FeatureWithBeforeHook::$before = fn ($scope) => ['before' => 'value'];
+        FeatureWithBeforeHookAndCustomName::$before = fn ($scope) => ['before' => 'value 2'];
 
         $value = Feature::get(FeatureWithBeforeHook::class, null);
 
         $this->assertSame(['before' => 'value'], $value);
+        $this->assertSame(0, $queries);
+
+        $value = Feature::get(FeatureWithBeforeHookAndCustomName::class, null);
+
+        $this->assertSame(['before' => 'value 2'], $value);
+        $this->assertSame(0, $queries);
+
+        $value = Feature::get('feature-with-before-hook-and-custom-name', null);
+
+        $this->assertSame(['before' => 'value 2'], $value);
         $this->assertSame(0, $queries);
     }
 
@@ -1489,6 +1500,40 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame('feature-value', $values);
         $this->assertSame(3, $queries);
         Event::assertDispatchedTimes(UnexpectedNullScopeEncountered::class, 2);
+    }
+
+    public function test_it_can_use_before_hook_when_using_feature_name_property()
+    {
+        $queries = 0;
+        FeatureWithBeforeHookAndCustomName::$before = fn ($scope) => 'before';
+        Feature::define(FeatureWithBeforeHookAndCustomName::class);
+        Feature::activate(FeatureWithBeforeHookAndCustomName::class, 'stored-value');
+        Feature::flushCache();
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+
+        $value = Feature::for(null)->value(FeatureWithBeforeHookAndCustomName::class);
+
+        $this->assertSame('before', $value);
+        $this->assertSame(0, $queries);
+    }
+
+    public function test_it_can_use_before_hook_when_using_feature_name_property_on_a_dynamically_registered_feature()
+    {
+        $queries = 0;
+        FeatureWithBeforeHookAndCustomName::$before = fn ($scope) => 'before';
+        Feature::activate(FeatureWithBeforeHookAndCustomName::class, 'stored-value');
+        Feature::activate('blah', 'stored-value');
+        Feature::flushCache();
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+
+        $value = Feature::for(null)->value(FeatureWithBeforeHookAndCustomName::class);
+
+        $this->assertSame('before', $value);
+        $this->assertSame(0, $queries);
     }
 
     public function test_it_maintains_scope_feature_keys()
@@ -1571,7 +1616,7 @@ class DatabaseDriverTest extends TestCase
         ]));
     }
 
-    public function testItCanLoadAllFeaturesForScope()
+    public function test_it_can_load_all_features_for_scope()
     {
         Feature::define('bar', fn ($scope) => $scope === 'taylor');
         Feature::define('foo', fn ($scope) => $scope === 'tim');
@@ -1602,7 +1647,7 @@ class DatabaseDriverTest extends TestCase
         ], $records[3]);
     }
 
-    public function testCanRetrieveAllFeaturesForDifferingScopeTypes(): void
+    public function test_can_retrieve_all_features_for_differing_scope_types(): void
     {
         Feature::define('user', fn (User $user) => 1);
         Feature::define('nullable-user', fn (?User $user) => 2);
@@ -1675,6 +1720,23 @@ class UnregisteredFeatureWithName
 
 class FeatureWithBeforeHook
 {
+    public static $before;
+
+    public function resolve()
+    {
+        return 'feature-value';
+    }
+
+    public function before()
+    {
+        return (static::$before)(...func_get_args());
+    }
+}
+
+class FeatureWithBeforeHookAndCustomName
+{
+    public string $name = 'feature-with-before-hook-and-custom-name';
+
     public static $before;
 
     public function resolve()

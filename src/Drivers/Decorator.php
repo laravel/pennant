@@ -330,13 +330,13 @@ class Decorator implements CanListStoredFeatures, Driver
         $resolvedBefore = $features->reduce(function ($resolved, $scopes, $feature) use (&$hasUnresolvedFeatures) {
             $resolved[$feature] = [];
 
-            if (! method_exists($feature, 'before')) {
+            if (! $this->hasBeforeHook($feature)) {
                 $hasUnresolvedFeatures = true;
 
                 return $resolved;
             }
 
-            $before = $this->container->make($feature)->before(...);
+            $before = $this->container->make($this->implementationClass($feature))->before(...);
 
             foreach ($scopes as $index => $scope) {
                 $value = $this->resolveBeforeHook($feature, $scope, $before);
@@ -430,8 +430,8 @@ class Decorator implements CanListStoredFeatures, Driver
             return $item['value'];
         }
 
-        $before = method_exists($feature, 'before')
-            ? $this->container->make($feature)->before(...)
+        $before = $this->hasBeforeHook($feature)
+            ? $this->container->make($this->implementationClass($feature))->before(...)
             : fn () => null;
 
         $value = $this->resolveBeforeHook($feature, $scope, $before) ?? $this->driver->get($feature, $scope);
@@ -680,6 +680,35 @@ class Decorator implements CanListStoredFeatures, Driver
                 $this->define($feature);
             }
         });
+    }
+
+    /**
+     * Determine if the given feature has a before hook.
+     *
+     * @param  string  $feature
+     * @return bool
+     */
+    protected function hasBeforeHook($feature)
+    {
+        $implementation = $this->implementationClass($feature);
+
+        return is_string($implementation) && class_exists($implementation) && method_exists($implementation, 'before');
+    }
+
+    /**
+     * Retrieve the implementation feature class for the given feature name.
+     *
+     * @return ?string
+     */
+    protected function implementationClass($feature)
+    {
+        $class = $this->nameMap[$feature] ?? $feature;
+
+        if (is_string($class) && class_exists($class)) {
+            return $class;
+        }
+
+        return null;
     }
 
     /**

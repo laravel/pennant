@@ -15,20 +15,20 @@ class FeatureHelperTest extends TestCase
         Config::set('pennant.default', 'array');
     }
 
-    public function testItReturnsFeatureManager()
+    public function test_it_returns_feature_manager()
     {
         $this->assertNotNull(feature());
         $this->assertSame(Feature::getFacadeRoot(), feature());
     }
 
-    public function testItReturnsTheFeatureValue()
+    public function test_it_returns_the_feature_value()
     {
         Feature::activate('foo', 'bar');
 
         $this->assertSame('bar', feature('foo'));
     }
 
-    public function testItConditionallyExecutesCodeBlocks()
+    public function test_it_conditionally_executes_code_blocks()
     {
         Feature::activate('foo');
         $inactive = $active = null;
