@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.14.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.15.0...1.x)
+
+## [v1.15.0](https://github.com/laravel/pennant/compare/v1.14.0...v1.15.0) - 2024-12-27
+
+* [1.x] Allow any driver to opt-in to cache flushing by [@dshafik](https://github.com/dshafik) in https://github.com/laravel/pennant/pull/131
 
 ## [v1.14.0](https://github.com/laravel/pennant/compare/v1.13.0...v1.14.0) - 2024-12-13
 
