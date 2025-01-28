@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.15.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.15.1...1.x)
+
+## [v1.15.1](https://github.com/laravel/pennant/compare/v1.15.0...v1.15.1) - 2025-01-28
+
+* Supports Laravel 12 by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pennant/pull/132
 
 ## [v1.15.0](https://github.com/laravel/pennant/compare/v1.14.0...v1.15.0) - 2024-12-27
 
