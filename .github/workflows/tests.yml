@@ -20,13 +20,17 @@ jobs:
       fail-fast: true
       matrix:
         php: [8.1, 8.2, 8.3]
-        laravel: [10, 11]
+        laravel: [10, 11, 12]
         include:
           - php: 8.4
             laravel: 11
+          - php: 8.4
+            laravel: 12
         exclude:
           - php: 8.1
             laravel: 11
+          - php: 8.1
+            laravel: 12
 
     name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
 
@@ -48,9 +52,4 @@ jobs:
            composer update --prefer-dist --no-interaction --no-progress --with="illuminate/contracts=^${{ matrix.laravel }}"
 
       - name: Execute tests
-        if: ${{ matrix.php == 8.1 }}
-        run: vendor/bin/phpunit --testsuite="Feature"
-
-      - name: Execute tests
-        if: ${{ matrix.php != 8.1 }}
-        run: vendor/bin/phpunit
+        run: vendor/bin/phpunit ${{ matrix.php == 8.1 && '--testsuite="Feature"' || '' }}
