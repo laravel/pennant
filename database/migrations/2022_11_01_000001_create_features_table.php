@@ -33,4 +33,16 @@ return new class extends Migration
     {
         Schema::dropIfExists('features');
     }
+
+    /**
+     * Get the migration connection name.
+     *
+     * @return string|null
+     */
+    public function getConnection()
+    {
+        $connection = config('pennant.stores.database.connection');
+
+        return ($connection === null || $connection === 'null') ? config('database.default') : $connection;
+    }
 };
