@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Pennant\Migrations\PennantMigration;
 
-return new class extends Migration
+return new class extends PennantMigration
 {
     /**
      * Run the migrations.
@@ -32,17 +32,5 @@ return new class extends Migration
     public function down()
     {
         Schema::dropIfExists('features');
-    }
-
-    /**
-     * Get the migration connection name.
-     *
-     * @return string
-     */
-    public function getConnection()
-    {
-        $connection = config('pennant.stores.database.connection');
-
-        return ($connection === null || $connection === 'null') ? config('database.default') : $connection;
     }
 };
