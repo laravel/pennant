@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Pennant\Migrations\PennantMigration;
 
-return new class extends Migration
+return new class extends PennantMigration
 {
     /**
      * Run the migrations.

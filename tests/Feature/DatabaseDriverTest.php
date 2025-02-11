@@ -1210,6 +1210,22 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame('bar_features', $tableResolver->bindTo($driver, $driver)());
     }
 
+    public function test_it_uses_default_connection_if_null()
+    {
+        Config::set('pennant.stores.database.connection', 'null');
+
+        $migration = new class extends \Illuminate\Database\Migrations\Migration {
+            public function getConnection()
+            {
+                $connection = config('pennant.stores.database.connection');
+                return ($connection === null || $connection === 'null') ? config('database.default') : $connection;
+            }
+        };
+
+        $connection = $migration->getConnection();
+        $this->assertSame(config('database.default'), $connection);
+    }
+
     public function test_it_dispatches_events_when_purging_features()
     {
         Event::fake([FeaturesPurged::class]);
