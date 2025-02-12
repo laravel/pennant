@@ -5,6 +5,9 @@ on:
     branches:
       - '*.x'
 
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-22.04
