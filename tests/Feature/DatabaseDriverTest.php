@@ -55,6 +55,59 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(1, DB::getQueryLog());
     }
 
+    public function test_it_can_restore_a_rich_feature_value()
+    {
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo', 'bar');
+
+        $this->assertEquals(Feature::for('tim')->value('foo'), 'bar');
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertEquals(Feature::getDriver()->get('foo', 'tim'), 'bar');
+        $this->assertEquals(Feature::getDriver()->getRaw('foo', 'tim'), 'bar');
+
+        Feature::for('tim')->deactivate('foo');
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertEquals(Feature::getDriver()->getRaw('foo', 'tim'), 'bar');
+
+        Feature::for('tim')->restore('foo');
+
+        $this->assertEquals(Feature::for('tim')->value('foo'), 'bar');
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertEquals(Feature::getDriver()->get('foo', 'tim'), 'bar');
+        $this->assertEquals(Feature::getDriver()->getRaw('foo', 'tim'), 'bar');
+    }
+
+    public function test_it_can_restore_a_rich_feature_value_for_everyone()
+    {
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo', 'bar');
+        Feature::for('taylor')->activate('foo', 'bar');
+
+        $this->assertEquals(Feature::for('tim')->value('foo'), 'bar');
+        $this->assertEquals(Feature::for('taylor')->value('foo'), 'bar');
+        $this->assertEquals(Feature::getDriver()->get('foo', 'tim'), 'bar');
+        $this->assertEquals(Feature::getDriver()->get('foo', 'taylor'), 'bar');
+
+        Feature::deactivateForEveryone('foo');
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('taylor')->value('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'taylor'));
+
+        Feature::restoreForEveryone('foo');
+
+        $this->assertEquals(Feature::for('tim')->value('foo'), 'bar');
+        $this->assertEquals(Feature::for('taylor')->value('foo'), 'bar');
+        $this->assertEquals(Feature::getDriver()->get('foo', 'tim'), 'bar');
+        $this->assertEquals(Feature::getDriver()->get('foo', 'taylor'), 'bar');
+    }
+
     public function test_it_dispatches_events_on_unknown_feature_checks()
     {
         Event::fake([UnknownFeatureResolved::class]);

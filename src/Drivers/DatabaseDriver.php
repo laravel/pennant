@@ -158,7 +158,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             $filtered = $records->where('name', $feature)->where('scope', Feature::serializeScope($scope));
 
             if ($filtered->isNotEmpty()) {
-                return json_decode($filtered->value('value'), flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR); // @phpstan-ignore argument.type
+                return $this->value($filtered->first());
             }
 
             return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
@@ -196,6 +196,59 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Get the feature record's value
+     * 
+     * @param object $record
+     */
+    protected function value(object $record): mixed
+    {
+        $value = json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+
+        if (isset($record->active)) {
+            return (bool) $record->active ? $value : false;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Retrieve a feature flag's raw value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * 
+     * @return mixed
+     */
+    public function getRaw($feature, $scope)
+    {
+        if (($record = $this->retrieve($feature, $scope)) !== null) {
+            return json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+        }
+
+        return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
+            if ($value === $this->unknownFeatureValue) {
+                return false;
+            }
+
+            try {
+                $this->insert($feature, $scope, $value);
+            } catch (UniqueConstraintViolationException $e) {
+                if ($this->retryDepth === 1) {
+                    throw new RuntimeException('Unable to insert feature value into the database.', previous: $e);
+                }
+
+                $this->retryDepth++;
+
+                return $this->getRaw($feature, $scope);
+            } finally {
+                $this->retryDepth = 0;
+            }
+
+            return $value;
+        });
+    }
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @param  string  $feature
@@ -204,7 +257,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     public function get($feature, $scope): mixed
     {
         if (($record = $this->retrieve($feature, $scope)) !== null) {
-            return json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+            return $this->value($record);
         }
 
         return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
@@ -264,6 +317,26 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Set a raw value for a feature flag attribute.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  string  $key
+     * @param  mixed  $value
+     */
+    public function setRaw($feature, $scope, $key, $value): void
+    {
+        $this->newQuery()->upsert([
+            'name' => $feature,
+            'scope' => Feature::serializeScope($scope),
+            'active' => false,
+            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+            static::CREATED_AT => $now = Carbon::now(),
+            static::UPDATED_AT => $now,
+        ], uniqueBy: ['name', 'scope'], update: ['active', static::UPDATED_AT]);
+    }
+
+    /**
      * Set a feature flag's value.
      *
      * @param  string  $feature
@@ -272,13 +345,40 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      */
     public function set($feature, $scope, $value): void
     {
+        if ($value) {
+            $this->newQuery()->upsert([
+                'name' => $feature,
+                'scope' => Feature::serializeScope($scope),
+                'active' => true,
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                static::CREATED_AT => $now = Carbon::now(),
+                static::UPDATED_AT => $now,
+            ], uniqueBy: ['name', 'scope'], update: ['active', 'value', static::UPDATED_AT]);
+
+            return;
+        }
+
+        if (is_null($value)) {
+            $this->newQuery()->upsert([
+                'name' => $feature,
+                'scope' => Feature::serializeScope($scope),
+                'active' => true,
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                static::CREATED_AT => $now = Carbon::now(),
+                static::UPDATED_AT => $now,
+            ], uniqueBy: ['name', 'scope'], update: ['active', static::UPDATED_AT]);
+
+            return;
+        }
+
         $this->newQuery()->upsert([
             'name' => $feature,
             'scope' => Feature::serializeScope($scope),
+            'active' => false,
             'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
             static::CREATED_AT => $now = Carbon::now(),
             static::UPDATED_AT => $now,
-        ], uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
+        ], uniqueBy: ['name', 'scope'], update: ['active', static::UPDATED_AT]);
     }
 
     /**
@@ -289,10 +389,33 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      */
     public function setForAllScopes($feature, $value): void
     {
+        if ($value) {
+            $this->newQuery()
+            ->where('name', $feature)
+            ->update([
+                'active' => true,
+                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                static::UPDATED_AT => Carbon::now(),
+            ]);
+
+            return;
+        }
+
+        if (is_null($value)) {
+            $this->newQuery()
+            ->where('name', $feature)
+            ->update([
+                'active' => true,
+                static::UPDATED_AT => Carbon::now(),
+            ]);
+
+            return;
+        }
+
         $this->newQuery()
             ->where('name', $feature)
             ->update([
-                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                'active' => false,
                 static::UPDATED_AT => Carbon::now(),
             ]);
     }
@@ -310,8 +433,12 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
         return (bool) $this->newQuery()
             ->where('name', $feature)
             ->where('scope', Feature::serializeScope($scope))
-            ->update([
+            ->update(!$value ? [
+                'active' => true,
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+                static::UPDATED_AT => Carbon::now(),
+            ]:[
+                'active' => false,
                 static::UPDATED_AT => Carbon::now(),
             ]);
     }
@@ -347,6 +474,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             'name' => $insert['name'],
             'scope' => Feature::serializeScope($insert['scope']),
             'value' => json_encode($insert['value'], flags: JSON_THROW_ON_ERROR),
+            'active' => $insert['value'] ? true : false,
             static::CREATED_AT => $now,
             static::UPDATED_AT => $now,
         ], $inserts));

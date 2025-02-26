@@ -27,6 +27,13 @@ interface Driver
     public function getAll(array $features): array;
 
     /**
+     * Retrieve a feature flag's raw value, regardless if it is active.
+     * 
+     * @return mixed
+     */
+    public function getRaw(string $feature, mixed $scope);
+
+    /**
      * Retrieve a feature flag's value.
      */
     public function get(string $feature, mixed $scope): mixed;

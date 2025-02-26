@@ -407,6 +407,19 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Retrieve a feature flag's raw value.
+     *
+     * @internal
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     */
+    public function getRaw($feature, $scope): mixed
+    {
+        return $this->driver->getRaw($feature, $scope);
+    }
+
+    /**
      * Retrieve a feature flag's value.
      *
      * @internal
@@ -483,6 +496,18 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
         $this->putInCache($feature, $scope, $value);
 
         Event::dispatch(new FeatureUpdated($feature, $scope, $value));
+    }
+
+    /**
+     * Restore the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @return void
+     */
+    public function restoreForEveryone($feature)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->setForAllScopes($name, null));
     }
 
     /**

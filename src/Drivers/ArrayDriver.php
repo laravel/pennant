@@ -9,7 +9,9 @@ use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\HasFlushableCache;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use RuntimeException;
 use stdClass;
+use UnexpectedValueException;
 
 class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
 {
@@ -53,6 +55,19 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
         $this->featureStateResolvers = $featureStateResolvers;
 
         $this->unknownFeatureValue = new stdClass;
+    }
+
+    /**
+     * Retrieve a feature flag's raw value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * 
+     * @return mixed
+     */
+    public function getRaw($feature, $scope)
+    {
+        throw new RuntimeException('This pennant driver does not support getting raw values.');
     }
 
     /**

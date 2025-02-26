@@ -241,6 +241,20 @@ class PendingScopedFeatureInteraction
     }
 
     /**
+     * Restore the feature.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $fallback
+     * @return void
+     */
+    public function restore($feature, $fallback = true)
+    {
+        Collection::wrap($feature)
+            ->crossJoin($this->scope())
+            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], $this->driver->getRaw($feature, $this->scope()[0]) ?: $fallback));
+    }
+
+    /**
      * Activate the feature.
      *
      * @param  string|array<string>  $feature
