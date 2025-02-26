@@ -27,7 +27,7 @@ interface Driver
     public function getAll(array $features): array;
 
     /**
-     * Retrieve a feature flag's raw value, regardless if it is active.
+     * Retrieve a feature flag's raw value, regardless of activation.
      * 
      * @return mixed
      */
