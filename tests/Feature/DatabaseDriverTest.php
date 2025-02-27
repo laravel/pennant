@@ -55,6 +55,23 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(1, DB::getQueryLog());
     }
 
+    public function test_it_can_restore_a_rich_feature_value_with_a_fallback()
+    {
+        Feature::define('foo', fn () => false);
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertFalse(Feature::getDriver()->getRaw('foo', 'tim'));
+
+        Feature::for('tim')->restore('foo', fallback: 'bar');
+
+        $this->assertEquals(Feature::for('tim')->value('foo'), 'bar');
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertEquals(Feature::getDriver()->get('foo', 'tim'), 'bar');
+        $this->assertEquals(Feature::getDriver()->getRaw('foo', 'tim'), 'bar');
+    }
+
     public function test_it_can_restore_a_rich_feature_value()
     {
         Feature::define('foo', fn () => false);
