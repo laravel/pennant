@@ -338,19 +338,6 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             return;
         }
 
-        if (is_null($value)) {
-            $this->newQuery()->upsert([
-                'name' => $feature,
-                'scope' => Feature::serializeScope($scope),
-                'active' => true,
-                'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-                static::CREATED_AT => $now = Carbon::now(),
-                static::UPDATED_AT => $now,
-            ], uniqueBy: ['name', 'scope'], update: ['active', static::UPDATED_AT]);
-
-            return;
-        }
-
         $this->newQuery()->upsert([
             'name' => $feature,
             'scope' => Feature::serializeScope($scope),
