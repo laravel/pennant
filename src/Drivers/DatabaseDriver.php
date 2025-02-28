@@ -317,26 +317,6 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     }
 
     /**
-     * Set a raw value for a feature flag attribute.
-     *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @param  string  $key
-     * @param  mixed  $value
-     */
-    public function setRaw($feature, $scope, $key, $value): void
-    {
-        $this->newQuery()->upsert([
-            'name' => $feature,
-            'scope' => Feature::serializeScope($scope),
-            'active' => false,
-            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
-            static::CREATED_AT => $now = Carbon::now(),
-            static::UPDATED_AT => $now,
-        ], uniqueBy: ['name', 'scope'], update: ['active', static::UPDATED_AT]);
-    }
-
-    /**
      * Set a feature flag's value.
      *
      * @param  string  $feature
