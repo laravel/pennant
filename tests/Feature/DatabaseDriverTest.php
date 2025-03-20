@@ -19,6 +19,8 @@ use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\FeatureRestored;
+use Laravel\Pennant\Events\FeatureRestoredForAllScopes;
 use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
@@ -53,6 +55,106 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse($result);
 
         $this->assertCount(1, DB::getQueryLog());
+    }
+
+    public function test_it_can_restore_a_rich_feature_value_with_a_fallback()
+    {
+        Feature::define('foo', fn () => false);
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+
+        Feature::for('tim')->restore('foo', fallback: 'bar');
+
+        $this->assertSame('bar', Feature::for('tim')->value('foo'));
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'tim'));
+    }
+
+    public function test_it_can_restore_a_rich_feature_value()
+    {
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo', 'bar');
+
+        $this->assertSame('bar', Feature::for('tim')->value('foo'));
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'tim'));
+
+        Feature::for('tim')->deactivate('foo');
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+
+        Feature::for('tim')->restore('foo');
+
+        $this->assertSame('bar', Feature::for('tim')->value('foo'));
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'tim'));
+    }
+
+    public function test_it_can_restore_a_rich_feature_value_for_everyone()
+    {
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->activate('foo', 'bar');
+        Feature::for('taylor')->activate('foo', 'bar');
+
+        $this->assertSame('bar', Feature::for('tim')->value('foo'));
+        $this->assertSame('bar', Feature::for('taylor')->value('foo'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'tim'));
+        $this->assertSame('bar',Feature::getDriver()->get('foo', 'taylor'));
+
+        Feature::deactivateForEveryone('foo');
+
+        $this->assertFalse(Feature::for('tim')->value('foo'));
+        $this->assertFalse(Feature::for('taylor')->value('foo'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'tim'));
+        $this->assertFalse(Feature::getDriver()->get('foo', 'taylor'));
+
+        Feature::restoreForEveryone('foo');
+
+        $this->assertSame('bar', Feature::for('tim')->value('foo'));
+        $this->assertSame('bar', Feature::for('taylor')->value('foo'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'tim'));
+        $this->assertSame('bar', Feature::getDriver()->get('foo', 'taylor'));
+    }
+
+    public function test_it_dispatches_events_on_restore()
+    {
+        Event::fake([FeatureRestored::class]);
+
+        Feature::define('foo', fn () => false);
+
+        Feature::for('tim')->restore('foo');
+
+        Event::assertDispatchedTimes(FeatureRestored::class, 1);
+        Event::assertDispatched(function (FeatureRestored $event) {
+            $this->assertSame('foo', $event->feature);
+            $this->assertSame('tim', $event->scope);
+            $this->assertTrue($event->fallback);
+
+            return true;
+        });
+    }
+
+    public function test_it_dispatches_events_on_restore_for_everyone()
+    {
+        Event::fake([FeatureRestoredForAllScopes::class]);
+
+        Feature::define('foo', fn () => false);
+
+        Feature::restoreForEveryone('foo');
+
+        Event::assertDispatchedTimes(FeatureRestoredForAllScopes::class, 1);
+        Event::assertDispatched(function (FeatureRestoredForAllScopes $event) {
+            $this->assertSame('foo', $event->feature);
+            $this->assertTrue($event->fallback);
+
+            return true;
+        });
     }
 
     public function test_it_dispatches_events_on_unknown_feature_checks()

@@ -37,9 +37,19 @@ interface Driver
     public function set(string $feature, mixed $scope, mixed $value): void;
 
     /**
+     * Restore a feature flag's value.
+     */
+    public function restore(string $feature, mixed $scope, mixed $value): void;
+
+    /**
      * Set a feature flag's value for all scopes.
      */
     public function setForAllScopes(string $feature, mixed $value): void;
+
+    /**
+     * Restore a feature flag's value for all scopes.
+     */
+    public function restoreForAllScopes(string $feature, mixed $fallback): void;
 
     /**
      * Delete a feature flag's value.

@@ -18,6 +18,8 @@ use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
+use Laravel\Pennant\Events\FeatureRestored;
+use Laravel\Pennant\Events\FeatureRestoredForAllScopes;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
@@ -486,6 +488,28 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Restore a feature flag's value.
+     *
+     * @internal
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $fallback
+     */
+    public function restore($feature, $scope, $fallback = true): void
+    {
+        $feature = $this->resolveFeature($feature);
+
+        $scope = $this->resolveScope($scope);
+
+        $this->driver->restore($feature, $scope, $fallback);
+
+        $this->putInCache($feature, $scope, $this->driver->get($feature, $scope));
+
+        Event::dispatch(new FeatureRestored($feature, $scope, $fallback));
+    }
+
+    /**
      * Activate the feature for everyone.
      *
      * @param  string|array<string>  $feature
@@ -496,6 +520,19 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     {
         Collection::wrap($feature)
             ->each(fn ($name) => $this->setForAllScopes($name, $value));
+    }
+
+    /**
+     * Restore the feature for everyone.
+     *
+     * @param  string|array<string>  $feature
+     * @param  mixed  $fallback
+     * @return void
+     */
+    public function restoreForEveryone($feature, $fallback = true)
+    {
+        Collection::wrap($feature)
+            ->each(fn ($name) => $this->restoreForAllScopes($name, $fallback));
     }
 
     /**
@@ -529,6 +566,27 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
         );
 
         Event::dispatch(new FeatureUpdatedForAllScopes($feature, $value));
+    }
+
+    /**
+     * Restore a feature flag's values for all scopes.
+     *
+     * @internal
+     *
+     * @param  string  $feature
+     * @param  mixed  $fallback
+     */
+    public function restoreForAllScopes($feature, $fallback): void
+    {
+        $feature = $this->resolveFeature($feature);
+
+        $this->driver->restoreForAllScopes($feature, $fallback);
+
+        $this->cache = $this->cache->reject(
+            fn ($item) => $item['feature'] === $feature
+        );
+
+        Event::dispatch(new FeatureRestoredForAllScopes($feature, $fallback));
     }
 
     /**

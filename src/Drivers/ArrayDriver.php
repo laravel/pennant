@@ -174,6 +174,30 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Restore the value for the given feature and scope.
+     *
+     * @param  string  $feature
+     * @param  mixed  $scope
+     * @param  mixed  $fallback
+     * @return void
+     */
+    public function restore($feature, $scope, $fallback = true): void
+    {
+        $this->set($feature, $scope, $fallback);
+    }
+
+    /**
+     * Restore feature flag's value for all scopes.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    public function restoreForAllScopes($feature, $fallback): void
+    {
+        $this->setForAllScopes($feature, $fallback);
+    }
+
+    /**
      * Delete a feature flag's value.
      *
      * @param  string  $feature
