@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array defined()
  * @method static array stored()
  * @method static void activateForEveryone(string|array $feature, mixed $value = true)
+ * @method static void restoreForEveryone(string|array $feature, mixed $fallback = true)
  * @method static void deactivateForEveryone(string|array $feature)
  * @method static void purge(string|array|null $features = null)
  * @method static string name(string $feature)
@@ -51,6 +52,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static mixed when(string $feature, \Closure $whenActive, \Closure|null $whenInactive = null)
  * @method static mixed unless(string $feature, \Closure $whenInactive, \Closure|null $whenActive = null)
  * @method static void activate(string|array $feature, mixed $value = true)
+ * @method static void restore(string|array $feature, mixed $fallback = true)
  * @method static void deactivate(string|array $feature)
  * @method static void forget(string|array $features)
  *

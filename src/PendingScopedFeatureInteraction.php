@@ -258,7 +258,7 @@ class PendingScopedFeatureInteraction
      * Restore the feature.
      *
      * @param  string|array<string>  $feature
-     * @param  mixed  $value
+     * @param  mixed  $fallback
      * @return void
      */
     public function restore($feature, $fallback = true)
