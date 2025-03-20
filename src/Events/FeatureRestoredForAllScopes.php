@@ -26,7 +26,7 @@ class FeatureRestoredForAllScopes
      * Create a new event instance.
      *
      * @param  string  $feature
-     * @param  mixed  $value
+     * @param  mixed  $fallback
      */
     public function __construct($feature, $fallback)
     {

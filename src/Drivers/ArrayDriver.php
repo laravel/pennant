@@ -190,7 +190,7 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
      * Restore feature flag's value for all scopes.
      *
      * @param  string  $feature
-     * @param  mixed  $value
+     * @param  mixed  $fallback
      */
     public function restoreForAllScopes($feature, $fallback): void
     {

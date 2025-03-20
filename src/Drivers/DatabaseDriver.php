@@ -395,7 +395,6 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
      * Restore a feature flag's values for all scopes.
      *
      * @param  string  $feature
-     * @param  mixed  $scope
      * @param  mixed  $fallback
      * @return void
      */
