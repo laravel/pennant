@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.16.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.16.1...1.x)
+
+## [v1.16.1](https://github.com/laravel/pennant/compare/v1.16.0...v1.16.1) - 2025-03-22
+
+* Add Return Types for Migrations by [@devinnived](https://github.com/devinnived) in https://github.com/laravel/pennant/pull/137
 
 ## [v1.16.0](https://github.com/laravel/pennant/compare/v1.15.1...v1.16.0) - 2025-02-11
 
