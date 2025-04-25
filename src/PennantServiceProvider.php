@@ -44,6 +44,13 @@ class PennantServiceProvider extends ServiceProvider
                 return Feature::active($feature);
             });
 
+            $blade->if('unlessfeature', function (string $feature, $value = null) {
+                if (func_num_args() === 2) {
+                    return Feature::value($feature) !== $value;
+                }
+                return ! Feature::active($feature);
+            });
+
             $blade->if('featureany', function ($features) {
                 return Feature::someAreActive($features);
             });
