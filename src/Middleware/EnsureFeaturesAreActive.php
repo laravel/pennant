@@ -20,7 +20,7 @@ class EnsureFeaturesAreActive
         if (Feature::someAreInactive($features)) {
             return static::$respondUsing
                 ? call_user_func(static::$respondUsing, $request, $features)
-                : abort(400);
+                : abort(400, 'Features ['.join(', ', $features).'] not enabled.');
         }
 
         return $next($request);
