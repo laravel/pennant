@@ -18,9 +18,13 @@ class EnsureFeaturesAreActive
         Feature::loadMissing($features);
 
         if (Feature::someAreInactive($features)) {
+            $error = config('app.debug')
+                ? 'Required features ['.join(', ', $features).'] not enabled.'
+                : 'Required features not enabled.';
+
             return static::$respondUsing
                 ? call_user_func(static::$respondUsing, $request, $features)
-                : abort(400, 'Features ['.join(', ', $features).'] not enabled.');
+                : abort(400, $error);
         }
 
         return $next($request);
