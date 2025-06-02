@@ -20,7 +20,7 @@ class EnsureFeaturesAreActive
         if (Feature::someAreInactive($features)) {
             $error = config('app.debug')
                 ? 'Required features ['.join(', ', $features).'] not enabled.'
-                : 'Required features not enabled.';
+                : '';
 
             return static::$respondUsing
                 ? call_user_func(static::$respondUsing, $request, $features)
