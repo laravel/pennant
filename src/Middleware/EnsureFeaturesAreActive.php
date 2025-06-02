@@ -19,7 +19,7 @@ class EnsureFeaturesAreActive
 
         if (Feature::someAreInactive($features)) {
             $error = config('app.debug')
-                ? 'Required features ['.join(', ', $features).'] not enabled.'
+                ? 'Required features ['.implode(', ', $features).'] not enabled.'
                 : '';
 
             return static::$respondUsing
