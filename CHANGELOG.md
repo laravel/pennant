@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.16.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.17.0...1.x)
+
+## [v1.17.0](https://github.com/laravel/pennant/compare/v1.16.1...v1.17.0) - 2025-06-02
+
+* Update logo by [@iamdavidhill](https://github.com/iamdavidhill) in https://github.com/laravel/pennant/pull/139
+* Show a default error message when the middleware check fails by [@simonhamp](https://github.com/simonhamp) in https://github.com/laravel/pennant/pull/141
 
 ## [v1.16.1](https://github.com/laravel/pennant/compare/v1.16.0...v1.16.1) - 2025-03-22
 
