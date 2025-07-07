@@ -1708,6 +1708,41 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(8, DB::getQueryLog());
         $this->assertCount(13, DB::table('features')->get());
     }
+
+    public function test_can_retrieve_scalar_values_without_in_memory_cache(): void
+    {
+        $data = [
+            'one' => 1,
+            'ten' => 10,
+            'zero' => 0,
+            'minus-one' => -1,
+            'minus-ten' => -10,
+            'one-point-five' => 1.5,
+            'ten-point-five' => 10.5,
+            'zero-point-five' => 0.5,
+            'minus-one-point-five' => -1.5,
+            'minus-ten-point-five' => -10.5,
+            'bool-true' => true,
+            'bool-false' => false,
+            'null' => null,
+        ];
+
+        $user = new User;
+
+        foreach ($data as $name => $expectedValue) {
+            $feature = 'scalar-feature:'.$name;
+            Feature::define($feature, fn(User $user) => $expectedValue);
+
+            $generated = Feature::for($user)->value($feature);
+
+            Feature::flushCache();
+
+            $retrieved = Feature::for($user)->value($feature);
+
+            $this->assertEquals($expectedValue, $generated);
+            $this->assertEquals($expectedValue, $retrieved);
+        }
+    }
 }
 
 class UnregisteredFeature
