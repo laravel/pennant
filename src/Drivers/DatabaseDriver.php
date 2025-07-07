@@ -158,7 +158,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             $filtered = $records->where('name', $feature)->where('scope', Feature::serializeScope($scope));
 
             if ($filtered->isNotEmpty()) {
-                return json_decode($filtered->value('value'), flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR); // @phpstan-ignore argument.type
+                return json_decode($filtered->first()->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
             return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
