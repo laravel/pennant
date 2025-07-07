@@ -1731,7 +1731,7 @@ class DatabaseDriverTest extends TestCase
 
         foreach ($data as $name => $expectedValue) {
             $feature = 'scalar-feature:'.$name;
-            Feature::define($feature, fn(User $user) => $expectedValue);
+            Feature::define($feature, fn (User $user) => $expectedValue);
 
             $generated = Feature::for($user)->value($feature);
 
