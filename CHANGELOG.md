@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.17.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.17.1...1.x)
+
+## [v1.17.1](https://github.com/laravel/pennant/compare/v1.17.0...v1.17.1) - 2025-07-07
+
+* Fix - Correct retrieval of `0` feature values via DB driver by [@pocketninja](https://github.com/pocketninja) in https://github.com/laravel/pennant/pull/143
 
 ## [v1.17.0](https://github.com/laravel/pennant/compare/v1.16.1...v1.17.0) - 2025-06-02
 
