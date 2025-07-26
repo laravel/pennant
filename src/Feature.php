@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivateForEveryone(string|array $feature)
  * @method static void purge(string|array|null $features = null)
  * @method static string name(string $feature)
+ * @method static array nameMap()
  * @method static mixed instance(string $name)
  * @method static \Laravel\Pennant\Contracts\Driver getDriver()
  * @method static void macro(string $name, object|callable $macro)
