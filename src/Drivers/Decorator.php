@@ -592,6 +592,14 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Retrieve the map of feature names to their implementations.
+     */
+    public function nameMap(): array
+    {
+        return $this->nameMap;
+    }
+
+    /**
      * Retrieve the feature's class.
      *
      * @param  string  $name
