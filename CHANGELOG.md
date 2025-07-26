@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.17.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.0...1.x)
+
+## [v1.18.0](https://github.com/laravel/pennant/compare/v1.17.1...v1.18.0) - 2025-07-26
+
+* Add `nameMap` to decorator by [@jbrooksuk](https://github.com/jbrooksuk) in https://github.com/laravel/pennant/pull/144
 
 ## [v1.17.1](https://github.com/laravel/pennant/compare/v1.17.0...v1.17.1) - 2025-07-07
 
