@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.1...1.x)
+
+## [v1.18.1](https://github.com/laravel/pennant/compare/v1.18.0...v1.18.1) - 2025-08-05
+
+* Automatically resolve the flag's type if it's a class string by [@RVxLab](https://github.com/RVxLab) in https://github.com/laravel/pennant/pull/146
 
 ## [v1.18.0](https://github.com/laravel/pennant/compare/v1.17.1...v1.18.0) - 2025-07-26
 
