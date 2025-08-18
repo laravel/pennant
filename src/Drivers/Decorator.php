@@ -602,10 +602,8 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     /**
      * Retrieve the feature's class.
      *
-     * @template TFlag
-     *
-     * @param  TFlag|string  $name
-     * @return (TFlag is class-string<TFlag> ? TFlag : mixed)
+     * @param  string  $name
+     * @return mixed
      */
     public function instance($name)
     {
