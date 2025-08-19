@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.1...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.2...1.x)
+
+## [v1.18.2](https://github.com/laravel/pennant/compare/v1.18.1...v1.18.2) - 2025-08-18
+
+* Fix `Feature` docblock annotations by [@maartenpaauw](https://github.com/maartenpaauw) in https://github.com/laravel/pennant/pull/147
+* Revert incorrect docblock by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/148
 
 ## [v1.18.1](https://github.com/laravel/pennant/compare/v1.18.0...v1.18.1) - 2025-08-05
 
