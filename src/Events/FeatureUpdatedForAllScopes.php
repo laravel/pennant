@@ -9,28 +9,14 @@ class FeatureUpdatedForAllScopes
     use SerializesModels;
 
     /**
-     * The feature name.
-     *
-     * @var string
-     */
-    public $feature;
-
-    /**
-     * The new feature value.
-     *
-     * @var mixed
-     */
-    public $value;
-
-    /**
      * Create a new event instance.
      *
-     * @param  string  $feature
-     * @param  mixed  $value
+     * @param  string  $feature  The feature name.
+     * @param  mixed  $value  The new feature value.
      */
-    public function __construct($feature, $value)
-    {
-        $this->feature = $feature;
-        $this->value = $value;
+    public function __construct(
+        public $feature,
+        public $value,
+    ) {
     }
 }

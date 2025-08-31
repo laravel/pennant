@@ -5,19 +5,12 @@ namespace Laravel\Pennant\Events;
 class FeaturesPurged
 {
     /**
-     * The feature names.
-     *
-     * @var array
-     */
-    public $features;
-
-    /**
      * Create a new event instance.
      *
-     * @param  array  $features
+     * @param  array  $features  The feature names.
      */
-    public function __construct($features)
-    {
-        $this->features = $features;
+    public function __construct(
+        public $features,
+    ) {
     }
 }

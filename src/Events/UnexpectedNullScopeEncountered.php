@@ -5,19 +5,12 @@ namespace Laravel\Pennant\Events;
 class UnexpectedNullScopeEncountered
 {
     /**
-     * The feature name.
-     *
-     * @var string
-     */
-    public $feature;
-
-    /**
      * Create a new event instance.
      *
-     * @param  string  $feature
+     * @param  string  $feature  The feature name.
      */
-    public function __construct($feature)
-    {
-        $this->feature = $feature;
+    public function __construct(
+        public $feature,
+    ) {
     }
 }
