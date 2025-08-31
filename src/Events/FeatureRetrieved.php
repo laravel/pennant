@@ -9,37 +9,16 @@ class FeatureRetrieved
     use SerializesModels;
 
     /**
-     * The feature name.
-     *
-     * @var string
-     */
-    public $feature;
-
-    /**
-     * The scope of the feature check.
-     *
-     * @var mixed
-     */
-    public $scope;
-
-    /**
-     * The result value of the feature check.
-     *
-     * @var mixed
-     */
-    public $value;
-
-    /**
      * Create a new event instance.
      *
-     * @param  string  $feature
-     * @param  mixed  $scope
-     * @param  mixed  $value
+     * @param  string  $feature  The feature name.
+     * @param  mixed  $scope  The scope of the feature check.
+     * @param  mixed  $value  The result value of the feature check.
      */
-    public function __construct($feature, $scope, $value)
-    {
-        $this->feature = $feature;
-        $this->scope = $scope;
-        $this->value = $value;
+    public function __construct(
+        public $feature,
+        public $scope,
+        public $value,
+    ) {
     }
 }
