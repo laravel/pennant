@@ -19,6 +19,5 @@ class FeatureRetrieved
         public $feature,
         public $scope,
         public $value,
-    ) {
-    }
+    ) {}
 }

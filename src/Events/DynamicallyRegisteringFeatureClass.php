@@ -4,7 +4,6 @@ namespace Laravel\Pennant\Events;
 
 class DynamicallyRegisteringFeatureClass
 {
-
     /**
      * Create a new event instance.
      *
@@ -12,6 +11,5 @@ class DynamicallyRegisteringFeatureClass
      */
     public function __construct(
         public $feature,
-    ) {
-    }
+    ) {}
 }

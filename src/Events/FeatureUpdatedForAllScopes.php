@@ -17,6 +17,5 @@ class FeatureUpdatedForAllScopes
     public function __construct(
         public $feature,
         public $value,
-    ) {
-    }
+    ) {}
 }

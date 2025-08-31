@@ -11,6 +11,5 @@ class FeaturesPurged
      */
     public function __construct(
         public $features,
-    ) {
-    }
+    ) {}
 }

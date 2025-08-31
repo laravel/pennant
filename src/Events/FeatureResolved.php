@@ -19,6 +19,5 @@ class FeatureResolved
         public $feature,
         public $scope,
         public $value,
-    ) {
-    }
+    ) {}
 }

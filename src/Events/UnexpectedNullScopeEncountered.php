@@ -11,6 +11,5 @@ class UnexpectedNullScopeEncountered
      */
     public function __construct(
         public $feature,
-    ) {
-    }
+    ) {}
 }

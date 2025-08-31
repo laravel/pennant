@@ -19,6 +19,5 @@ class FeatureUpdated
         public $feature,
         public $scope,
         public $value,
-    ) {
-    }
+    ) {}
 }

@@ -17,6 +17,5 @@ class FeatureDeleted
     public function __construct(
         public $feature,
         public $scope,
-    ) {
-    }
+    ) {}
 }
