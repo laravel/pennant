@@ -1496,6 +1496,23 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(0, $queries);
     }
 
+    public function test_it_can_get_features_with_registered_before_hook_callback()
+    {
+        $queries = 0;
+        DB::listen(function (QueryExecuted $event) use (&$queries) {
+            $queries++;
+        });
+
+        Feature::define('feature-with-registered-before-hook-callback', fn ($scope) => 'feature-value');
+
+        Feature::before('feature-with-registered-before-hook-callback', fn ($scope) => ['before' => 'value']);
+
+        $value = Feature::get('feature-with-registered-before-hook-callback', null);
+
+        $this->assertSame(['before' => 'value'], $value);
+        $this->assertSame(0, $queries);
+    }
+
     public function test_it_handles_null_scope_for_before_hook()
     {
         Event::fake(UnexpectedNullScopeEncountered::class);

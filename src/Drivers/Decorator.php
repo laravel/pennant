@@ -79,6 +79,13 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     protected $cache;
 
     /**
+     * The registered before hooks.
+     *
+     * @var array<string, callable(mixed):mixed>
+     */
+    protected $beforeHooks = [];
+
+    /**
      * Map of feature names to their implementations.
      *
      * @var array<string, mixed>
@@ -101,6 +108,17 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
         $this->defaultScopeResolver = $defaultScopeResolver;
         $this->container = $container;
         $this->cache = $cache;
+    }
+
+    /**
+     * Register a feature's before hook.
+     *
+     * @param  string|class-string  $feature
+     * @param  callable  $hook
+     */
+    public function before($feature, $hook): void
+    {
+        $this->beforeHooks[$feature] = $hook;
     }
 
     /**
@@ -431,9 +449,11 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
             return $item['value'];
         }
 
-        $before = $this->hasBeforeHook($feature)
-            ? $this->container->make($this->implementationClass($feature))->before(...)
-            : fn () => null;
+        $before = match (true) {
+            isset($this->beforeHooks[$feature]) => $this->beforeHooks[$feature],
+            $this->hasBeforeHook($feature) => $this->container->make($this->implementationClass($feature))->before(...),
+            default => fn () => null,
+        };
 
         $value = $this->resolveBeforeHook($feature, $scope, $before) ?? $this->driver->get($feature, $scope);
 

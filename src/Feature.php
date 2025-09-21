@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Laravel\Pennant\FeatureManager forgetDrivers()
  * @method static \Laravel\Pennant\FeatureManager extend(string $driver, \Closure $callback)
  * @method static \Laravel\Pennant\FeatureManager setContainer(\Illuminate\Container\Container $container)
+ * @method static void before(string $feature, callable $hook)
  * @method static void discover(string $namespace = 'App\\Features', string|null $path = null)
  * @method static void define(string $feature, mixed $resolver = null)
  * @method static bool isResolverValidForScope(callable|string $resolver, mixed $scope)
