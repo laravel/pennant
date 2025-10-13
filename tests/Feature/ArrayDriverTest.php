@@ -1219,12 +1219,54 @@ class ArrayDriverTest extends TestCase
         Feature::define(IntScopeFeature::class);
 
         $this->assertSame([
-            'Tests\Feature\IntScopeFeature' => true,
+            IntScopeFeature::class => true,
         ], Feature::for(1)->all());
 
         $this->assertSame([
-            'Tests\Feature\IntScopeFeature' => false,
+            IntScopeFeature::class => false,
         ], Feature::for(10)->all());
+    }
+
+    public function test_it_can_handles_double_scopes_correctly()
+    {
+        Feature::define(DoubleScopeFeature::class);
+
+        $this->assertSame([
+            DoubleScopeFeature::class => true,
+        ], Feature::for(1.1)->all());
+
+        $this->assertSame([
+            DoubleScopeFeature::class => true,
+        ], Feature::for(1.10)->all());
+
+        $this->assertSame([
+            DoubleScopeFeature::class => false,
+        ], Feature::for(1.11)->all());
+
+        $this->assertSame([
+            DoubleScopeFeature::class => false,
+        ], Feature::for(10.00)->all());
+    }
+
+    public function test_it_can_handles_float_scopes_correctly()
+    {
+        Feature::define(FloatScopeFeature::class);
+
+        $this->assertSame([
+            FloatScopeFeature::class => true,
+        ], Feature::for(1.1)->all());
+
+        $this->assertSame([
+            FloatScopeFeature::class => true,
+        ], Feature::for(1.10)->all());
+
+        $this->assertSame([
+            FloatScopeFeature::class => false,
+        ], Feature::for(1.11)->all());
+
+        $this->assertSame([
+            FloatScopeFeature::class => false,
+        ], Feature::for(10.00)->all());
     }
 }
 
@@ -1317,5 +1359,21 @@ class IntScopeFeature
     public function resolve(int $scope): bool
     {
         return in_array($scope, [1, 2, 3], true);
+    }
+}
+
+class DoubleScopeFeature
+{
+    public function resolve(float $scope): bool
+    {
+        return in_array($scope, [1.10, 2.20, 3.30], true);
+    }
+}
+
+class FloatScopeFeature
+{
+    public function resolve(float $scope): bool
+    {
+        return in_array($scope, [1.1, 2.2, 3.3], true);
     }
 }

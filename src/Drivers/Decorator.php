@@ -257,7 +257,7 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
             return match (gettype($scope)) {
                 'boolean' => in_array($typeName, ['boolean', 'bool']),
                 'integer' => in_array($typeName, ['integer', 'int']),
-                'double',
+                'double' => in_array($typeName, ['double', 'float']),
                 'string',
                 'array',
                 'resource',
