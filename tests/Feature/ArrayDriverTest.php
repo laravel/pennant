@@ -1319,4 +1319,3 @@ class IntScopeFeature
         return in_array($scope, [1, 2, 3], true);
     }
 }
-
