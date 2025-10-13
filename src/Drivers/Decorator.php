@@ -248,20 +248,22 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
         }
 
         if ($type instanceof ReflectionNamedType) {
-            if ($type->getName() === 'mixed') {
+            $typeName = $type->getName();
+            
+            if ($typeName === 'mixed') {
                 return true;
             }
 
             return match (gettype($scope)) {
-                'boolean',
-                'integer',
+                'boolean' => in_array($typeName, ['boolean', 'bool']),
+                'integer' => in_array($typeName, ['integer', 'int']),
                 'double',
                 'string',
                 'array',
                 'resource',
-                'resource (closed)' => gettype($scope) === $type->getName(),
+                'resource (closed)' => gettype($scope) === $typeName,
                 'NULL' => $this->canHandleNullScope($function),
-                'object' => $scope instanceof ($type->getName()),
+                'object' => $scope instanceof ($typeName),
                 'unknown type' => false,
             };
         }
