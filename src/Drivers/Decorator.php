@@ -249,7 +249,7 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
 
         if ($type instanceof ReflectionNamedType) {
             $typeName = $type->getName();
-            
+
             if ($typeName === 'mixed') {
                 return true;
             }
