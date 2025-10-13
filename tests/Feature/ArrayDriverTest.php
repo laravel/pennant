@@ -1213,6 +1213,19 @@ class ArrayDriverTest extends TestCase
             $this->assertEquals($expectedValue, $retrieved);
         }
     }
+
+    public function test_it_handles_integer_scopes_correctly()
+    {
+        Feature::define(IntScopeFeature::class);
+
+        $this->assertSame([
+            'Tests\Feature\IntScopeFeature' => true,
+        ], Feature::for(1)->all());
+
+        $this->assertSame([
+            'Tests\Feature\IntScopeFeature' => false,
+        ], Feature::for(10)->all());
+    }
 }
 
 class MyFeature
@@ -1298,3 +1311,12 @@ class FeatureDependency
 {
     //
 }
+
+class IntScopeFeature
+{
+    public function resolve(int $scope): bool
+    {
+        return in_array($scope, [1, 2, 3], true);
+    }
+}
+
