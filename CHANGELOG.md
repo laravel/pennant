@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.2...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.3...1.x)
+
+## [v1.18.3](https://github.com/laravel/pennant/compare/v1.18.2...v1.18.3) - 2025-10-13
+
+* [1.x] use promoted properties by [@browner12](https://github.com/browner12) in https://github.com/laravel/pennant/pull/149
+* Fix type checking bug in `Decorator::typeAllowsScope()` causes primitive type hints to fail scope validation by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pennant/pull/153
 
 ## [v1.18.2](https://github.com/laravel/pennant/compare/v1.18.1...v1.18.2) - 2025-08-18
 
