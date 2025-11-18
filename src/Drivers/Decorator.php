@@ -854,8 +854,8 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
         }
 
         return tap(new PendingScopedFeatureInteraction($this), function ($interaction) use ($name) {
-            if ($name !== 'for' && ($this->defaultScopeResolver)() !== null) {
-                $interaction->for(($this->defaultScopeResolver)());
+            if ($name !== 'for' && ($scope = $this->defaultScope()) !== null) {
+                $interaction->for($scope);
             }
         })->{$name}(...$parameters);
     }
