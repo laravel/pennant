@@ -22,6 +22,8 @@ class IntersectionTypeTest extends TestCase
     {
         parent::setUp();
 
+        Config::set('pennant.default', 'database');
+
         DB::enableQueryLog();
     }
 
