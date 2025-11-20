@@ -13,6 +13,7 @@ use Workbench\App\Models\Team;
 use Workbench\App\Models\User;
 
 #[RequiresPhp('>=8.2.0')]
+#[WithConfig('pennant.default', 'database')]
 class IntersectionTypeTest extends TestCase
 {
     use RefreshDatabase;
@@ -20,8 +21,6 @@ class IntersectionTypeTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        Config::set('pennant.default', 'database');
 
         DB::enableQueryLog();
     }
