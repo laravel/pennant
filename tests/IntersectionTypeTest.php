@@ -5,7 +5,6 @@ namespace Tests;
 use Illuminate\Contracts\Auth\Access\Authorizable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pennant\Feature;
 use PHPUnit\Framework\Attributes\RequiresPhp;
