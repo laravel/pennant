@@ -8,9 +8,11 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Laravel\Pennant\Feature;
+use PHPUnit\Framework\Attributes\RequiresPhp;
 use Workbench\App\Models\Team;
 use Workbench\App\Models\User;
 
+#[RequiresPhp('>=8.2.0')]
 class IntersectionTypeTest extends TestCase
 {
     use RefreshDatabase;

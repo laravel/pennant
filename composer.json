@@ -27,9 +27,8 @@
     },
     "require-dev": {
         "laravel/octane": "^1.4|^2.0",
-        "orchestra/testbench": "^8.0|^9.0|^10.0",
-        "phpstan/phpstan": "^1.10",
-        "phpunit/phpunit": "^9.0|^10.4|^11.5"
+        "orchestra/testbench": "^8.36|^9.15|^10.8",
+        "phpstan/phpstan": "^1.10"
     },
     "autoload": {
         "psr-4": {
