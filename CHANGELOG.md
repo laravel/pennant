@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.3...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.4...1.x)
+
+## [v1.18.4](https://github.com/laravel/pennant/compare/v1.18.3...v1.18.4) - 2025-11-20
+
+* [1.x] Adjust `Decorator::__call` to use `defaultScope()` method and only call once by [@stevebauman](https://github.com/stevebauman) in https://github.com/laravel/pennant/pull/154
+* [1.x] PHP 8.5 Compatibility by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pennant/pull/155
 
 ## [v1.18.3](https://github.com/laravel/pennant/compare/v1.18.2...v1.18.3) - 2025-10-13
 
