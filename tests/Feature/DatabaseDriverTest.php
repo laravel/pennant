@@ -1743,6 +1743,108 @@ class DatabaseDriverTest extends TestCase
             $this->assertEquals($expectedValue, $retrieved);
         }
     }
+
+    public function test_it_dispatches_events_when_activating_multiple_features_and_scopes()
+    {
+        Event::fake([FeatureUpdated::class]);
+
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
+
+        Feature::for([$first, $second])->activate(['foo', 'bar']);
+
+        Event::assertDispatchedTimes(FeatureUpdated::class, 4);
+
+        $events = [];
+        Event::assertDispatched(function (FeatureUpdated $event) use (&$events) {
+            $events[] = [
+                'feature' => $event->feature,
+                'scope' => $event->scope,
+                'value' => $event->value,
+            ];
+
+            return true;
+        });
+
+        $this->assertCount(4, $events);
+        $this->assertContains([
+            'feature' => 'foo',
+            'scope' => $first,
+            'value' => true,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'foo',
+            'scope' => $second,
+            'value' => true,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'bar',
+            'scope' => $first,
+            'value' => true,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'bar',
+            'scope' => $second,
+            'value' => true,
+        ], $events);
+    }
+
+    public function test_it_dispatches_events_when_deactivating_multiple_features_and_scopes()
+    {
+        Event::fake([FeatureUpdated::class]);
+
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
+
+        Feature::for([$first, $second])->deactivate(['foo', 'bar']);
+
+        Event::assertDispatchedTimes(FeatureUpdated::class, 4);
+
+        $events = [];
+        Event::assertDispatched(function (FeatureUpdated $event) use (&$events) {
+            $events[] = [
+                'feature' => $event->feature,
+                'scope' => $event->scope,
+                'value' => $event->value,
+            ];
+
+            return true;
+        });
+
+        $this->assertCount(4, $events);
+        $this->assertContains([
+            'feature' => 'foo',
+            'scope' => $first,
+            'value' => false,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'foo',
+            'scope' => $second,
+            'value' => false,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'bar',
+            'scope' => $first,
+            'value' => false,
+        ], $events);
+        $this->assertContains([
+            'feature' => 'bar',
+            'scope' => $second,
+            'value' => false,
+        ], $events);
+    }
+
+    public function test_it_uses_single_query_when_activating_multiple_features_and_scopes()
+    {
+        DB::enableQueryLog();
+
+        $first = new User(['id' => 1]);
+        $second = new User(['id' => 2]);
+
+        Feature::for([$first, $second])->activate(['foo', 'bar']);
+
+        $this->assertCount(1, DB::getQueryLog());
+    }
 }
 
 class UnregisteredFeature

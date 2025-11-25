@@ -282,6 +282,32 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Set multiple feature flag values.
+     *
+     * @param  array<int, array<string, mixed>>  $features
+     */
+    public function setAll(array $features): void
+    {
+        $now = Carbon::now();
+
+        $this->newQuery()->upsert([
+            array_map(
+                static fn (array $feature) => array_merge(
+                    $feature,
+                    [
+                        'name' => $feature,
+                        'scope' => Feature::serializeScope($feature['scope']),
+                        'value' => json_encode($feature['value'], flags: JSON_THROW_ON_ERROR),
+                        static::CREATED_AT => $now,
+                        static::UPDATED_AT => $now,
+                    ]
+                ),
+                $features
+            )
+        ], uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
+    }
+
+    /**
      * Set a feature flag's value for all scopes.
      *
      * @param  string  $feature

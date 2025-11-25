@@ -249,9 +249,12 @@ class PendingScopedFeatureInteraction
      */
     public function activate($feature, $value = true)
     {
-        Collection::wrap($feature)
+        $features = Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], $value));
+            ->map(fn ($bits) => ['feature' => $bits[0], 'scope' => $bits[1], 'value' => $value])
+            ->all();
+
+        $this->driver->setAll($features);
     }
 
     /**
@@ -262,9 +265,12 @@ class PendingScopedFeatureInteraction
      */
     public function deactivate($feature)
     {
-        Collection::wrap($feature)
+        $features = Collection::wrap($feature)
             ->crossJoin($this->scope())
-            ->each(fn ($bits) => $this->driver->set($bits[0], $bits[1], false));
+            ->map(fn ($bits) => ['feature' => $bits[0], 'scope' => $bits[1], 'value' => false])
+            ->all();
+
+        $this->driver->setAll($features);
     }
 
     /**

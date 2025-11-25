@@ -488,6 +488,34 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Set multiple feature flag values.
+     *
+     * @internal
+     *
+     * @param  array<int, array<string, mixed>>  $features
+     */
+    public function setAll(array $features): void
+    {
+        $features = array_map(fn ($feature) => [
+            'feature' => $this->resolveFeature($feature['feature']),
+            'scope' => $this->resolveScope($feature['scope']),
+            'value' => $feature['value'],
+        ], $features);
+
+        $this->driver->setAll($features);
+
+        foreach ($features as $featureData) {
+            $this->putInCache($featureData['feature'], $featureData['scope'], $featureData['value']);
+
+            Event::dispatch(new FeatureUpdated(
+                $featureData['feature'],
+                $featureData['scope'],
+                $featureData['value'],
+            ));
+        }
+    }
+
+    /**
      * Activate the feature for everyone.
      *
      * @param  string|array<string>  $feature
