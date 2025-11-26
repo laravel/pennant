@@ -209,7 +209,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::active('bar'));
         $this->assertTrue(Feature::active('bar'));
 
-        $this->assertCount(7, DB::getQueryLog());
+        $this->assertCount(4, DB::getQueryLog());
     }
 
     public function test_it_can_check_if_multiple_features_are_active_at_once()
@@ -226,7 +226,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::allAreActive(['foo', 'bar']));
         $this->assertFalse(Feature::allAreActive(['foo', 'bar', 'baz']));
 
-        $this->assertCount(4, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_it_can_scope_features()
@@ -276,7 +276,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($second)->active('foo'));
         $this->assertFalse(Feature::for($third)->active('foo'));
 
-        $this->assertCount(4, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_it_can_activate_and_deactivate_multiple_features_for_multiple_scope_at_once()
@@ -297,7 +297,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertTrue(Feature::for($second)->active('bar'));
         $this->assertFalse(Feature::for($third)->active('bar'));
 
-        $this->assertCount(8, DB::getQueryLog());
+        $this->assertCount(5, DB::getQueryLog());
     }
 
     public function test_it_can_check_multiple_features_for_multiple_scope_at_once()
@@ -317,7 +317,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertFalse(Feature::for([$second, $third])->allAreActive(['foo', 'bar']));
         $this->assertFalse(Feature::for([$first, $second, $third])->allAreActive(['foo', 'bar']));
 
-        $this->assertCount(6, DB::getQueryLog());
+        $this->assertCount(3, DB::getQueryLog());
     }
 
     public function test_null_is_same_as_global()

@@ -10,6 +10,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\FeatureScopeable;
@@ -37,7 +38,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
-class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
+class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver, HasFlushableCache
 {
     use Macroable {
         __call as macroCall;
@@ -492,7 +493,7 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
      *
      * @internal
      *
-     * @param  array<int, array<string, mixed>>  $features
+     * @param  list<array{ feature: string, scope: mixed, value: mixed }>  $features
      */
     public function setAll(array $features): void
     {
@@ -502,15 +503,24 @@ class Decorator implements CanListStoredFeatures, Driver, HasFlushableCache
             'value' => $feature['value'],
         ], $features);
 
-        $this->driver->setAll($features);
+        $updated = false;
 
-        foreach ($features as $featureData) {
-            $this->putInCache($featureData['feature'], $featureData['scope'], $featureData['value']);
+        if ($this->driver instanceof CanSetManyFeaturesForScopes) {
+            $this->driver->setAll($features);
+            $updated = true;
+        }
+
+        foreach ($features as $feature) {
+            if (! $updated) {
+                $this->driver->set($feature['feature'], $feature['scope'], $feature['value']);
+            }
+
+            $this->putInCache($feature['feature'], $feature['scope'], $feature['value']);
 
             Event::dispatch(new FeatureUpdated(
-                $featureData['feature'],
-                $featureData['scope'],
-                $featureData['value'],
+                $feature['feature'],
+                $feature['scope'],
+                $feature['value'],
             ));
         }
     }

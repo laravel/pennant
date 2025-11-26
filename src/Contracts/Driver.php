@@ -37,13 +37,6 @@ interface Driver
     public function set(string $feature, mixed $scope, mixed $value): void;
 
     /**
-     * Set multiple feature flag values.
-     *
-     * @param  array<int, array<string, string>>  $features
-     */
-    public function setAll(array $features): void;
-
-    /**
      * Set a feature flag's value for all scopes.
      */
     public function setForAllScopes(string $feature, mixed $value): void;
