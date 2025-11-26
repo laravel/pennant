@@ -289,11 +289,13 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
      */
     public function setAll(array $features): void
     {
+        $now = Carbon::now();
+
         $this->newQuery()->upsert(array_map(fn (array $feature) => [
             'name' => $feature['feature'],
             'scope' => Feature::serializeScope($feature['scope']),
             'value' => json_encode($feature['value'], flags: JSON_THROW_ON_ERROR),
-            static::CREATED_AT => $now = Carbon::now(),
+            static::CREATED_AT => $now,
             static::UPDATED_AT => $now,
         ], $features), uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
     }
