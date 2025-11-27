@@ -10,13 +10,14 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use stdClass;
 
-class DatabaseDriver implements CanListStoredFeatures, Driver
+class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver
 {
     /**
      * The database connection.
@@ -279,6 +280,24 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             static::CREATED_AT => $now = Carbon::now(),
             static::UPDATED_AT => $now,
         ], uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
+    }
+
+    /**
+     * Set multiple feature flag values.
+     *
+     * @param  list<array{ feature: string, scope: mixed, value: mixed }>  $features
+     */
+    public function setAll(array $features): void
+    {
+        $now = Carbon::now();
+
+        $this->newQuery()->upsert(array_map(fn (array $feature) => [
+            'name' => $feature['feature'],
+            'scope' => Feature::serializeScope($feature['scope']),
+            'value' => json_encode($feature['value'], flags: JSON_THROW_ON_ERROR),
+            static::CREATED_AT => $now,
+            static::UPDATED_AT => $now,
+        ], $features), uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
     }
 
     /**

@@ -159,6 +159,18 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Set multiple feature flag values.
+     *
+     * @param  list<array{ feature: string, scope: mixed, value: mixed }>  $features
+     */
+    public function setAll(array $features): void
+    {
+        foreach ($features as $featureData) {
+            $this->set($featureData['feature'], $featureData['scope'], $featureData['value']);
+        }
+    }
+
+    /**
      * Set a feature flag's value for all scopes.
      *
      * @param  string  $feature
