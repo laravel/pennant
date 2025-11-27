@@ -507,6 +507,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
 
         if ($this->driver instanceof CanSetManyFeaturesForScopes) {
             $this->driver->setAll($features);
+
             $updated = true;
         }
 
