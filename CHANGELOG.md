@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.4...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.5...1.x)
+
+## [v1.18.5](https://github.com/laravel/pennant/compare/v1.18.4...v1.18.5) - 2025-11-27
+
+* Improve performance of setting multiple feature values at once by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/157
 
 ## [v1.18.4](https://github.com/laravel/pennant/compare/v1.18.3...v1.18.4) - 2025-11-20
 
