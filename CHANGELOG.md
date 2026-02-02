@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.18.5...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.19.0...1.x)
+
+## [v1.19.0](https://github.com/laravel/pennant/compare/v1.18.5...v1.19.0) - 2026-02-02
+
+**Full Changelog**: https://github.com/laravel/pennant/compare/v1.18.5...v1.19.0
 
 ## [v1.18.5](https://github.com/laravel/pennant/compare/v1.18.4...v1.18.5) - 2025-11-27
 
