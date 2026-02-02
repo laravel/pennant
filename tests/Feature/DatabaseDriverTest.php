@@ -23,6 +23,7 @@ use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\Attributes\Name;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
@@ -950,6 +951,77 @@ class DatabaseDriverTest extends TestCase
 
             return true;
         });
+    }
+
+    public function test_it_can_use_unregistered_class_features_with_name_attribute()
+    {
+        Event::fake([DynamicallyRegisteringFeatureClass::class]);
+
+        Feature::value(UnregisteredFeatureWithNameAttribute::class);
+        $value = Feature::value(UnregisteredFeatureWithNameAttribute::class);
+        $registered = Feature::defined();
+
+        $this->assertSame('unregistered-value', $value);
+        $this->assertSame(['feature-name-attribute'], $registered);
+        Event::assertDispatched(DynamicallyRegisteringFeatureClass::class, 1);
+        Event::assertDispatched(function (DynamicallyRegisteringFeatureClass $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithNameAttribute::class);
+
+            return true;
+        });
+    }
+
+    public function test_it_can_delete_unregistered_class_features_with_name_attribute()
+    {
+        Event::fake([DynamicallyRegisteringFeatureClass::class]);
+
+        Feature::value(UnregisteredFeatureWithNameAttribute::class);
+        $this->assertSame(1, DB::table('features')->where('name', 'feature-name-attribute')->count());
+
+        Feature::forgetDrivers();
+
+        Feature::forget(UnregisteredFeatureWithNameAttribute::class);
+        $this->assertSame(0, DB::table('features')->where('name', 'feature-name-attribute')->count());
+
+        Event::assertDispatched(DynamicallyRegisteringFeatureClass::class, 2);
+
+        Event::assertDispatched(function (DynamicallyRegisteringFeatureClass $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithNameAttribute::class);
+
+            return true;
+        });
+    }
+
+    public function test_it_can_activate_unregistered_class_features_with_name_attribute()
+    {
+        Event::fake([DynamicallyRegisteringFeatureClass::class]);
+
+        Feature::activate(UnregisteredFeatureWithNameAttribute::class, 'expected-value');
+        $this->assertSame(1, DB::table('features')->where('name', 'feature-name-attribute')->where('value', '"expected-value"')->count());
+
+        Feature::forgetDrivers();
+
+        Feature::forget(UnregisteredFeatureWithNameAttribute::class);
+        $this->assertSame(0, DB::table('features')->where('name', 'feature-name-attribute')->where('value', '"expected-value"')->count());
+
+        Event::assertDispatched(DynamicallyRegisteringFeatureClass::class, 2);
+
+        Event::assertDispatched(function (DynamicallyRegisteringFeatureClass $event) {
+            $this->assertSame($event->feature, UnregisteredFeatureWithNameAttribute::class);
+
+            return true;
+        });
+    }
+
+    public function test_name_attribute_takes_precedence_over_name_property()
+    {
+        Event::fake([DynamicallyRegisteringFeatureClass::class]);
+
+        $value = Feature::value(FeatureWithNameAttributeAndProperty::class);
+        $registered = Feature::defined();
+
+        $this->assertSame('from-attribute-and-property', $value);
+        $this->assertSame(['attribute-name'], $registered);
     }
 
     public function test_it_can_conditionally_execute_code_block_for_inactive_feature()
@@ -1935,5 +2007,25 @@ class FeatureWithName
     public function __invoke()
     {
         return 'feature-with-name-value';
+    }
+}
+
+#[Name('feature-name-attribute')]
+class UnregisteredFeatureWithNameAttribute
+{
+    public function __invoke()
+    {
+        return 'unregistered-value';
+    }
+}
+
+#[Name('attribute-name')]
+class FeatureWithNameAttributeAndProperty
+{
+    public $name = 'property-name';
+
+    public function __invoke()
+    {
+        return 'from-attribute-and-property';
     }
 }

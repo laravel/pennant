@@ -16,6 +16,7 @@ use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\Attributes\Name;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
@@ -630,6 +631,26 @@ class ArrayDriverTest extends TestCase
         $value = Feature::for('shared')->value(MyUnnamedFeature::class);
 
         $this->assertSame('shared-123', $value);
+    }
+
+    public function test_it_can_register_feature_via_class_with_name_attribute()
+    {
+        Feature::define(MyFeatureWithNameAttribute::class);
+
+        $value = Feature::for('shared')->value('my-feature-with-name-attribute');
+
+        $this->assertSame('shared-attribute', $value);
+    }
+
+    public function test_name_attribute_takes_precedence_over_name_property()
+    {
+        Feature::define(MyFeatureWithBothNameAttributeAndProperty::class);
+
+        $defined = Feature::defined();
+        $value = Feature::for('shared')->value('attribute-takes-priority');
+
+        $this->assertSame(['attribute-takes-priority'], $defined);
+        $this->assertSame('shared-both', $value);
     }
 
     public function test_it_can_register_feature_via_class_with_resolve()
@@ -1465,5 +1486,25 @@ class FloatScopeFeature
     public function resolve(float $scope): bool
     {
         return in_array($scope, [1.1, 2.2, 3.3], true);
+    }
+}
+
+#[Name('my-feature-with-name-attribute')]
+class MyFeatureWithNameAttribute
+{
+    public function __invoke($scope)
+    {
+        return "{$scope}-attribute";
+    }
+}
+
+#[Name('attribute-takes-priority')]
+class MyFeatureWithBothNameAttributeAndProperty
+{
+    public $name = 'property-name';
+
+    public function __invoke($scope)
+    {
+        return "{$scope}-both";
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use Laravel\Pennant\Attributes\Name;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
@@ -133,7 +134,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     {
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
-                $this->container->make($feature)->name ?? $feature,
+                $this->resolveFeatureName($feature, $this->container->make($feature)),
                 new LazilyResolvedFeature($feature),
             ];
 
@@ -723,7 +724,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     protected function ensureDynamicFeatureIsDefined($feature)
     {
-        return tap($this->container->make($feature)->name ?? $feature, function ($name) use ($feature) {
+        return tap($this->resolveFeatureName($feature, $this->container->make($feature)), function ($name) use ($feature) {
             if (! in_array($name, $this->defined())) {
                 Event::dispatch(new DynamicallyRegisteringFeatureClass($feature));
 
@@ -759,6 +760,24 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the name for a feature class.
+     *
+     * @param  string  $class
+     * @param  object  $instance
+     * @return string
+     */
+    protected function resolveFeatureName($class, $instance)
+    {
+        $attribute = (new ReflectionClass($instance))->getAttributes(Name::class)[0] ?? null;
+
+        if ($attribute !== null) {
+            return $attribute->newInstance()->name;
+        }
+
+        return $instance->name ?? $class;
     }
 
     /**
