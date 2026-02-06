@@ -16,7 +16,7 @@ class ToggleCommand extends Command
      */
     protected $signature = 'pennant:toggle
                             {feature : The feature to toggle}
-                            {--scope= : The optional scope identifier (e.g. user:123, team:abc)}
+                            {--scope= : The optional scope identifier}
                             {--on : Force activation (instead of toggling)}
                             {--off : Force deactivation (instead of toggling)}
                             {--store= : The store to toggle the feature in}';
@@ -36,18 +36,16 @@ class ToggleCommand extends Command
     public function handle(FeatureManager $manager)
     {
         $feature = $this->argument('feature');
-        $scopeInput = $this->option('scope');
+        $scope = $this->option('scope') ?: null;
         $forceOn = $this->option('on');
         $forceOff = $this->option('off');
         $store = $manager->store($this->option('store'));
 
-        $scope = $scopeInput !== null ? $scopeInput : null;
-
-        $currentValue = $scope !== null
+        $currentValue = $scope
             ? $store->for($scope)->value($feature)
             : $store->value($feature);
 
-        $isCurrentlyActive = $currentValue === true || $currentValue !== false && $currentValue !== null;
+        $isCurrentlyActive = $currentValue === true || ($currentValue !== false && $currentValue !== null);
 
         if ($forceOn) {
             $newValue = true;
@@ -60,26 +58,23 @@ class ToggleCommand extends Command
             $action = $newValue ? 'activated' : 'deactivated';
         }
 
-        if ($scope !== null) {
-            if ($newValue) {
-                $store->for($scope)->activate($feature, $newValue);
-            } else {
-                $store->for($scope)->deactivate($feature);
-            }
-            $scopeMsg = " for scope '{$scope}'";
+        $target = $scope ? $store->for($scope) : $store;
+
+        if ($newValue) {
+            $target->activate($feature, $newValue);
         } else {
-            if ($newValue) {
-                $store->activate($feature, $newValue);
-            } else {
-                $store->deactivate($feature);
-            }
-            $scopeMsg = ' globally';
+            $target->deactivate($feature);
         }
 
-        $this->components->info("Feature '{$feature}' {$action}{$scopeMsg}.");
+        $scopePart = $scope ? " for scope '{$scope}'" : ' globally';
 
-        $this->line("  Before: " . ($isCurrentlyActive ? '<fg=green>active</>' : '<fg=red>inactive</>'));
-        $this->line("   After: " . ($newValue ? '<fg=green>active</>' : '<fg=red>inactive</>'));
+        $this->components->info("Feature '{$feature}' {$action}{$scopePart}.");
+
+        $beforeStatus = $isCurrentlyActive ? 'active' : 'inactive';
+        $afterStatus  = $newValue ? 'active' : 'inactive';
+
+        $this->line("  Before: {$beforeStatus}");
+        $this->line("   After: {$afterStatus}");
 
         return self::SUCCESS;
     }
