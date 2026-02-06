@@ -44,7 +44,7 @@ class ToggleCommandTest extends TestCase
 
         $this->assertTrue(Feature::active('bar'));
 
-        $this->artisan(command: 'pennant:toggle bar --on')
+        $this->artisan('pennant:toggle bar --on')
             ->expectsOutputToContain('After: active');
 
         $this->assertTrue(Feature::active('bar'));
@@ -81,7 +81,7 @@ class ToggleCommandTest extends TestCase
             ->expectsOutputToContain('After: active');
 
         $this->assertTrue(Feature::for('user:tim')->active('bar'));
-        $this->assertFalse(Feature::active('bar')); // global unchanged
+        $this->assertFalse(Feature::active('bar'));
 
         $this->artisan('pennant:toggle bar --scope=user:tim')
             ->expectsOutputToContain("Feature 'bar' deactivated for scope 'user:tim'.")
@@ -116,6 +116,24 @@ class ToggleCommandTest extends TestCase
             ->expectsOutputToContain("Feature 'bar' activated globally.");
 
         $this->assertTrue(Feature::value('bar'));
+    }
+
+    public function test_it_can_use_custom_store()
+    {
+        config(['pennant.stores.custom' => ['driver' => 'array']]);
+
+        Feature::define('foo', true);
+
+        Feature::store('custom')->for('test')->activate('foo');
+
+        $this->assertTrue(Feature::store('custom')->for('test')->active('foo'));
+
+        $this->artisan('pennant:toggle foo --store=custom --scope=test')
+            ->expectsOutputToContain("Feature 'foo' deactivated for scope 'test'.");
+
+        $this->assertFalse(Feature::store('custom')->for('test')->active('foo'));
+
+        $this->assertTrue(Feature::active('foo'));
     }
 
     public function test_it_activates_unknown_features()
