@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string name(string $feature)
  * @method static array nameMap()
  * @method static mixed instance(string $name)
- * @method static \Laravel\Pennant\Contracts\DriverContract getDriver()
+ * @method static \Laravel\Pennant\Contracts\Driver getDriver()
  * @method static void macro(string $name, object|callable $macro)
  * @method static void mixin(object $mixin, bool $replace = true)
  * @method static bool hasMacro(string $name)

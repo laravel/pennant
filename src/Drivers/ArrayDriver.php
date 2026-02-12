@@ -5,13 +5,13 @@ namespace Laravel\Pennant\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
-use Laravel\Pennant\Contracts\DriverContract;
+use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\HasFlushableCache;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class ArrayDriver implements CanListStoredFeatures, DriverContract, HasFlushableCache
+class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
 {
     /**
      * The event dispatcher.

@@ -11,13 +11,13 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
-use Laravel\Pennant\Contracts\DriverContract;
+use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use stdClass;
 
-class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScopes, DriverContract
+class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver
 {
     /**
      * The database connection.
