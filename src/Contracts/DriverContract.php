@@ -2,7 +2,7 @@
 
 namespace Laravel\Pennant\Contracts;
 
-interface Driver
+interface DriverContract
 {
     /**
      * Define an initial feature flag state resolver.

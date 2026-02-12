@@ -1,33 +1,33 @@
 {
-    "name": "laravel/pennant",
+    "name": "qrstuff/pennant",
     "description": "A simple, lightweight library for managing feature flags.",
     "keywords": ["laravel", "pennant", "feature", "flags"],
-    "homepage": "https://github.com/laravel/pennant",
+    "homepage": "https://bitbucket.org/qrcg/pennant",
     "license": "MIT",
-    "support": {
-        "issues": "https://github.com/laravel/pennant/issues",
-        "source": "https://github.com/laravel/pennant"
-    },
     "authors": [
+        {
+            "name": "QRStuff Team",
+            "email": "engineering@qrstuff.com"
+        },
         {
             "name": "Taylor Otwell",
             "email": "taylor@laravel.com"
         }
     ],
     "require": {
-        "php": "^8.1",
-        "illuminate/console": "^10.0|^11.0|^12.0",
-        "illuminate/container": "^10.0|^11.0|^12.0",
-        "illuminate/contracts": "^10.0|^11.0|^12.0",
-        "illuminate/database": "^10.0|^11.0|^12.0",
-        "illuminate/queue": "^10.0|^11.0|^12.0",
-        "illuminate/support": "^10.0|^11.0|^12.0",
+        "php": "^8.0",
+        "illuminate/console": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/container": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/contracts": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/queue": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0",
         "symfony/console": "^6.0|^7.0",
         "symfony/finder": "^6.0|^7.0"
     },
     "require-dev": {
         "laravel/octane": "^1.4|^2.0",
-        "orchestra/testbench": "^8.36|^9.15|^10.8",
+        "orchestra/testbench": "^7.0|^8.36|^9.15|^10.8",
         "phpstan/phpstan": "^1.10"
     },
     "autoload": {

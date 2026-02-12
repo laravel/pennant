@@ -13,7 +13,7 @@ use Laravel\Pennant\Attributes\Name;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
-use Laravel\Pennant\Contracts\Driver;
+use Laravel\Pennant\Contracts\DriverContract;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Contracts\HasFlushableCache;
 use Laravel\Pennant\Events\AllFeaturesPurged;
@@ -39,7 +39,7 @@ use Symfony\Component\Finder\Finder;
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
  */
-class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver, HasFlushableCache
+class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, DriverContract, HasFlushableCache
 {
     use Macroable {
         __call as macroCall;
@@ -55,7 +55,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * The driver being decorated.
      *
-     * @var \Laravel\Pennant\Contracts\Driver
+     * @var \Laravel\Pennant\Contracts\DriverContract
      */
     protected $driver;
 
@@ -91,7 +91,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      * Create a new driver decorator instance.
      *
      * @param  string  $name
-     * @param  \Laravel\Pennant\Contracts\Driver  $driver
+     * @param  \Laravel\Pennant\Contracts\DriverContract  $driver
      * @param  (callable(): mixed)  $defaultScopeResolver
      * @param  \Illuminate\Contracts\Container\Container  $container
      * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
