@@ -6,7 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
-use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
@@ -101,11 +101,8 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
 
     /**
      * Define an initial feature flag state resolver.
-     *
-     * @param  string  $feature
-     * @param  (callable(mixed $scope): mixed)  $resolver
      */
-    public function define($feature, $resolver): void
+    public function define(string $feature, callable $resolver): void
     {
         $this->featureStateResolvers[$feature] = $resolver;
     }
@@ -180,7 +177,11 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
         if ($inserts->isNotEmpty()) { // @phpstan-ignore method.impossibleType
             try {
                 $this->insertMany($inserts->all());
-            } catch (UniqueConstraintViolationException $e) {
+            } catch (\Exception $e) {
+                if (! $this->isUniqueConstraintViolation($e)) {
+                    throw $e;
+                }
+
                 if ($this->retryDepth === 2) {
                     throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
                 }
@@ -215,7 +216,11 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
 
             try {
                 $this->insert($feature, $scope, $value);
-            } catch (UniqueConstraintViolationException $e) {
+            } catch (\Exception $e) {
+                if (! $this->isUniqueConstraintViolation($e)) {
+                    throw $e;
+                }
+
                 if ($this->retryDepth === 1) {
                     throw new RuntimeException('Unable to insert feature value into the database.', previous: $e);
                 }
@@ -386,11 +391,11 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     }
 
     /**
-     * Purge the given feature from storage.
+     * Purge the given features from storage.
      *
-     * @param  array|null  $features
+     * @param  array<int, string>|null  $features
      */
-    public function purge($features): void
+    public function purge(?array $features): void
     {
         if ($features === null) {
             $this->newQuery()->delete();
@@ -423,5 +428,34 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
         return $this->db->connection(
             $this->config->get("pennant.stores.{$this->name}.connection") ?? null
         );
+    }
+
+    /**
+     * Determine if the given exception is a unique constraint violation.
+     *
+     * @param  \Exception  $e
+     * @return bool
+     */
+    protected function isUniqueConstraintViolation($e)
+    {
+        if (class_exists('Illuminate\Database\UniqueConstraintViolationException') &&
+            $e instanceof \Illuminate\Database\UniqueConstraintViolationException) {
+            return true;
+        }
+
+        if (! $e instanceof QueryException) {
+            return false;
+        }
+
+        $connection = $this->connection();
+        $driverName = $connection->getDriverName();
+
+        return match ($driverName) {
+            'sqlite' => str_contains($e->getMessage(), 'UNIQUE constraint failed'),
+            'mysql' => $e->getCode() === '23000' && str_contains($e->getMessage(), '1062 Duplicate entry'),
+            'pgsql' => $e->getCode() === '23505',
+            'sqlsrv' => $e->getCode() === '2601' || $e->getCode() === '2627',
+            default => false,
+        };
     }
 }
