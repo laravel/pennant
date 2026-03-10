@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.20.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.21.0...1.x)
+
+## [v1.21.0](https://github.com/laravel/pennant/compare/v1.20.0...v1.21.0) - 2026-03-10
+
+* Remove redundant Pennant guidelines by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pennant/pull/162
 
 ## [v1.20.0](https://github.com/laravel/pennant/compare/v1.19.0...v1.20.0) - 2026-02-20
 
