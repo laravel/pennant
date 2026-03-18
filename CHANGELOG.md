@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.21.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.22.0...1.x)
+
+## [v1.22.0](https://github.com/laravel/pennant/compare/v1.21.0...v1.22.0) - 2026-03-18
+
+* Adds Laravel 13 support by [@crynobone](https://github.com/crynobone) in https://github.com/laravel/pennant/pull/158
 
 ## [v1.21.0](https://github.com/laravel/pennant/compare/v1.20.0...v1.21.0) - 2026-03-10
 
