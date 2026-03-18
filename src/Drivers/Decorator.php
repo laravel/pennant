@@ -37,7 +37,7 @@ use RuntimeException;
 use Symfony\Component\Finder\Finder;
 
 /**
- * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
+ * @mixin PendingScopedFeatureInteraction
  */
 class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver, HasFlushableCache
 {
@@ -55,7 +55,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * The driver being decorated.
      *
-     * @var \Laravel\Pennant\Contracts\Driver
+     * @var Driver
      */
     protected $driver;
 
@@ -69,14 +69,14 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * The container instance.
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var Container
      */
     protected $container;
 
     /**
      * The in-memory feature state cache.
      *
-     * @var \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>
+     * @var Collection<int, array{ feature: string, scope: mixed, value: mixed }>
      */
     protected $cache;
 
@@ -91,10 +91,10 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      * Create a new driver decorator instance.
      *
      * @param  string  $name
-     * @param  \Laravel\Pennant\Contracts\Driver  $driver
+     * @param  Driver  $driver
      * @param  (callable(): mixed)  $defaultScopeResolver
-     * @param  \Illuminate\Contracts\Container\Container  $container
-     * @param  \Illuminate\Support\Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
+     * @param  Container  $container
+     * @param  Collection<int, array{ feature: string, scope: mixed, value: mixed }>  $cache
      */
     public function __construct($name, $driver, $defaultScopeResolver, $container, $cache)
     {
@@ -224,7 +224,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      *
      * @param  \ReflectionType  $type
      * @param  mixed  $scope
-     * @param  \ReflectionMethod|\ReflectionFunction  $function
+     * @param  \ReflectionMethod|ReflectionFunction  $function
      * @return bool
      */
     protected function typeAllowsScope($type, $scope, $function)
@@ -276,7 +276,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Determine if the resolver accepts null scope.
      *
-     * @param  callable|\ReflectionFunction|\ReflectionMethod  $resolver
+     * @param  callable|ReflectionFunction|\ReflectionMethod  $resolver
      * @return bool
      */
     protected function canHandleNullScope($resolver)
@@ -394,7 +394,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      * Normalize the features to load.
      *
      * @param  string|array<int|string, mixed>  $features
-     * @return \Illuminate\Support\Collection<string, array<int, mixed>>
+     * @return Collection<string, array<int, mixed>>
      */
     protected function normalizeFeaturesToLoad($features)
     {
@@ -668,7 +668,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      * @internal
      *
      * @param  mixed  $scope
-     * @return \Illuminate\Support\Collection<int, string>
+     * @return Collection<int, string>
      */
     public function definedFeaturesForScope($scope)
     {
@@ -879,7 +879,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Get the underlying feature driver.
      *
-     * @return \Laravel\Pennant\Contracts\Driver
+     * @return Driver
      */
     public function getDriver()
     {

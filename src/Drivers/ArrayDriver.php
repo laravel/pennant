@@ -16,7 +16,7 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     /**
      * The event dispatcher.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher
+     * @var Dispatcher
      */
     protected $events;
 
@@ -37,7 +37,7 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     /**
      * The sentinel value for unknown features.
      *
-     * @var \stdClass
+     * @var stdClass
      */
     protected $unknownFeatureValue;
 

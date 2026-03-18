@@ -13,7 +13,7 @@ abstract class TestCase extends OrchestraTestCase
     /**
      * Create an instance of the manager.
      *
-     * @return \Laravel\Pennant\FeatureManager
+     * @return FeatureManager
      */
     protected function createManager()
     {

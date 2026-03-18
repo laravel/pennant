@@ -6,6 +6,7 @@ use Illuminate\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Connection;
 use Illuminate\Database\DatabaseManager;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -22,14 +23,14 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * The database connection.
      *
-     * @var \Illuminate\Database\DatabaseManager
+     * @var DatabaseManager
      */
     protected $db;
 
     /**
      * The user configuration.
      *
-     * @var \Illuminate\Config\Repository
+     * @var Repository
      */
     protected $config;
 
@@ -43,7 +44,7 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * The event dispatcher.
      *
-     * @var \Illuminate\Contracts\Events\Dispatcher
+     * @var Dispatcher
      */
     protected $events;
 
@@ -57,7 +58,7 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * The sentinel value for unknown features.
      *
-     * @var \stdClass
+     * @var stdClass
      */
     protected $unknownFeatureValue;
 
@@ -404,7 +405,7 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * Create a new table query.
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
     protected function newQuery()
     {
@@ -416,7 +417,7 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * The database connection.
      *
-     * @return \Illuminate\Database\Connection
+     * @return Connection
      */
     protected function connection()
     {

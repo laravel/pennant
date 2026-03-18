@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
@@ -1286,7 +1287,7 @@ class DatabaseDriverTest extends TestCase
     {
         Config::set('pennant.stores.database.connection', 'null');
 
-        $migration = new class extends \Illuminate\Database\Migrations\Migration
+        $migration = new class extends Migration
         {
             public function getConnection()
             {
