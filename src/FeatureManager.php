@@ -14,14 +14,14 @@ use Laravel\Pennant\Drivers\Decorator;
 use RuntimeException;
 
 /**
- * @mixin \Laravel\Pennant\Drivers\Decorator
+ * @mixin Decorator
  */
 class FeatureManager
 {
     /**
      * The container instance.
      *
-     * @var \Illuminate\Contracts\Container\Container
+     * @var Container
      */
     protected $container;
 
@@ -67,9 +67,9 @@ class FeatureManager
      * Get a Pennant store instance.
      *
      * @param  string|null  $store
-     * @return \Laravel\Pennant\Drivers\Decorator
+     * @return Decorator
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function store($store = null)
     {
@@ -80,9 +80,9 @@ class FeatureManager
      * Get a Pennant store instance by name.
      *
      * @param  string|null  $name
-     * @return \Laravel\Pennant\Drivers\Decorator
+     * @return Decorator
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function driver($name = null)
     {
@@ -95,7 +95,7 @@ class FeatureManager
      * Attempt to get the store from the local cache.
      *
      * @param  string  $name
-     * @return \Laravel\Pennant\Drivers\Decorator
+     * @return Decorator
      */
     protected function get($name)
     {
@@ -106,9 +106,9 @@ class FeatureManager
      * Resolve the given store.
      *
      * @param  string  $name
-     * @return \Laravel\Pennant\Drivers\Decorator
+     * @return Decorator
      *
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function resolve($name)
     {
@@ -152,7 +152,7 @@ class FeatureManager
     /**
      * Create an instance of the array driver.
      *
-     * @return \Laravel\Pennant\Drivers\ArrayDriver
+     * @return ArrayDriver
      */
     public function createArrayDriver()
     {
@@ -162,7 +162,7 @@ class FeatureManager
     /**
      * Create an instance of the database driver.
      *
-     * @return \Laravel\Pennant\Drivers\DatabaseDriver
+     * @return DatabaseDriver
      */
     public function createDatabaseDriver(array $config, string $name)
     {

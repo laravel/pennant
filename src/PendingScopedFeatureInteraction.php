@@ -3,6 +3,7 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Support\Collection;
+use Laravel\Pennant\Drivers\Decorator;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
@@ -10,7 +11,7 @@ class PendingScopedFeatureInteraction
     /**
      * The feature driver.
      *
-     * @var \Laravel\Pennant\Drivers\Decorator
+     * @var Decorator
      */
     protected $driver;
 
@@ -24,7 +25,7 @@ class PendingScopedFeatureInteraction
     /**
      * Create a new Pending Scoped Feature Interaction instance.
      *
-     * @param  \Laravel\Pennant\Drivers\Decorator  $driver
+     * @param  Decorator  $driver
      */
     public function __construct($driver)
     {
