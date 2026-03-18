@@ -30,7 +30,7 @@ class PurgeCommand extends Command
     /**
      * The console command name aliases.
      *
-     * @var array<int, string>
+     * @var string[]
      */
     protected $aliases = ['pennant:clear'];
 
