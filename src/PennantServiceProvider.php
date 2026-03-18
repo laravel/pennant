@@ -3,7 +3,14 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Container\Container;
+use Illuminate\Foundation\Events\PublishingStubs;
+use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Octane\Events\RequestReceived;
+use Laravel\Octane\Events\TaskReceived;
+use Laravel\Octane\Events\TickReceived;
+use Laravel\Pennant\Commands\FeatureMakeCommand;
+use Laravel\Pennant\Commands\PurgeCommand;
 
 class PennantServiceProvider extends ServiceProvider
 {
@@ -30,8 +37,8 @@ class PennantServiceProvider extends ServiceProvider
             $this->offerPublishing();
 
             $this->commands([
-                \Laravel\Pennant\Commands\FeatureMakeCommand::class,
-                \Laravel\Pennant\Commands\PurgeCommand::class,
+                FeatureMakeCommand::class,
+                PurgeCommand::class,
             ]);
         }
 
@@ -60,19 +67,19 @@ class PennantServiceProvider extends ServiceProvider
     protected function listenForEvents()
     {
         $this->app['events']->listen([
-            \Laravel\Octane\Events\RequestReceived::class,
-            \Laravel\Octane\Events\TaskReceived::class,
-            \Laravel\Octane\Events\TickReceived::class,
+            RequestReceived::class,
+            TaskReceived::class,
+            TickReceived::class,
         ], fn () => $this->app[FeatureManager::class]
             ->setContainer(Container::getInstance())
             ->flushCache());
 
         $this->app['events']->listen([
-            \Illuminate\Queue\Events\JobProcessed::class,
+            JobProcessed::class,
         ], fn () => $this->app[FeatureManager::class]->flushCache());
 
         $this->app['events']->listen([
-            \Illuminate\Foundation\Events\PublishingStubs::class,
+            PublishingStubs::class,
         ], fn ($event) => $event->add(__DIR__.'/../stubs/feature.stub', 'feature.stub'));
     }
 

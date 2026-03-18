@@ -8,9 +8,9 @@ if (! function_exists('feature')) {
      * Get the feature manager instance.
      *
      * @param  string|null  $name
-     * @param  \Closure|null  $whenActive
-     * @param  \Closure|null  $whenInactive
-     * @return \Laravel\Pennant\FeatureManager|mixed
+     * @param  Closure|null  $whenActive
+     * @param  Closure|null  $whenInactive
+     * @return FeatureManager|mixed
      */
     function feature($name = null, $whenActive = null, $whenInactive = null)
     {

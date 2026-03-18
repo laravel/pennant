@@ -55,7 +55,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivate(string|array $feature)
  * @method static void forget(string|array $features)
  *
- * @see \Laravel\Pennant\FeatureManager
+ * @see FeatureManager
  */
 class Feature extends Facade
 {

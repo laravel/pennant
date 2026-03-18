@@ -3,6 +3,7 @@
 namespace Laravel\Pennant\Concerns;
 
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\PendingScopedFeatureInteraction;
 
 trait HasFeatures
 {
@@ -10,7 +11,7 @@ trait HasFeatures
      * Get a scoped feature interaction for the class.
      *
      * @param  string|null  $store
-     * @return \Laravel\Pennant\PendingScopedFeatureInteraction
+     * @return PendingScopedFeatureInteraction
      */
     public function features($store = null)
     {
