@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string name(string $feature)
  * @method static array nameMap()
  * @method static mixed instance(string $name)
- * @method static \Laravel\Pennant\Contracts\Driver getDriver()
+ * @method static mixed getDriver()
  * @method static void macro(string $name, object|callable $macro)
  * @method static void mixin(object $mixin, bool $replace = true)
  * @method static bool hasMacro(string $name)
@@ -55,7 +55,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivate(string|array $feature)
  * @method static void forget(string|array $features)
  *
- * @see FeatureManager
+ * @see \Laravel\Pennant\FeatureManager
  */
 class Feature extends Facade
 {
