@@ -1,15 +1,16 @@
 name: facades
 
 on:
-  push:
-    branches:
-      - '*.x'
+  pull_request:
+      types:
+        - closed
 
 permissions:
   contents: write
 
 jobs:
   update:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-22.04
 
     strategy:
