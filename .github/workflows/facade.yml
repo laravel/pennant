@@ -33,7 +33,7 @@ jobs:
         with:
           timeout_minutes: 5
           max_attempts: 5
-          command: "composer config repositories.facade-documenter vcs git@github.com:laravel/facade-documenter.git && composer require --dev laravel/facade-documenter:dev-improved-fqcn-detection"
+          command: "composer config repositories.facade-documenter vcs git@github.com:laravel/facade-documenter.git && composer require --dev laravel/facade-documenter:dev-main"
 
       - name: Update facade docblocks
         run: php -f vendor/bin/facade.php -- Laravel\\Pennant\\Feature
