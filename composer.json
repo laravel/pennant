@@ -2,7 +2,7 @@
     "name": "qrstuff/pennant",
     "description": "A simple, lightweight library for managing feature flags.",
     "keywords": ["laravel", "pennant", "feature", "flags"],
-    "homepage": "https://bitbucket.org/qrcg/pennant",
+    "homepage": "https://github.com/qrstuff/pennant",
     "license": "MIT",
     "authors": [
         {
