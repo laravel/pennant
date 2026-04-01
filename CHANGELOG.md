@@ -1,6 +1,11 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.22.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.23.0...1.x)
+
+## [v1.23.0](https://github.com/laravel/pennant/compare/v1.22.0...v1.23.0) - 2026-03-19
+
+* Remove redundant "When to Apply" section from skill body by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pennant/pull/164
+* Test facade improvements by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/165
 
 ## [v1.22.0](https://github.com/laravel/pennant/compare/v1.21.0...v1.22.0) - 2026-03-18
 
