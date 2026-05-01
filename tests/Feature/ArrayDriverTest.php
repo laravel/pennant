@@ -68,6 +68,19 @@ class ArrayDriverTest extends TestCase
         $this->assertFalse($false);
     }
 
+    public function test_it_can_register_features_via_array()
+    {
+        Feature::define([
+            'foo' => fn () => true,
+            'bar' => fn () => false,
+            'baz' => 'value',
+        ]);
+
+        $this->assertTrue(Feature::active('foo'));
+        $this->assertFalse(Feature::active('bar'));
+        $this->assertSame('value', Feature::value('baz'));
+    }
+
     public function test_it_can_register_complex_values()
     {
         Feature::define('config', fn () => [
