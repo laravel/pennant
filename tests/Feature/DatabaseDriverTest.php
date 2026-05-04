@@ -88,9 +88,9 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(4, DB::getQueryLog());
     }
 
-    public function test_it_can_register_multiple_features_via_array()
+    public function test_it_can_register_multiple_features_via_define_many()
     {
-        Feature::define([
+        Feature::defineMany([
             'foo' => fn () => true,
             'bar' => fn () => false,
             'baz' => 'value',

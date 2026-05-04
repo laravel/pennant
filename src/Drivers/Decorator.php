@@ -127,19 +127,11 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Define an initial feature flag state resolver.
      *
-     * @param  string|class-string|array<string, mixed>  $feature
+     * @param  string|class-string  $feature
      * @param  mixed  $resolver
      */
     public function define($feature, $resolver = null): void
     {
-        if (is_array($feature)) {
-            foreach ($feature as $name => $featureResolver) {
-                $this->define($name, $featureResolver);
-            }
-
-            return;
-        }
-
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
                 $this->resolveFeatureName($feature, $this->container->make($feature)),
@@ -174,6 +166,18 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
 
             return $this->resolve($feature, fn () => false, $scope);
         });
+    }
+
+    /**
+     * Define the initial feature flag state resolvers.
+     *
+     * @param  array<string|class-string, mixed>  $features
+     */
+    public function defineMany(array $features): void
+    {
+        foreach ($features as $feature => $resolver) {
+            $this->define($feature, $resolver);
+        }
     }
 
     /**
