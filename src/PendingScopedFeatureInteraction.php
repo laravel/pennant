@@ -48,11 +48,13 @@ class PendingScopedFeatureInteraction
     /**
      * Load the feature into memory.
      *
-     * @param  string|array<int, string>  $features
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return array<string, array<int, mixed>>
      */
     public function load($features)
     {
+        $features = $this->normalize($features);
+
         return Collection::wrap($features)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
             ->pipe(fn ($features) => $this->driver->getAll($features->all()));
@@ -61,11 +63,13 @@ class PendingScopedFeatureInteraction
     /**
      * Load the missing features into memory.
      *
-     * @param  string|array<int, string>  $features
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return array<string, array<int, mixed>>
      */
     public function loadMissing($features)
     {
+        $features = $this->normalize($features);
+
         return Collection::wrap($features)
             ->mapWithKeys(fn ($feature) => [$feature => $this->scope()])
             ->pipe(fn ($features) => $this->driver->getAllMissing($features->all()));
@@ -86,7 +90,7 @@ class PendingScopedFeatureInteraction
     /**
      * Get the value of the flag.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @return mixed
      */
     public function value($feature)
@@ -97,7 +101,7 @@ class PendingScopedFeatureInteraction
     /**
      * Get the values of the flag.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return array<string, mixed>
      */
     public function values($features)
@@ -105,6 +109,8 @@ class PendingScopedFeatureInteraction
         if (count($this->scope()) > 1) {
             throw new RuntimeException('It is not possible to retrieve the values for multiple scopes.');
         }
+
+        $features = $this->normalize($features);
 
         $this->loadMissing($features);
 
@@ -130,7 +136,7 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if the feature is active.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @return bool
      */
     public function active($feature)
@@ -141,11 +147,13 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if all the features are active.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return bool
      */
     public function allAreActive($features)
     {
+        $features = $this->normalize($features);
+
         $this->loadMissing($features);
 
         return Collection::make($features)
@@ -156,11 +164,13 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if any of the features are active.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return bool
      */
     public function someAreActive($features)
     {
+        $features = $this->normalize($features);
+
         $this->loadMissing($features);
 
         return Collection::make($this->scope())
@@ -171,7 +181,7 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if the feature is inactive.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @return bool
      */
     public function inactive($feature)
@@ -182,11 +192,13 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if all the features are inactive.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return bool
      */
     public function allAreInactive($features)
     {
+        $features = $this->normalize($features);
+
         $this->loadMissing($features);
 
         return Collection::make($features)
@@ -197,11 +209,13 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if any of the features are inactive.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return bool
      */
     public function someAreInactive($features)
     {
+        $features = $this->normalize($features);
+
         $this->loadMissing($features);
 
         return Collection::make($this->scope())
@@ -212,7 +226,7 @@ class PendingScopedFeatureInteraction
     /**
      * Apply the callback if the feature is active.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @param  \Closure  $whenActive
      * @param  \Closure|null  $whenInactive
      * @return mixed
@@ -231,7 +245,7 @@ class PendingScopedFeatureInteraction
     /**
      * Apply the callback if the feature is inactive.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @param  \Closure  $whenInactive
      * @param  \Closure|null  $whenActive
      * @return mixed
@@ -244,12 +258,14 @@ class PendingScopedFeatureInteraction
     /**
      * Activate the feature.
      *
-     * @param  string|array<string>  $feature
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $feature
      * @param  mixed  $value
      * @return void
      */
     public function activate($feature, $value = true)
     {
+        $feature = $this->normalize($feature);
+
         $features = Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->map(fn ($bits) => ['feature' => $bits[0], 'scope' => $bits[1], 'value' => $value])
@@ -261,11 +277,13 @@ class PendingScopedFeatureInteraction
     /**
      * Deactivate the feature.
      *
-     * @param  string|array<string>  $feature
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $feature
      * @return void
      */
     public function deactivate($feature)
     {
+        $feature = $this->normalize($feature);
+
         $features = Collection::wrap($feature)
             ->crossJoin($this->scope())
             ->map(fn ($bits) => ['feature' => $bits[0], 'scope' => $bits[1], 'value' => false])
@@ -277,14 +295,29 @@ class PendingScopedFeatureInteraction
     /**
      * Forget the flags value.
      *
-     * @param  string|array<string>  $features
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $features
      * @return void
      */
     public function forget($features)
     {
+        $features = $this->normalize($features);
+
         Collection::wrap($features)
             ->crossJoin($this->scope())
             ->each(fn ($bits) => $this->driver->delete(...$bits));
+    }
+
+    /**
+     * Normalize the given features to their scalar names.
+     *
+     * @param  string|\BackedEnum|\UnitEnum|array<int, string|\BackedEnum|\UnitEnum>  $features
+     * @return array<int, mixed>
+     */
+    protected function normalize($features)
+    {
+        return Collection::wrap($features)
+            ->map(static fn ($feature) => enum_value($feature))
+            ->all();
     }
 
     /**

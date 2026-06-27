@@ -36,6 +36,8 @@ use ReflectionUnionType;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
 
+use function Laravel\Pennant\enum_value;
+
 /**
  * @mixin PendingScopedFeatureInteraction
  */
@@ -127,11 +129,13 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Define an initial feature flag state resolver.
      *
-     * @param  string|class-string  $feature
+     * @param  string|class-string|\BackedEnum|\UnitEnum  $feature
      * @param  mixed  $resolver
      */
     public function define($feature, $resolver = null): void
     {
+        $feature = enum_value($feature);
+
         if (func_num_args() === 1) {
             [$feature, $resolver] = [
                 $this->resolveFeatureName($feature, $this->container->make($feature)),
@@ -530,7 +534,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Activate the feature for everyone.
      *
-     * @param  string|array<string>  $feature
+     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>  $feature
      * @param  mixed  $value
      * @return void
      */
@@ -543,7 +547,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Deactivate the feature for everyone.
      *
-     * @param  string|array<string>  $feature
+     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>  $feature
      * @return void
      */
     public function deactivateForEveryone($feature)
@@ -597,7 +601,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Purge the given feature from storage.
      *
-     * @param  string|array|null  $features
+     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>|null  $features
      */
     public function purge($features = null): void
     {
@@ -625,7 +629,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Retrieve the feature's name.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @return string
      */
     public function name($feature)
@@ -644,11 +648,13 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Retrieve the feature's class.
      *
-     * @param  string  $name
+     * @param  string|\BackedEnum|\UnitEnum  $name
      * @return mixed
      */
     public function instance($name)
     {
+        $name = enum_value($name);
+
         $feature = $this->nameMap[$name] ?? $name;
 
         if (is_string($feature) && class_exists($feature)) {
@@ -693,11 +699,13 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Resolve the feature name and ensure it is defined.
      *
-     * @param  string  $feature
+     * @param  string|\BackedEnum|\UnitEnum  $feature
      * @return string
      */
     protected function resolveFeature($feature)
     {
+        $feature = enum_value($feature);
+
         return $this->shouldDynamicallyDefine($feature)
             ? $this->ensureDynamicFeatureIsDefined($feature)
             : $feature;
