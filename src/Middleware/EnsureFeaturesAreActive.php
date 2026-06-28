@@ -2,9 +2,13 @@
 
 namespace Laravel\Pennant\Middleware;
 
+use BackedEnum;
 use Closure;
 use Illuminate\Http\Request;
 use Laravel\Pennant\Feature;
+use UnitEnum;
+
+use function Laravel\Pennant\enum_value;
 
 class EnsureFeaturesAreActive
 {
@@ -13,8 +17,10 @@ class EnsureFeaturesAreActive
     /**
      * Handle the incoming request.
      */
-    public function handle(Request $request, Closure $next, string ...$features): mixed
+    public function handle(Request $request, Closure $next, BackedEnum|UnitEnum|string ...$features): mixed
     {
+        $features = array_map(enum_value(...), $features);
+
         Feature::loadMissing($features);
 
         if (Feature::someAreInactive($features)) {
@@ -33,9 +39,9 @@ class EnsureFeaturesAreActive
     /**
      * Specify the features for the middleware.
      */
-    public static function using(string ...$features): string
+    public static function using(BackedEnum|UnitEnum|string ...$features): string
     {
-        return static::class.':'.implode(',', $features);
+        return static::class.':'.implode(',', array_map(enum_value(...), $features));
     }
 
     /**
