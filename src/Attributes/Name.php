@@ -19,7 +19,7 @@ class Name
     /**
      * Create a new attribute instance.
      */
-    public function __construct(string|BackedEnum|UnitEnum $name)
+    public function __construct(BackedEnum|UnitEnum|string $name)
     {
         $this->name = (string) enum_value($name);
     }

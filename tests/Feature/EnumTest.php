@@ -47,6 +47,16 @@ class EnumTest extends TestCase
         $this->assertTrue(Feature::active('NewApi'));
     }
 
+    public function test_an_integer_backed_enum_resolves_to_its_string_backing_value()
+    {
+        Feature::activate(IntegerFeatureEnum::NewApi, 'foo');
+
+        $this->assertSame('foo', Feature::value(IntegerFeatureEnum::NewApi));
+        $this->assertSame('foo', Feature::value('1'));
+        $this->assertSame(['1' => 'foo'], Feature::values([IntegerFeatureEnum::NewApi]));
+        $this->assertSame(['1' => ['foo']], Feature::load([IntegerFeatureEnum::NewApi]));
+    }
+
     public function test_define_accepts_an_enum_with_a_resolver()
     {
         Feature::define(FeatureEnum::NewApi, fn () => 'resolved-value');
@@ -238,6 +248,12 @@ enum FeatureEnum: string
 {
     case NewApi = 'new-api';
     case Purchasing = 'purchasing';
+}
+
+enum IntegerFeatureEnum: int
+{
+    case NewApi = 1;
+    case Purchasing = 2;
 }
 
 enum PureFeatureEnum

@@ -17,11 +17,13 @@ if (! function_exists('Laravel\Pennant\enum_value')) {
     function enum_value($value)
     {
         if (function_exists('Illuminate\Support\enum_value')) {
-            return \Illuminate\Support\enum_value($value);
+            return $value instanceof UnitEnum
+                ? (string) \Illuminate\Support\enum_value($value)
+                : $value;
         }
 
         return match (true) {
-            $value instanceof BackedEnum => $value->value,
+            $value instanceof BackedEnum => (string) $value->value,
             $value instanceof UnitEnum => $value->name,
             default => $value,
         };

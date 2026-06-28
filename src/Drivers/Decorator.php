@@ -129,7 +129,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Define an initial feature flag state resolver.
      *
-     * @param  string|class-string|\BackedEnum|\UnitEnum  $feature
+     * @param  \BackedEnum|\UnitEnum|class-string|string  $feature
      * @param  mixed  $resolver
      */
     public function define($feature, $resolver = null): void
@@ -391,6 +391,8 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
                 ->reject(fn ($scope) => $this->isCached($feature, $scope))
                 ->all())
             ->reject(fn ($scopes) => $scopes === [])
+            ->map(fn ($scopes, $feature) => ['feature' => $feature, 'scope' => $scopes])
+            ->values()
             ->pipe(fn ($features) => $this->getAll($features->all()));
     }
 
@@ -403,9 +405,11 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     protected function normalizeFeaturesToLoad($features)
     {
         return Collection::wrap($features)
-            ->mapWithKeys(fn ($value, $key) => is_int($key)
+            ->mapWithKeys(fn ($value, $key) => is_array($value) && array_key_exists('feature', $value) && array_key_exists('scope', $value)
+                ? [$value['feature'] => Collection::wrap($value['scope'])]
+                : (is_int($key)
                 ? [$value => Collection::make([$this->defaultScope()])]
-                : [$key => Collection::wrap($value)])
+                : [$key => Collection::wrap($value)]))
             ->mapWithKeys(fn ($scopes, $feature) => [
                 $this->resolveFeature($feature) => $scopes,
             ])
@@ -534,7 +538,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Activate the feature for everyone.
      *
-     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>  $feature
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
      * @param  mixed  $value
      * @return void
      */
@@ -547,7 +551,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Deactivate the feature for everyone.
      *
-     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>  $feature
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
      * @return void
      */
     public function deactivateForEveryone($feature)
@@ -601,7 +605,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Purge the given feature from storage.
      *
-     * @param  string|\BackedEnum|\UnitEnum|array<string|\BackedEnum|\UnitEnum>|null  $features
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>|null  $features
      */
     public function purge($features = null): void
     {
@@ -629,7 +633,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Retrieve the feature's name.
      *
-     * @param  string|\BackedEnum|\UnitEnum  $feature
+     * @param  \BackedEnum|\UnitEnum|string  $feature
      * @return string
      */
     public function name($feature)
@@ -648,7 +652,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Retrieve the feature's class.
      *
-     * @param  string|\BackedEnum|\UnitEnum  $name
+     * @param  \BackedEnum|\UnitEnum|string  $name
      * @return mixed
      */
     public function instance($name)
@@ -699,12 +703,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     /**
      * Resolve the feature name and ensure it is defined.
      *
-     * @param  string|\BackedEnum|\UnitEnum  $feature
+     * @param  \BackedEnum|\UnitEnum|string  $feature
      * @return string
      */
     protected function resolveFeature($feature)
     {
-        $feature = enum_value($feature);
+        $feature = (string) enum_value($feature);
 
         return $this->shouldDynamicallyDefine($feature)
             ? $this->ensureDynamicFeatureIsDefined($feature)

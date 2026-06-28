@@ -17,7 +17,7 @@ class EnsureFeaturesAreActive
     /**
      * Handle the incoming request.
      */
-    public function handle(Request $request, Closure $next, string|BackedEnum|UnitEnum ...$features): mixed
+    public function handle(Request $request, Closure $next, BackedEnum|UnitEnum|string ...$features): mixed
     {
         $features = array_map(enum_value(...), $features);
 
@@ -39,7 +39,7 @@ class EnsureFeaturesAreActive
     /**
      * Specify the features for the middleware.
      */
-    public static function using(string|BackedEnum|UnitEnum ...$features): string
+    public static function using(BackedEnum|UnitEnum|string ...$features): string
     {
         return static::class.':'.implode(',', array_map(enum_value(...), $features));
     }
