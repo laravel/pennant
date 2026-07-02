@@ -1,6 +1,18 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.23.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.24.0...1.x)
+
+## [v1.24.0](https://github.com/laravel/pennant/compare/v1.23.0...v1.24.0) - 2026-06-28
+
+* Pin GitHub Actions to commit SHAs and add Dependabot config by [@joetannenbaum](https://github.com/joetannenbaum) in https://github.com/laravel/pennant/pull/169
+* Bump shivammathur/setup-php from 2.37.0 to 2.37.1 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/170
+* GitHub Actions hardening by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pennant/pull/171
+* Add Dependabot cooldown of 5 days by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pennant/pull/172
+* Enable Dependabot auto-merge by [@nunomaduro](https://github.com/nunomaduro) in https://github.com/laravel/pennant/pull/173
+* Bump actions/checkout from 6.0.2 to 6.0.3 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/174
+* Bump shivammathur/setup-php from 2.37.1 to 2.37.2 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/175
+* Bump actions/checkout from 6.0.3 to 7.0.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/176
+* [1.x] Feat: PHP Enums by [@devajmeireles](https://github.com/devajmeireles) in https://github.com/laravel/pennant/pull/177
 
 ## [v1.23.0](https://github.com/laravel/pennant/compare/v1.22.0...v1.23.0) - 2026-03-19
 
