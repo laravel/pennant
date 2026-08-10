@@ -918,7 +918,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function globally()
     {
-        return $this->for(null);
+        return $this->for('__laravel_global');
     }
 
     /**
