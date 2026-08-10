@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void flushMacros()
  * @method static mixed macroCall(string $method, array $parameters)
  * @method static \Laravel\Pennant\PendingScopedFeatureInteraction for(mixed $scope)
+ * @method static \Laravel\Pennant\PendingScopedFeatureInteraction globally()
  * @method static array load(\BackedEnum|\UnitEnum|string|array $features)
  * @method static array loadMissing(\BackedEnum|\UnitEnum|string|array $features)
  * @method static array loadAll()

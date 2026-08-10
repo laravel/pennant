@@ -911,6 +911,17 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     }
 
     /**
+     * Create a pending feature interaction for the global (null) scope,
+     * ignoring the default scope resolver.
+     *
+     * @return \Laravel\Pennant\PendingScopedFeatureInteraction
+     */
+    public function globally()
+    {
+        return $this->for(null);
+    }
+
+    /**
      * Dynamically create a pending feature interaction.
      *
      * @param  string  $name
