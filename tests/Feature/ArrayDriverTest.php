@@ -722,7 +722,7 @@ class ArrayDriverTest extends TestCase
 
         $this->assertTrue(Feature::globally()->active('foo'));
 
-        $this->assertSame([null], $scopes);
+        $this->assertSame(['__laravel_global'], $scopes);
     }
 
     public function test_it_uses_default_scope_for_loading_with_string()
