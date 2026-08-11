@@ -1,6 +1,12 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.24.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.25.0...1.x)
+
+## [v1.25.0](https://github.com/laravel/pennant/compare/v1.24.0...v1.25.0) - 2026-08-11
+
+* Bump stefanzweifel/git-auto-commit-action from 7.1.0 to 7.2.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/178
+* Bump actions/checkout from 7.0.0 to 7.0.1 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/179
+* Add Feature::globally() helper for the global scope by [@OthmanHaba](https://github.com/OthmanHaba) in https://github.com/laravel/pennant/pull/180
 
 ## [v1.24.0](https://github.com/laravel/pennant/compare/v1.23.0...v1.24.0) - 2026-06-28
 
