@@ -710,6 +710,21 @@ class ArrayDriverTest extends TestCase
         ], $scopes);
     }
 
+    public function test_it_can_interact_globally_ignoring_the_default_scope()
+    {
+        $scopes = [];
+        Feature::define('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+
+            return true;
+        });
+        Feature::resolveScopeUsing(fn () => 'default-scope');
+
+        $this->assertTrue(Feature::globally()->active('foo'));
+
+        $this->assertSame(['__laravel_global'], $scopes);
+    }
+
     public function test_it_uses_default_scope_for_loading_with_string()
     {
         Feature::define('feature', fn () => false);

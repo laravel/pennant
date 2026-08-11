@@ -536,6 +536,16 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     }
 
     /**
+     * Create a pending feature interaction for the global scope, ignoring the default scope resolver.
+     *
+     * @return \Laravel\Pennant\PendingScopedFeatureInteraction
+     */
+    public function globally()
+    {
+        return $this->for('__laravel_global');
+    }
+
+    /**
      * Activate the feature for everyone.
      *
      * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
