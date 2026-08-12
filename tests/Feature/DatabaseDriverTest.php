@@ -27,6 +27,7 @@ use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\GlobalScope;
 use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\Team;
@@ -322,7 +323,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(3, DB::getQueryLog());
     }
 
-    public function test_null_is_same_as_global()
+    public function test_null_is_same_as_no_scope()
     {
         Feature::activate('foo');
 
@@ -848,6 +849,23 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame([
             null,
         ], $scopes);
+    }
+
+    public function test_it_can_interact_globally_ignoring_the_default_scope()
+    {
+        $scopes = [];
+        Feature::define('foo', function ($scope) use (&$scopes) {
+            $scopes[] = $scope;
+
+            return true;
+        });
+        Feature::resolveScopeUsing(fn () => 'default-scope');
+
+        $this->assertTrue(Feature::globally()->active('foo'));
+
+        $this->assertCount(1, $scopes);
+        $this->assertInstanceOf(GlobalScope::class, $scopes[0]);
+        $this->assertSame('__laravel_global', DB::table('features')->soleValue('scope'));
     }
 
     public function test_it_does_not_store_unknown_features()
