@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool isResolverValidForScope(callable|string $resolver, mixed $scope)
  * @method static array defined()
  * @method static array stored()
+ * @method static \Laravel\Pennant\PendingScopedFeatureInteraction globally()
  * @method static void activateForEveryone(\BackedEnum|\UnitEnum|string|array $feature, mixed $value = true)
  * @method static void deactivateForEveryone(\BackedEnum|\UnitEnum|string|array $feature)
  * @method static void purge(\BackedEnum|\UnitEnum|string|array|null $features = null)
@@ -37,7 +38,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static void flushMacros()
  * @method static mixed macroCall(string $method, array $parameters)
  * @method static \Laravel\Pennant\PendingScopedFeatureInteraction for(mixed $scope)
- * @method static \Laravel\Pennant\PendingScopedFeatureInteraction globally()
  * @method static array load(\BackedEnum|\UnitEnum|string|array $features)
  * @method static array loadMissing(\BackedEnum|\UnitEnum|string|array $features)
  * @method static array loadAll()
@@ -56,7 +56,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivate(\BackedEnum|\UnitEnum|string|array $feature)
  * @method static void forget(\BackedEnum|\UnitEnum|string|array $features)
  *
- * @see FeatureManager
+ * @see \Laravel\Pennant\FeatureManager
  */
 class Feature extends Facade
 {
