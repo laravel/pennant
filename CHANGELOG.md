@@ -1,6 +1,10 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.25.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.26.0...1.x)
+
+## [v1.26.0](https://github.com/laravel/pennant/compare/v1.25.0...v1.26.0) - 2026-08-13
+
+* Use object to represent global scope by [@timacdonald](https://github.com/timacdonald) in https://github.com/laravel/pennant/pull/181
 
 ## [v1.25.0](https://github.com/laravel/pennant/compare/v1.24.0...v1.25.0) - 2026-08-11
 
