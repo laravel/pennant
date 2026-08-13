@@ -19,6 +19,7 @@ use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\GlobalScope;
 use RuntimeException;
 use Tests\TestCase;
 use Workbench\App\Models\User;
@@ -278,7 +279,7 @@ class ArrayDriverTest extends TestCase
         $this->assertFalse(Feature::for([$first, $second, $third])->allAreActive(['foo', 'bar']));
     }
 
-    public function test_null_is_same_as_global()
+    public function test_null_is_same_as_no_scope()
     {
         Feature::activate('foo');
 
@@ -722,7 +723,8 @@ class ArrayDriverTest extends TestCase
 
         $this->assertTrue(Feature::globally()->active('foo'));
 
-        $this->assertSame(['__laravel_global'], $scopes);
+        $this->assertCount(1, $scopes);
+        $this->assertInstanceOf(GlobalScope::class, $scopes[0]);
     }
 
     public function test_it_uses_default_scope_for_loading_with_string()

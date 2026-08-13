@@ -26,6 +26,7 @@ use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\GlobalScope;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use ReflectionClass;
@@ -542,7 +543,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function globally()
     {
-        return $this->for('__laravel_global');
+        return $this->for(new GlobalScope);
     }
 
     /**
