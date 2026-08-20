@@ -880,7 +880,7 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      *
      * @return mixed
      */
-    protected function defaultScope()
+    public function defaultScope()
     {
         return ($this->defaultScopeResolver)();
     }

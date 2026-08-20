@@ -31,6 +31,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string name(\BackedEnum|\UnitEnum|string $feature)
  * @method static array nameMap()
  * @method static mixed instance(\BackedEnum|\UnitEnum|string $name)
+ * @method static mixed defaultScope()
  * @method static \Laravel\Pennant\Contracts\Driver getDriver()
  * @method static void macro(string $name, object|callable $macro)
  * @method static void mixin(object $mixin, bool $replace = true)
