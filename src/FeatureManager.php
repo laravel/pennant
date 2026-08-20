@@ -11,6 +11,7 @@ use Laravel\Pennant\Contracts\FeatureScopeSerializeable;
 use Laravel\Pennant\Drivers\ArrayDriver;
 use Laravel\Pennant\Drivers\DatabaseDriver;
 use Laravel\Pennant\Drivers\Decorator;
+use Laravel\Pennant\Drivers\RoutingDecorator;
 use RuntimeException;
 
 /**
@@ -38,6 +39,13 @@ class FeatureManager
      * @var array
      */
     protected $customCreators = [];
+
+    /**
+     * The store-routing decorator used when no store has been named.
+     *
+     * @var RoutingDecorator|null
+     */
+    protected $router;
 
     /**
      * The default scope resolver.
@@ -86,7 +94,9 @@ class FeatureManager
      */
     public function driver($name = null)
     {
-        $name = $name ?: $this->getDefaultDriver();
+        if ($name === null || $name === '') {
+            return $this->router ??= new RoutingDecorator($this, $this->container);
+        }
 
         return $this->stores[$name] = $this->get($name);
     }
@@ -217,6 +227,8 @@ class FeatureManager
         foreach ($this->stores as $driver) {
             $driver->flushCache();
         }
+
+        $this->router?->flushCache();
     }
 
     /**
@@ -277,6 +289,8 @@ class FeatureManager
     public function setDefaultDriver($name)
     {
         $this->container['config']->set('pennant.default', $name);
+
+        $this->router = null;
     }
 
     /**
@@ -295,6 +309,8 @@ class FeatureManager
             }
         }
 
+        $this->router = null;
+
         return $this;
     }
 
@@ -306,6 +322,8 @@ class FeatureManager
     public function forgetDrivers()
     {
         $this->stores = [];
+
+        $this->router = null;
 
         return $this;
     }
@@ -336,6 +354,8 @@ class FeatureManager
         foreach ($this->stores as $store) {
             $store->setContainer($container);
         }
+
+        $this->router?->setContainer($container);
 
         return $this;
     }
