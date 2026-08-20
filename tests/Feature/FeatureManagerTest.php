@@ -13,6 +13,11 @@ class FeatureManagerTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    public function test_it_exposes_the_default_stores_underlying_driver()
+    {
+        $this->assertSame(Feature::store('database')->getDriver(), Feature::getDriver());
+    }
+
     public function test_it_can_chain_scope_additions()
     {
         Feature::for('tim@laravel.com')->for('jess@laravel.com')->activate('foo');

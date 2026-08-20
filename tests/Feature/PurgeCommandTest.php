@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Attributes\Store;
 use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
@@ -68,6 +70,40 @@ class PurgeCommandTest extends TestCase
         $this->artisan('pennant:purge')->expectsOutputToContain('All features successfully purged from storage.');
 
         $this->assertSame(0, DB::table('features')->count());
+    }
+
+    public function test_it_purges_features_from_their_declared_store()
+    {
+        config(['pennant.stores.secondary' => ['driver' => 'array']]);
+
+        Feature::define('foo', true);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('tim')->active(PurgeFeatureWithStore::class);
+
+        $this->assertSame(1, DB::table('features')->count());
+        $this->assertSame(['purge-feature-with-store'], Feature::store('secondary')->stored());
+
+        $this->artisan('pennant:purge purge-feature-with-store')->assertSuccessful();
+
+        $this->assertSame([], Feature::store('secondary')->stored());
+        $this->assertSame(1, DB::table('features')->count());
+    }
+
+    public function test_the_store_option_takes_precedence_over_the_declared_store()
+    {
+        config(['pennant.stores.secondary' => ['driver' => 'array']]);
+
+        Feature::store('database')->for('tim')->active(PurgeFeatureWithStore::class);
+        Feature::for('tim')->active(PurgeFeatureWithStore::class);
+
+        $this->assertSame(1, DB::table('features')->count());
+        $this->assertSame(['purge-feature-with-store'], Feature::store('secondary')->stored());
+
+        $this->artisan('pennant:purge purge-feature-with-store --store=database')->assertSuccessful();
+
+        $this->assertSame(0, DB::table('features')->count());
+        $this->assertSame(['purge-feature-with-store'], Feature::store('secondary')->stored());
     }
 
     public function test_it_can_specify_a_driver()
@@ -204,5 +240,15 @@ class PurgeCommandTest extends TestCase
         $this->artisan('pennant:purge --except-registered')->expectsOutputToContain('bar, baz successfully purged from storage.');
 
         $this->assertSame(['foo'], DB::table('features')->pluck('name')->all());
+    }
+}
+
+#[Name('purge-feature-with-store')]
+#[Store('secondary')]
+class PurgeFeatureWithStore
+{
+    public function resolve(mixed $scope): mixed
+    {
+        return true;
     }
 }

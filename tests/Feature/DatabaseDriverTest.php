@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Attributes\Store;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Contracts\FeatureScopeSerializeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
@@ -1043,6 +1044,33 @@ class DatabaseDriverTest extends TestCase
         $this->assertSame(['attribute-name'], $registered);
     }
 
+    public function test_it_can_use_unregistered_class_features_with_store_attribute()
+    {
+        Config::set('pennant.stores.secondary', ['driver' => 'array']);
+
+        Event::fake([DynamicallyRegisteringFeatureClass::class]);
+
+        $value = Feature::for('tim')->value(FeatureWithStoreAttribute::class);
+
+        $this->assertSame('from-store-attribute', $value);
+        $this->assertSame(['feature-with-store-attribute'], Feature::store('secondary')->stored());
+        $this->assertSame(0, DB::table('features')->count());
+
+        Event::assertDispatchedTimes(DynamicallyRegisteringFeatureClass::class, 1);
+    }
+
+    public function test_it_routes_model_scoped_features_to_their_declared_store()
+    {
+        Config::set('pennant.stores.secondary', ['driver' => 'array']);
+
+        $user = UserFactory::new()->create();
+
+        Feature::for($user)->activate(FeatureWithStoreAttribute::class, 'scoped');
+
+        $this->assertSame('scoped', Feature::for($user)->value(FeatureWithStoreAttribute::class));
+        $this->assertSame(0, DB::table('features')->count());
+    }
+
     public function test_it_can_conditionally_execute_code_block_for_inactive_feature()
     {
         $active = $inactive = null;
@@ -2035,6 +2063,16 @@ class UnregisteredFeatureWithNameAttribute
     public function __invoke()
     {
         return 'unregistered-value';
+    }
+}
+
+#[Name('feature-with-store-attribute')]
+#[Store('secondary')]
+class FeatureWithStoreAttribute
+{
+    public function resolve(mixed $scope): mixed
+    {
+        return 'from-store-attribute';
     }
 }
 
