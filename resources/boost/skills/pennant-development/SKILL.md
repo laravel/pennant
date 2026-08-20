@@ -57,6 +57,35 @@ Feature::activate('new-dashboard');
 Feature::for($user)->activate('new-dashboard');
 ```
 
+### Choosing a Store Per Feature
+
+A class based feature may declare the store it should be resolved from, so the
+store does not have to be named at every call site.
+
+<!-- Per Feature Stores -->
+```php
+use Laravel\Pennant\Attributes\Store;
+
+#[Store('array')]
+class NewApi
+{
+    public function resolve(User $user): bool
+    {
+        return $user->isBetaTester();
+    }
+}
+```
+
+```php
+Feature::active(NewApi::class);            // resolved from "array"
+Feature::for($user)->value(NewApi::class); // resolved from "array"
+
+Feature::store('array')->active(NewApi::class); // naming a store still wins
+```
+
+A `public $store = 'array';` property works too; the attribute takes
+priority when both are present.
+
 ## Verification
 
 1. Check feature flag is defined
