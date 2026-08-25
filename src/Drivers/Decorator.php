@@ -10,6 +10,7 @@ use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
 use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Attributes\Store;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
@@ -91,6 +92,13 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
     protected $nameMap = [];
 
     /**
+     * The resolved store name for each feature.
+     *
+     * @var array<string, mixed>
+     */
+    protected $storeMap = [];
+
+    /**
      * Create a new driver decorator instance.
      *
      * @param  string  $name
@@ -135,6 +143,14 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function define($feature, $resolver = null): void
     {
+        if ($store = $this->storeFor($feature)) {
+            func_num_args() === 1
+                ? $store->define($feature)
+                : $store->define($feature, $resolver);
+
+            return;
+        }
+
         $feature = enum_value($feature);
 
         if (func_num_args() === 1) {
@@ -329,6 +345,10 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function getAll($features): array
     {
+        if ($store = $this->storeFor($features)) {
+            return $store->getAll($features);
+        }
+
         $features = $this->normalizeFeaturesToLoad($features);
 
         if ($features->isEmpty()) {
@@ -387,6 +407,10 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function getAllMissing($features)
     {
+        if ($store = $this->storeFor($features)) {
+            return $store->getAllMissing($features);
+        }
+
         return $this->normalizeFeaturesToLoad($features)
             ->map(fn ($scopes, $feature) => Collection::make($scopes)
                 ->reject(fn ($scope) => $this->isCached($feature, $scope))
@@ -429,6 +453,10 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function get($feature, $scope): mixed
     {
+        if ($store = $this->storeFor($feature)) {
+            return $store->get($feature, $scope);
+        }
+
         $feature = $this->resolveFeature($feature);
 
         $scope = $this->resolveScope($scope);
@@ -487,6 +515,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function set($feature, $scope, $value): void
     {
+        if ($store = $this->storeFor($feature)) {
+            $store->set($feature, $scope, $value);
+
+            return;
+        }
+
         $feature = $this->resolveFeature($feature);
 
         $scope = $this->resolveScope($scope);
@@ -507,6 +541,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function setAll(array $features): void
     {
+        if ($store = $this->storeFor($features)) {
+            $store->setAll($features);
+
+            return;
+        }
+
         $features = array_map(fn ($feature) => [
             'feature' => $this->resolveFeature($feature['feature']),
             'scope' => $this->resolveScope($feature['scope']),
@@ -581,6 +621,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function setForAllScopes($feature, $value): void
     {
+        if ($store = $this->storeFor($feature)) {
+            $store->setForAllScopes($feature, $value);
+
+            return;
+        }
+
         $feature = $this->resolveFeature($feature);
 
         $this->driver->setForAllScopes($feature, $value);
@@ -602,6 +648,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function delete($feature, $scope): void
     {
+        if ($store = $this->storeFor($feature)) {
+            $store->delete($feature, $scope);
+
+            return;
+        }
+
         $feature = $this->resolveFeature($feature);
 
         $scope = $this->resolveScope($scope);
@@ -620,6 +672,12 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function purge($features = null): void
     {
+        if ($features !== null && $store = $this->storeFor($features)) {
+            $store->purge($features);
+
+            return;
+        }
+
         if ($features === null) {
             $this->driver->purge(null);
 
@@ -649,7 +707,9 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
      */
     public function name($feature)
     {
-        return $this->resolveFeature($feature);
+        return ($store = $this->storeFor($feature))
+            ? $store->name($feature)
+            : $this->resolveFeature($feature);
     }
 
     /**
@@ -783,6 +843,64 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
         }
 
         return null;
+    }
+
+    /**
+     * Retrieve the store the given features declare.
+     *
+     * @param  \BackedEnum|\UnitEnum|string|array<int|string, mixed>  $features
+     * @return self|null
+     *
+     * @throws \RuntimeException
+     */
+    protected function storeFor($features)
+    {
+        $stores = Collection::wrap($features)
+            ->map(fn ($value, $key) => $this->resolveFeatureStore((string) enum_value(
+                is_array($value) && array_key_exists('feature', $value)
+                    ? $value['feature']
+                    : (is_int($key) ? $value : $key)
+            )) ?? $this->name)
+            ->unique();
+
+        if ($stores->count() > 1) {
+            throw new RuntimeException("Features resolved from differing stores [{$stores->join(', ')}] may not be used in the same operation.");
+        }
+
+        return ($store = $stores->first()) === null || $store === $this->name
+            ? null
+            : Feature::store($store);
+    }
+
+    /**
+     * Resolve the name of the store the given feature declares.
+     *
+     * @param  string  $feature
+     * @return string|null
+     */
+    protected function resolveFeatureStore($feature)
+    {
+        if (array_key_exists($feature, $this->storeMap)) {
+            return $this->storeMap[$feature];
+        }
+
+        if (($class = $this->implementationClass($feature)) === null) {
+            return null;
+        }
+
+        $instance = $this->container->make($class);
+
+        $attribute = (new ReflectionClass($instance))->getAttributes(Store::class)[0] ?? null;
+
+        $store = $this->storeMap[$feature] = $attribute !== null
+            ? $attribute->newInstance()->store
+            : $instance->store ?? null;
+
+        if ($store !== null) {
+            $this->storeMap[$this->resolveFeatureName($class, $instance)] ??= $store;
+        }
+
+        return $store;
     }
 
     /**
