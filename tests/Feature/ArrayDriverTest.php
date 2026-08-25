@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
+use InvalidArgumentException;
 use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Attributes\Store;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\FeatureDeleted;
@@ -33,6 +35,7 @@ class ArrayDriverTest extends TestCase
         parent::setUp();
 
         Config::set('pennant.default', 'array');
+        Config::set('pennant.stores.secondary', ['driver' => 'array']);
     }
 
     public function test_it_defaults_to_false_for_unknown_values()
@@ -652,6 +655,139 @@ class ArrayDriverTest extends TestCase
 
         $this->assertSame(['attribute-takes-priority'], $defined);
         $this->assertSame('shared-both', $value);
+    }
+
+    public function test_it_can_register_feature_via_class_with_store_attribute()
+    {
+        $value = Feature::for('shared')->value(MyFeatureWithStoreAttribute::class);
+
+        $this->assertSame('shared-attribute-store', $value);
+        $this->assertSame(['my-feature-with-store-attribute'], Feature::store('secondary')->stored());
+        $this->assertSame([
+            'my-feature-with-store-attribute' => MyFeatureWithStoreAttribute::class,
+        ], Feature::store('secondary')->nameMap());
+        $this->assertSame([], Feature::store('array')->stored());
+        $this->assertSame([], Feature::defined());
+        $this->assertSame([], Feature::nameMap());
+    }
+
+    public function test_it_can_register_feature_via_class_with_store_property()
+    {
+        $value = Feature::for('shared')->value(MyFeatureWithStoreProperty::class);
+
+        $this->assertSame('shared-property-store', $value);
+        $this->assertSame(['my-feature-with-store-property'], Feature::store('secondary')->stored());
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_store_attribute_takes_precedence_over_store_property()
+    {
+        Feature::for('shared')->value(MyFeatureWithBothStoreAttributeAndProperty::class);
+
+        $this->assertSame(['store-attribute-takes-priority'], Feature::store('secondary')->stored());
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_the_declared_store_wins_over_an_explicitly_named_store()
+    {
+        Event::fake([FeatureResolved::class]);
+
+        $value = Feature::store('array')->for('shared')->value(MyFeatureWithStoreAttribute::class);
+
+        $this->assertSame('shared-attribute-store', $value);
+        $this->assertSame(['my-feature-with-store-attribute'], Feature::store('secondary')->stored());
+        $this->assertSame([], Feature::store('array')->stored());
+
+        Feature::store('secondary')->for('shared')->value(MyFeatureWithStoreAttribute::class);
+
+        Event::assertDispatchedTimes(FeatureResolved::class, 1);
+    }
+
+    public function test_it_routes_writes_to_the_declared_store()
+    {
+        Feature::for('shared')->activate(MyFeatureWithStoreAttribute::class, 'activated');
+        Feature::globally()->activate(MyFeatureWithStoreAttribute::class, 'global');
+
+        $this->assertSame('activated', Feature::store('secondary')->for('shared')->value(MyFeatureWithStoreAttribute::class));
+        $this->assertSame('global', Feature::store('secondary')->globally()->value(MyFeatureWithStoreAttribute::class));
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_it_routes_features_referenced_by_their_resolved_name()
+    {
+        Feature::define(MyFeatureWithStoreAttribute::class);
+
+        Feature::for('shared')->activate('my-feature-with-store-attribute', 'by-name');
+
+        $this->assertSame('by-name', Feature::store('secondary')->for('shared')->value('my-feature-with-store-attribute'));
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_it_routes_updates_for_all_scopes_to_the_declared_store()
+    {
+        Feature::for('tim')->value(MyFeatureWithStoreAttribute::class);
+        Feature::for('taylor')->value(MyFeatureWithStoreAttribute::class);
+
+        Feature::activateForEveryone(MyFeatureWithStoreAttribute::class, 'everyone');
+
+        $this->assertSame('everyone', Feature::for('tim')->value(MyFeatureWithStoreAttribute::class));
+        $this->assertSame('everyone', Feature::for('taylor')->value(MyFeatureWithStoreAttribute::class));
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_it_loads_features_declared_on_another_store()
+    {
+        $loaded = Feature::for('shared')->load([
+            MyFeatureWithStoreAttribute::class,
+            MyFeatureWithStoreProperty::class,
+        ]);
+
+        $this->assertSame([
+            'my-feature-with-store-attribute' => ['shared-attribute-store'],
+            'my-feature-with-store-property' => ['shared-property-store'],
+        ], $loaded);
+
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
+    public function test_it_purges_features_from_their_declared_store()
+    {
+        Feature::define('plain', 'plain-value');
+
+        Feature::for('shared')->value('plain');
+        Feature::for('shared')->value(MyFeatureWithStoreAttribute::class);
+
+        Feature::purge(MyFeatureWithStoreAttribute::class);
+
+        $this->assertSame([], Feature::store('secondary')->stored());
+        $this->assertSame(['plain'], Feature::store('array')->stored());
+
+        Feature::for('shared')->value(MyFeatureWithStoreAttribute::class);
+
+        Feature::purge();
+
+        $this->assertSame([], Feature::store('array')->stored());
+        $this->assertSame(['my-feature-with-store-attribute'], Feature::store('secondary')->stored());
+    }
+
+    public function test_it_throws_when_an_operation_spans_multiple_stores()
+    {
+        Feature::define('plain', 'plain-value');
+
+        $features = ['plain', MyFeatureWithStoreAttribute::class];
+        $message = 'Features resolved from differing stores [array, secondary] may not be used in the same operation.';
+
+        $this->assertThrows(fn () => Feature::for('shared')->load($features), RuntimeException::class, $message);
+        $this->assertThrows(fn () => Feature::for('shared')->activate($features), RuntimeException::class, $message);
+        $this->assertThrows(fn () => Feature::purge($features), RuntimeException::class, $message);
+    }
+
+    public function test_it_throws_when_the_declared_store_is_not_configured()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Pennant store [missing] is not defined.');
+
+        Feature::for('shared')->value(MyFeatureWithMissingStore::class);
     }
 
     public function test_it_can_register_feature_via_class_with_resolve()
@@ -1503,6 +1639,50 @@ class FloatScopeFeature
     public function resolve(float $scope): bool
     {
         return in_array($scope, [1.1, 2.2, 3.3], true);
+    }
+}
+
+#[Name('my-feature-with-store-attribute')]
+#[Store('secondary')]
+class MyFeatureWithStoreAttribute
+{
+    public function __invoke($scope)
+    {
+        return "{$scope}-attribute-store";
+    }
+}
+
+class MyFeatureWithStoreProperty
+{
+    public $name = 'my-feature-with-store-property';
+
+    public $store = 'secondary';
+
+    public function __invoke($scope)
+    {
+        return "{$scope}-property-store";
+    }
+}
+
+#[Name('store-attribute-takes-priority')]
+#[Store('secondary')]
+class MyFeatureWithBothStoreAttributeAndProperty
+{
+    public $store = 'array';
+
+    public function __invoke($scope)
+    {
+        return "{$scope}-both-stores";
+    }
+}
+
+#[Name('my-feature-with-missing-store')]
+#[Store('missing')]
+class MyFeatureWithMissingStore
+{
+    public function __invoke($scope)
+    {
+        return "{$scope}-missing-store";
     }
 }
 

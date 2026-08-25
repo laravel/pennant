@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Attributes\Store;
 use Laravel\Pennant\Feature;
 use Laravel\Pennant\Middleware\EnsureFeaturesAreActive;
 use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
@@ -192,6 +193,16 @@ class EnumTest extends TestCase
         $this->assertTrue(Feature::active('purchasing'));
     }
 
+    public function test_the_store_attribute_accepts_an_enum()
+    {
+        Config::set('pennant.stores.secondary', ['driver' => 'array']);
+
+        $this->assertTrue(Feature::active(FeatureWithEnumStore::class));
+
+        $this->assertSame(['enum-store'], Feature::store('secondary')->stored());
+        $this->assertSame([], Feature::store('array')->stored());
+    }
+
     public function test_the_blade_directive_accepts_an_enum()
     {
         $blade = <<<'BLADE'
@@ -264,6 +275,21 @@ enum PureFeatureEnum
 
 #[Name(FeatureEnum::Purchasing)]
 class FeatureWithEnumName
+{
+    public function resolve(): bool
+    {
+        return true;
+    }
+}
+
+enum StoreEnum: string
+{
+    case Secondary = 'secondary';
+}
+
+#[Name('enum-store')]
+#[Store(StoreEnum::Secondary)]
+class FeatureWithEnumStore
 {
     public function resolve(): bool
     {
