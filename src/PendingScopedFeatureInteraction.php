@@ -3,6 +3,9 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Support\Collection;
+use Illuminate\Validation\Rules\ExcludeIf;
+use Illuminate\Validation\Rules\ProhibitedIf;
+use Illuminate\Validation\Rules\RequiredIf;
 use Laravel\Pennant\Drivers\Decorator;
 use RuntimeException;
 
@@ -221,6 +224,72 @@ class PendingScopedFeatureInteraction
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
                 ->some(fn ($feature) => $this->driver->get($feature, $scope) === false));
+    }
+
+    /**
+     * Get a "required if" validation rule that applies when the feature is active.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\RequiredIf
+     */
+    public function requiredIfActive($feature)
+    {
+        return new RequiredIf(fn () => $this->active($feature));
+    }
+
+    /**
+     * Get a "required if" validation rule that applies when the feature is inactive.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\RequiredIf
+     */
+    public function requiredIfInactive($feature)
+    {
+        return new RequiredIf(fn () => $this->inactive($feature));
+    }
+
+    /**
+     * Get a "prohibited if" validation rule that applies when the feature is active.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\ProhibitedIf
+     */
+    public function prohibitedIfActive($feature)
+    {
+        return new ProhibitedIf(fn () => $this->active($feature));
+    }
+
+    /**
+     * Get a "prohibited if" validation rule that applies when the feature is inactive.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\ProhibitedIf
+     */
+    public function prohibitedIfInactive($feature)
+    {
+        return new ProhibitedIf(fn () => $this->inactive($feature));
+    }
+
+    /**
+     * Get an "exclude if" validation rule that applies when the feature is active.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\ExcludeIf
+     */
+    public function excludeIfActive($feature)
+    {
+        return new ExcludeIf(fn () => $this->active($feature));
+    }
+
+    /**
+     * Get an "exclude if" validation rule that applies when the feature is inactive.
+     *
+     * @param  \BackedEnum|\UnitEnum|string  $feature
+     * @return \Illuminate\Validation\Rules\ExcludeIf
+     */
+    public function excludeIfInactive($feature)
+    {
+        return new ExcludeIf(fn () => $this->inactive($feature));
     }
 
     /**
