@@ -692,6 +692,24 @@ class DatabaseDriverTest extends TestCase
         ]);
     }
 
+    public function test_it_can_load_features_when_the_same_scope_is_given_more_than_once()
+    {
+        $resolved = 0;
+        Feature::define('foo', function () use (&$resolved) {
+            $resolved++;
+
+            return true;
+        });
+
+        $result = Feature::for(['tim', 'taylor', 'tim'])->load(['foo']);
+
+        $this->assertSame(['foo' => [true, true, true]], $result);
+        $this->assertSame(1, DB::table('features')->where('scope', 'tim')->count());
+        $this->assertSame(2, DB::table('features')->count());
+        $this->assertSame(2, $resolved);
+        $this->assertTrue(Feature::for(['tim', 'taylor', 'tim'])->allAreActive(['foo']));
+    }
+
     public function test_it_can_retrieve_registered_features()
     {
         Feature::define('foo', fn () => true);

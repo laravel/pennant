@@ -157,18 +157,26 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
         $inserts = new Collection;
 
         $results = $resolved->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            $filtered = $records->where('name', $feature)->where('scope', Feature::serializeScope($scope));
+            $serializedScope = Feature::serializeScope($scope);
+
+            $filtered = $records->where('name', $feature)->where('scope', $serializedScope);
 
             if ($filtered->isNotEmpty()) {
                 return json_decode($filtered->first()->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
-            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+            $key = json_encode([$feature, $serializedScope]);
+
+            if ($inserts->has($key)) {
+                return $inserts[$key]['value'];
+            }
+
+            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts, $key) {
                 if ($value === $this->unknownFeatureValue) {
                     return false;
                 }
 
-                $inserts[] = [ // @phpstan-ignore offsetAssign.valueType
+                $inserts[$key] = [ // @phpstan-ignore offsetAssign.valueType
                     'name' => $feature,
                     'scope' => $scope,
                     'value' => $value,
@@ -180,7 +188,7 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
 
         if ($inserts->isNotEmpty()) { // @phpstan-ignore method.impossibleType
             try {
-                $this->insertMany($inserts->all());
+                $this->insertMany($inserts->values()->all());
             } catch (UniqueConstraintViolationException $e) {
                 if ($this->retryDepth === 2) {
                     throw new RuntimeException('Unable to insert feature values into the database.', previous: $e);
