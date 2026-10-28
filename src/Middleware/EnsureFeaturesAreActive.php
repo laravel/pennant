@@ -5,7 +5,9 @@ namespace Laravel\Pennant\Middleware;
 use BackedEnum;
 use Closure;
 use Illuminate\Http\Request;
+use Laravel\Pennant\Drivers\Decorator;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\PendingScopedFeatureInteraction;
 use UnitEnum;
 
 use function Laravel\Pennant\enum_value;
@@ -21,9 +23,11 @@ class EnsureFeaturesAreActive
     {
         $features = array_map(enum_value(...), $features);
 
-        Feature::loadMissing($features);
+        $driver = $this->getScopedDriver($request);
 
-        if (Feature::someAreInactive($features)) {
+        $driver->loadMissing($features);
+
+        if ($driver->someAreInactive($features)) {
             $error = config('app.debug')
                 ? 'Required features ['.implode(', ', $features).'] not enabled.'
                 : '';
@@ -34,6 +38,14 @@ class EnsureFeaturesAreActive
         }
 
         return $next($request);
+    }
+
+    /**
+     * Get the driver to use, with optional scope.
+     */
+    protected function getScopedDriver(Request $request): Decorator|PendingScopedFeatureInteraction
+    {
+        return Feature::driver();
     }
 
     /**
