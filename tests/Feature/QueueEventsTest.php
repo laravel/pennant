@@ -3,14 +3,12 @@
 namespace Tests\Feature;
 
 use Exception;
-use Illuminate\Contracts\Queue\Job;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
+use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Support\Facades\Config;
 use Laravel\Pennant\Feature;
-use Mockery;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class QueueEventsTest extends TestCase
@@ -22,8 +20,7 @@ class QueueEventsTest extends TestCase
         Config::set('pennant.default', 'array');
     }
 
-    #[DataProvider('queueEvents')]
-    public function test_it_flushes_the_cache_after_queue_events($event)
+    public function test_it_flushes_the_cache_when_a_job_is_processed()
     {
         $called = 0;
         Feature::define('foo', function () use (&$called) {
@@ -36,18 +33,52 @@ class QueueEventsTest extends TestCase
         Feature::active('foo');
         $this->assertSame(1, $called);
 
-        $this->app['events']->dispatch($event(Mockery::mock(Job::class)));
+        event(new JobProcessed('sync', $this->createJob()));
 
         Feature::active('foo');
         $this->assertSame(2, $called);
     }
 
-    public static function queueEvents()
+    public function test_it_flushes_the_cache_when_a_job_throws_an_exception()
     {
-        return [
-            'processed' => [fn ($job) => new JobProcessed('sync', $job)],
-            'exception occurred' => [fn ($job) => new JobExceptionOccurred('sync', $job, new Exception)],
-            'failed' => [fn ($job) => new JobFailed('sync', $job, new Exception)],
-        ];
+        $called = 0;
+        Feature::define('foo', function () use (&$called) {
+            $called++;
+
+            return true;
+        });
+
+        Feature::active('foo');
+        Feature::active('foo');
+        $this->assertSame(1, $called);
+
+        event(new JobExceptionOccurred('sync', $this->createJob(), new Exception));
+
+        Feature::active('foo');
+        $this->assertSame(2, $called);
+    }
+
+    public function test_it_flushes_the_cache_when_a_job_fails()
+    {
+        $called = 0;
+        Feature::define('foo', function () use (&$called) {
+            $called++;
+
+            return true;
+        });
+
+        Feature::active('foo');
+        Feature::active('foo');
+        $this->assertSame(1, $called);
+
+        event(new JobFailed('sync', $this->createJob(), new Exception));
+
+        Feature::active('foo');
+        $this->assertSame(2, $called);
+    }
+
+    protected function createJob(): SyncJob
+    {
+        return new SyncJob($this->app, '', 'sync', 'sync');
     }
 }
