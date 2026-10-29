@@ -56,7 +56,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static void deactivate(\BackedEnum|\UnitEnum|string|array $feature)
  * @method static void forget(\BackedEnum|\UnitEnum|string|array $features)
  *
- * @see \Laravel\Pennant\FeatureManager
+ * @see FeatureManager
  */
 class Feature extends Facade
 {
