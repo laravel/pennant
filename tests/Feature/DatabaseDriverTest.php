@@ -692,6 +692,47 @@ class DatabaseDriverTest extends TestCase
         ]);
     }
 
+    public function test_loading_queries_by_the_list_of_names_and_the_list_of_scopes()
+    {
+        Feature::define('foo', fn () => 1);
+        Feature::define('bar', fn () => 2);
+
+        Feature::for(['tim@laravel.com', 'jess@laravel.com', 'taylor@laravel.com'])->load(['foo', 'bar']);
+
+        $select = DB::getQueryLog()[0];
+        $this->assertStringStartsWith('select', $select['query']);
+        $this->assertSame(['foo', 'bar', 'tim@laravel.com', 'jess@laravel.com', 'taylor@laravel.com'], $select['bindings']);
+    }
+
+    public function test_loading_different_scopes_per_feature_only_returns_the_requested_pairs()
+    {
+        Feature::define('foo', fn () => 1);
+        Feature::define('bar', fn () => 2);
+        Feature::for('taylor@laravel.com')->activate('foo', 99);
+        Feature::for('tim@laravel.com')->activate('bar', 99);
+
+        $values = Feature::getAll([
+            'foo' => ['tim@laravel.com'],
+            'bar' => ['taylor@laravel.com'],
+        ]);
+
+        $this->assertSame(['foo' => [1], 'bar' => [2]], $values);
+        $this->assertDatabaseHas('features', ['name' => 'foo', 'scope' => 'tim@laravel.com', 'value' => '1']);
+        $this->assertDatabaseHas('features', ['name' => 'bar', 'scope' => 'taylor@laravel.com', 'value' => '2']);
+    }
+
+    public function test_loading_matches_numeric_string_scopes_exactly()
+    {
+        Feature::define('foo', fn () => 'resolved');
+        Feature::for('1')->activate('foo', 'stored');
+
+        Feature::for(['1', '01'])->load(['foo']);
+
+        $this->assertSame('stored', Feature::for('1')->value('foo'));
+        $this->assertSame('resolved', Feature::for('01')->value('foo'));
+        $this->assertDatabaseHas('features', ['name' => 'foo', 'scope' => '01', 'value' => '"resolved"']);
+    }
+
     public function test_it_can_retrieve_registered_features()
     {
         Feature::define('foo', fn () => true);

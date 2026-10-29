@@ -144,23 +144,29 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
      */
     public function getAll($features): array
     {
-        $query = $this->newQuery();
+        $serializedScopes = [];
+        $queriedScopes = [];
 
-        $resolved = Collection::make($features)
-            ->map(fn ($scopes, $feature) => Collection::make($scopes)
-                ->each(fn ($scope) => $query->orWhere(
-                    fn ($q) => $q->where('name', $feature)->where('scope', Feature::serializeScope($scope))
-                )));
+        foreach ($features as $feature => $scopes) {
+            foreach ($scopes as $index => $scope) {
+                $queriedScopes[] = $serializedScopes[$feature][$index] = Feature::serializeScope($scope);
+            }
+        }
 
-        $records = $query->get();
+        $records = $queriedScopes === [] ? [] : $this->newQuery()
+            ->whereIn('name', array_keys($serializedScopes))
+            ->whereIn('scope', array_values(array_unique($queriedScopes)))
+            ->get()
+            ->keyBy(fn ($record) => $record->name."\0".$record->scope)
+            ->all();
 
         $inserts = new Collection;
 
-        $results = $resolved->map(fn ($scopes, $feature) => $scopes->map(function ($scope) use ($feature, $records, $inserts) {
-            $filtered = $records->where('name', $feature)->where('scope', Feature::serializeScope($scope));
+        $results = Collection::make($features)->map(fn ($scopes, $feature) => Collection::make($scopes)->map(function ($scope, $index) use ($feature, $serializedScopes, $records, $inserts) {
+            $record = $records[$feature."\0".$serializedScopes[$feature][$index]] ?? null;
 
-            if ($filtered->isNotEmpty()) {
-                return json_decode($filtered->first()->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
+            if ($record !== null) {
+                return json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
             return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
