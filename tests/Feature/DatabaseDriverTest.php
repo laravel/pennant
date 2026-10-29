@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use Exception;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Database\Events\TransactionRolledBack;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -1475,11 +1476,13 @@ class DatabaseDriverTest extends TestCase
         DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
             if (Str::startsWith($event->sql, 'insert into "features"')) {
                 $insertAttempts++;
+                $this->insertConflictingValueOnRollback('foo', 'tim', 'other');
+                $this->insertConflictingValueOnRollback('bar', 'tim', 'other');
                 throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException);
             }
         });
 
-        Feature::for('tim')->loadMissing(['foo', 'bar']);
+        $this->assertSame(['foo' => ['other'], 'bar' => ['other']], Feature::for('tim')->loadMissing(['foo', 'bar']));
 
         $this->assertSame(1, $insertAttempts);
     }
@@ -1517,13 +1520,71 @@ class DatabaseDriverTest extends TestCase
         DB::listen(function (QueryExecuted $event) use (&$insertAttempts) {
             if (Str::startsWith($event->sql, 'insert into "features"')) {
                 $insertAttempts++;
+                $this->insertConflictingValueOnRollback('foo', 'tim', 'other');
                 throw new UniqueConstraintViolationException($event->connectionName, $event->sql, $event->bindings, new RuntimeException);
             }
         });
 
-        Feature::driver('database')->get('foo', 'tim');
+        $this->assertSame('other', Feature::driver('database')->get('foo', 'tim'));
 
         $this->assertSame(1, $insertAttempts);
+    }
+
+    public function test_first_writes_run_in_a_savepoint_when_a_transaction_is_open()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::define('bar', fn () => true);
+        $outerLevel = DB::transactionLevel();
+        $levels = [];
+        DB::listen(function (QueryExecuted $event) use (&$levels) {
+            if (Str::startsWith($event->sql, 'insert into "features"')) {
+                $levels[] = $event->connection->transactionLevel();
+            }
+        });
+
+        DB::transaction(function () {
+            Feature::driver('database')->get('foo', 'tim');
+            Feature::for('taylor')->load(['foo', 'bar']);
+        });
+
+        $this->assertSame([$outerLevel + 2, $outerLevel + 2], $levels);
+        $this->assertSame($outerLevel, DB::transactionLevel());
+    }
+
+    /**
+     * Simulate another connection that committed the same feature value first.
+     *
+     * The row only becomes visible once our conflicting insert has been rolled
+     * back, the way a concurrent writer's committed row would be.
+     */
+    protected function insertConflictingValueOnRollback(string $feature, string $scope, mixed $value): void
+    {
+        $inserted = false;
+
+        Event::listen(TransactionRolledBack::class, function () use (&$inserted, $feature, $scope, $value) {
+            if ($inserted) {
+                return;
+            }
+
+            $inserted = true;
+
+            // Not our write: keep it out of the query listeners under test.
+            $connection = DB::connection();
+            $events = $connection->getEventDispatcher();
+            $connection->unsetEventDispatcher();
+
+            try {
+                $connection->table('features')->insert([
+                    'name' => $feature,
+                    'scope' => $scope,
+                    'value' => json_encode($value),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } finally {
+                $connection->setEventDispatcher($events);
+            }
+        });
     }
 
     public function test_it_can_intercept_feature_values_using_before_hook()

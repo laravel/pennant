@@ -356,6 +356,10 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     /**
      * Insert the given feature values into storage.
      *
+     * Inside an open transaction the insert runs in a savepoint: a unique
+     * constraint conflict aborts a PostgreSQL transaction, so the retry that
+     * reads the conflicting value would otherwise fail.
+     *
      * @param  array<int, array{name: string, scope: mixed, value: mixed}>  $inserts
      * @return bool
      */
@@ -363,13 +367,19 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     {
         $now = Carbon::now();
 
-        return $this->newQuery()->insert(array_map(fn ($insert) => [
+        $insert = fn () => $this->newQuery()->insert(array_map(fn ($insert) => [
             'name' => $insert['name'],
             'scope' => Feature::serializeScope($insert['scope']),
             'value' => json_encode($insert['value'], flags: JSON_THROW_ON_ERROR),
             static::CREATED_AT => $now,
             static::UPDATED_AT => $now,
         ], $inserts));
+
+        $connection = $this->connection();
+
+        return $connection->transactionLevel() > 0
+            ? $connection->transaction($insert)
+            : $insert();
     }
 
     /**
