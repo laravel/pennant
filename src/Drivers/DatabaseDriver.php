@@ -11,6 +11,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\CanSetDefaultState;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
@@ -18,7 +19,7 @@ use Laravel\Pennant\Feature;
 use RuntimeException;
 use stdClass;
 
-class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScopes, Driver
+class DatabaseDriver implements CanListStoredFeatures, CanSetDefaultState, CanSetManyFeaturesForScopes, Driver
 {
     /**
      * The database connection.
@@ -82,6 +83,13 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
      * @var string
      */
     const UPDATED_AT = 'updated_at';
+
+    /**
+     * The reserved scope value under which a feature's default state is stored.
+     *
+     * @var string
+     */
+    const DEFAULT_STATE_SCOPE = '__laravel_default';
 
     /**
      * Create a new driver instance.
@@ -152,6 +160,10 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
                     fn ($q) => $q->where('name', $feature)->where('scope', Feature::serializeScope($scope))
                 )));
 
+        $query->orWhere(
+            fn ($q) => $q->whereIn('name', array_keys($features))->where('scope', static::DEFAULT_STATE_SCOPE)
+        );
+
         $records = $query->get();
 
         $inserts = new Collection;
@@ -163,7 +175,9 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
                 return json_decode($filtered->first()->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
             }
 
-            return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
+            $defaultState = $records->where('name', $feature)->where('scope', static::DEFAULT_STATE_SCOPE)->first();
+
+            return with($this->resolveValue($feature, $scope, $defaultState), function ($value) use ($feature, $scope, $inserts) {
                 if ($value === $this->unknownFeatureValue) {
                     return false;
                 }
@@ -205,11 +219,17 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
      */
     public function get($feature, $scope): mixed
     {
-        if (($record = $this->retrieve($feature, $scope)) !== null) {
+        $records = $this->retrieveWithDefaultState($feature, $scope);
+
+        $record = $records->firstWhere('scope', Feature::serializeScope($scope));
+
+        if ($record !== null) {
             return json_decode($record->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
         }
 
-        return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope) {
+        $defaultState = $records->firstWhere('scope', static::DEFAULT_STATE_SCOPE);
+
+        return with($this->resolveValue($feature, $scope, $defaultState), function ($value) use ($feature, $scope) {
             if ($value === $this->unknownFeatureValue) {
                 return false;
             }
@@ -233,18 +253,18 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     }
 
     /**
-     * Retrieve the value for the given feature and scope from storage.
+     * Retrieve the stored values for the given feature and scope, along with the feature's default state.
      *
      * @param  string  $feature
      * @param  mixed  $scope
-     * @return object|null
+     * @return Collection<int, object>
      */
-    protected function retrieve($feature, $scope)
+    protected function retrieveWithDefaultState($feature, $scope)
     {
         return $this->newQuery()
             ->where('name', $feature)
-            ->where('scope', Feature::serializeScope($scope))
-            ->first();
+            ->whereIn('scope', [Feature::serializeScope($scope), static::DEFAULT_STATE_SCOPE])
+            ->get();
     }
 
     /**
@@ -252,14 +272,19 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
      *
      * @param  string  $feature
      * @param  mixed  $scope
+     * @param  object|null  $defaultState
      * @return mixed
      */
-    protected function resolveValue($feature, $scope)
+    protected function resolveValue($feature, $scope, $defaultState = null)
     {
         if (! array_key_exists($feature, $this->featureStateResolvers)) {
             $this->events->dispatch(new UnknownFeatureResolved($feature, $scope));
 
             return $this->unknownFeatureValue;
+        }
+
+        if ($defaultState !== null) {
+            return json_decode($defaultState->value, flags: JSON_OBJECT_AS_ARRAY | JSON_THROW_ON_ERROR);
         }
 
         return $this->featureStateResolvers[$feature]($scope);
@@ -311,10 +336,70 @@ class DatabaseDriver implements CanListStoredFeatures, CanSetManyFeaturesForScop
     {
         $this->newQuery()
             ->where('name', $feature)
+            ->where('scope', '!=', static::DEFAULT_STATE_SCOPE)
             ->update([
                 'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
                 static::UPDATED_AT => Carbon::now(),
             ]);
+    }
+
+    /**
+     * Set a feature flag's default state.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    public function setDefaultState($feature, $value): void
+    {
+        $this->upsertDefaultState($feature, $value);
+    }
+
+    /**
+     * Set a feature flag's default state and discard every stored scope value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    public function resetToDefaultState($feature, $value): void
+    {
+        $this->connection()->transaction(function () use ($feature, $value) {
+            $this->newQuery()
+                ->where('name', $feature)
+                ->where('scope', '!=', static::DEFAULT_STATE_SCOPE)
+                ->delete();
+
+            $this->upsertDefaultState($feature, $value);
+        });
+    }
+
+    /**
+     * Remove a feature flag's default state.
+     *
+     * @param  string  $feature
+     */
+    public function forgetDefaultState($feature): void
+    {
+        $this->newQuery()
+            ->where('name', $feature)
+            ->where('scope', static::DEFAULT_STATE_SCOPE)
+            ->delete();
+    }
+
+    /**
+     * Store the default state for the given feature.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    protected function upsertDefaultState($feature, $value): void
+    {
+        $this->newQuery()->upsert([
+            'name' => $feature,
+            'scope' => static::DEFAULT_STATE_SCOPE,
+            'value' => json_encode($value, flags: JSON_THROW_ON_ERROR),
+            static::CREATED_AT => $now = Carbon::now(),
+            static::UPDATED_AT => $now,
+        ], uniqueBy: ['name', 'scope'], update: ['value', static::UPDATED_AT]);
     }
 
     /**

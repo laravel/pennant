@@ -205,4 +205,16 @@ class PurgeCommandTest extends TestCase
 
         $this->assertSame(['foo'], DB::table('features')->pluck('name')->all());
     }
+
+    public function test_it_purges_unregistered_features_that_only_have_a_default_state()
+    {
+        Feature::define('foo', fn () => true);
+        Feature::setDefaultState('bar', true);
+
+        Feature::for('tim')->active('foo');
+
+        $this->artisan('pennant:purge --except-registered')->expectsOutputToContain('bar successfully purged from storage.');
+
+        $this->assertSame(['foo'], DB::table('features')->pluck('name')->all());
+    }
 }

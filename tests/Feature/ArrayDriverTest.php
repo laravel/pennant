@@ -9,9 +9,13 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Attributes\Name;
+use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Events\AllFeaturesPurged;
+use Laravel\Pennant\Events\FeatureDefaultStateDeleted;
+use Laravel\Pennant\Events\FeatureDefaultStateUpdated;
 use Laravel\Pennant\Events\FeatureDeleted;
+use Laravel\Pennant\Events\FeatureResetToDefaultState;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
@@ -672,6 +676,265 @@ class ArrayDriverTest extends TestCase
 
         Feature::define('foo', fn () => true);
         $this->assertTrue(Feature::for('tim')->value('foo'));
+    }
+
+    public function test_default_state_overrides_the_resolver_for_scopes_without_a_stored_value()
+    {
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_default_state_does_not_change_stored_values()
+    {
+        Feature::define('foo', false);
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertTrue(Feature::for('taylor')->active('foo'));
+    }
+
+    public function test_default_state_can_hold_a_falsy_value()
+    {
+        Feature::define('foo', true);
+
+        Feature::setDefaultState('foo', false);
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_it_can_reset_to_default_state()
+    {
+        Feature::define('foo', false);
+
+        Feature::for('tim')->active('foo');
+        Feature::for('taylor')->active('foo');
+
+        Feature::resetToDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertTrue(Feature::for('taylor')->active('foo'));
+    }
+
+    public function test_a_feature_with_only_a_default_state_is_listed_as_stored()
+    {
+        Feature::define('foo', false);
+
+        $this->assertSame([], Feature::stored());
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertSame(['foo'], Feature::stored());
+
+        Feature::for('tim')->active('foo');
+
+        $this->assertSame(['foo'], Feature::stored());
+    }
+
+    public function test_purge_removes_default_state()
+    {
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+
+        Feature::purge('foo');
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_a_value_stored_for_a_single_scope_keeps_winning_over_the_default_state()
+    {
+        Feature::define('foo', false);
+
+        Feature::for('tim')->active('foo');
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for('ana')->active('foo'));
+
+        Feature::for('ana')->deactivate('foo');
+
+        $this->assertFalse(Feature::for('ana')->active('foo'));
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+        $this->assertTrue(Feature::for('bia')->active('foo'));
+    }
+
+    public function test_resetting_to_the_default_state_discards_an_individual_override()
+    {
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+
+        Feature::for('ana')->active('foo');
+        Feature::for('ana')->deactivate('foo');
+
+        $this->assertFalse(Feature::for('ana')->active('foo'));
+
+        Feature::resetToDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for('ana')->active('foo'));
+    }
+
+    public function test_default_state_can_be_any_value()
+    {
+        Feature::define('foo', true);
+        Feature::define('bar', true);
+        Feature::define('baz', false);
+
+        Feature::setDefaultState('foo', 0);
+        Feature::setDefaultState('bar', null);
+        Feature::setDefaultState('baz', ['color' => 'blue']);
+
+        $this->assertSame(0, Feature::for('tim')->value('foo'));
+        $this->assertNull(Feature::for('tim')->value('bar'));
+        $this->assertSame(['color' => 'blue'], Feature::for('tim')->value('baz'));
+    }
+
+    public function test_default_state_applies_to_the_null_scope_and_the_global_scope()
+    {
+        Feature::define('foo', fn ($scope) => false);
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for(null)->active('foo'));
+        $this->assertTrue(Feature::globally()->active('foo'));
+    }
+
+    public function test_default_state_does_not_apply_to_undefined_features()
+    {
+        Feature::setDefaultState('foo', true);
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_the_resolver_is_not_invoked_while_a_default_state_exists()
+    {
+        $calls = 0;
+
+        Feature::define('foo', function () use (&$calls) {
+            $calls++;
+
+            return false;
+        });
+
+        Feature::setDefaultState('foo', true);
+
+        Event::fake([FeatureResolved::class]);
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertSame(0, $calls);
+        Event::assertNotDispatched(FeatureResolved::class);
+    }
+
+    public function test_it_throws_when_the_driver_does_not_support_default_state()
+    {
+        Feature::extend('no-default-state', fn () => new class implements Driver
+        {
+            public function define(string $feature, callable $resolver): void {}
+
+            public function defined(): array
+            {
+                return [];
+            }
+
+            public function getAll(array $features): array
+            {
+                return [];
+            }
+
+            public function get(string $feature, mixed $scope): mixed
+            {
+                return false;
+            }
+
+            public function set(string $feature, mixed $scope, mixed $value): void {}
+
+            public function setForAllScopes(string $feature, mixed $value): void {}
+
+            public function delete(string $feature, mixed $scope): void {}
+
+            public function purge(?array $features): void {}
+        });
+        Config::set('pennant.stores.no-default-state', ['driver' => 'no-default-state']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The [no-default-state] driver does not support default state.');
+
+        Feature::store('no-default-state')->setDefaultState('foo', true);
+    }
+
+    public function test_it_can_forget_the_default_state()
+    {
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+
+        Feature::forgetDefaultState('foo');
+
+        $this->assertTrue(Feature::for('tim')->active('foo'));
+        $this->assertFalse(Feature::for('taylor')->active('foo'));
+    }
+
+    public function test_it_dispatches_an_event_when_forgetting_the_default_state()
+    {
+        Event::fake([FeatureDefaultStateDeleted::class]);
+
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+        Feature::forgetDefaultState('foo');
+
+        Event::assertDispatched(fn (FeatureDefaultStateDeleted $event) => $event->feature === 'foo');
+    }
+
+    public function test_closures_and_lotteries_are_rejected_as_default_state()
+    {
+        Feature::define('foo', false);
+
+        foreach ([fn () => true, Lottery::odds(1, 2)] as $value) {
+            foreach (['setDefaultState', 'resetToDefaultState'] as $method) {
+                try {
+                    Feature::{$method}('foo', $value);
+
+                    $this->fail("{$method}() accepted an invalid default state.");
+                } catch (\InvalidArgumentException $e) {
+                    $this->assertSame('A default state must be a value. Closures and lotteries are not supported.', $e->getMessage());
+                }
+            }
+        }
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_flushing_the_cache_also_clears_the_default_state()
+    {
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+
+        Feature::flushCache();
+
+        $this->assertFalse(Feature::for('tim')->active('foo'));
+    }
+
+    public function test_it_dispatches_events_when_setting_default_state()
+    {
+        Event::fake([FeatureDefaultStateUpdated::class, FeatureResetToDefaultState::class]);
+
+        Feature::define('foo', false);
+
+        Feature::setDefaultState('foo', true);
+        Feature::resetToDefaultState('foo', false);
+
+        Event::assertDispatched(fn (FeatureDefaultStateUpdated $event) => $event->feature === 'foo' && $event->value === true);
+        Event::assertDispatched(fn (FeatureResetToDefaultState $event) => $event->feature === 'foo' && $event->value === false);
     }
 
     public function test_it_can_customise_default_scope()

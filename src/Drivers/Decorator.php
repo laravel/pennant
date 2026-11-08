@@ -9,8 +9,10 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Macroable;
+use InvalidArgumentException;
 use Laravel\Pennant\Attributes\Name;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\CanSetDefaultState;
 use Laravel\Pennant\Contracts\CanSetManyFeaturesForScopes;
 use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
 use Laravel\Pennant\Contracts\Driver;
@@ -18,7 +20,10 @@ use Laravel\Pennant\Contracts\FeatureScopeable;
 use Laravel\Pennant\Contracts\HasFlushableCache;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
+use Laravel\Pennant\Events\FeatureDefaultStateDeleted;
+use Laravel\Pennant\Events\FeatureDefaultStateUpdated;
 use Laravel\Pennant\Events\FeatureDeleted;
+use Laravel\Pennant\Events\FeatureResetToDefaultState;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
@@ -590,6 +595,110 @@ class Decorator implements CanListStoredFeatures, CanSetManyFeaturesForScopes, D
         );
 
         Event::dispatch(new FeatureUpdatedForAllScopes($feature, $value));
+    }
+
+    /**
+     * Set the default state of the feature.
+     *
+     * Scopes without a stored value will receive this state instead of the
+     * value returned by the feature's resolver. Stored values are untouched.
+     *
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function setDefaultState($feature, $value = true)
+    {
+        $this->ensureDefaultStateIsStorable($value);
+
+        $driver = $this->defaultStateDriver();
+
+        Collection::wrap($feature)->each(function ($name) use ($driver, $value) {
+            $name = $this->resolveFeature($name);
+
+            $driver->setDefaultState($name, $value);
+
+            Event::dispatch(new FeatureDefaultStateUpdated($name, $value));
+        });
+    }
+
+    /**
+     * Set the default state of the feature and discard every stored scope value.
+     *
+     * Every scope will receive the default state the next time it is resolved.
+     *
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
+     * @param  mixed  $value
+     * @return void
+     */
+    public function resetToDefaultState($feature, $value = true)
+    {
+        $this->ensureDefaultStateIsStorable($value);
+
+        $driver = $this->defaultStateDriver();
+
+        Collection::wrap($feature)->each(function ($name) use ($driver, $value) {
+            $name = $this->resolveFeature($name);
+
+            $driver->resetToDefaultState($name, $value);
+
+            $this->cache = $this->cache->reject(
+                fn ($item) => $item['feature'] === $name
+            );
+
+            Event::dispatch(new FeatureResetToDefaultState($name, $value));
+        });
+    }
+
+    /**
+     * Remove the default state of the feature.
+     *
+     * Scopes without a stored value will be resolved by the feature's resolver
+     * again. Stored values are untouched.
+     *
+     * @param  \BackedEnum|\UnitEnum|string|array<\BackedEnum|\UnitEnum|string>  $feature
+     * @return void
+     */
+    public function forgetDefaultState($feature)
+    {
+        $driver = $this->defaultStateDriver();
+
+        Collection::wrap($feature)->each(function ($name) use ($driver) {
+            $name = $this->resolveFeature($name);
+
+            $driver->forgetDefaultState($name);
+
+            Event::dispatch(new FeatureDefaultStateDeleted($name));
+        });
+    }
+
+    /**
+     * Ensure the given value can be stored as a default state.
+     *
+     * @param  mixed  $value
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function ensureDefaultStateIsStorable($value)
+    {
+        if ($value instanceof Closure || $value instanceof Lottery) {
+            throw new InvalidArgumentException('A default state must be a value. Closures and lotteries are not supported.');
+        }
+    }
+
+    /**
+     * Retrieve the underlying driver, ensuring it supports default state.
+     *
+     * @return CanSetDefaultState
+     */
+    protected function defaultStateDriver()
+    {
+        if (! $this->driver instanceof CanSetDefaultState) {
+            throw new RuntimeException("The [{$this->name}] driver does not support default state.");
+        }
+
+        return $this->driver;
     }
 
     /**

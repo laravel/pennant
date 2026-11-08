@@ -5,13 +5,14 @@ namespace Laravel\Pennant\Drivers;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Collection;
 use Laravel\Pennant\Contracts\CanListStoredFeatures;
+use Laravel\Pennant\Contracts\CanSetDefaultState;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Contracts\HasFlushableCache;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use stdClass;
 
-class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
+class ArrayDriver implements CanListStoredFeatures, CanSetDefaultState, Driver, HasFlushableCache
 {
     /**
      * The event dispatcher.
@@ -33,6 +34,13 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
      * @var array<string, array<string, mixed>>
      */
     protected $resolvedFeatureStates = [];
+
+    /**
+     * The default feature states.
+     *
+     * @var array<string, mixed>
+     */
+    protected $defaultFeatureStates = [];
 
     /**
      * The sentinel value for unknown features.
@@ -83,7 +91,7 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
      */
     public function stored(): array
     {
-        return array_keys($this->resolvedFeatureStates);
+        return array_keys($this->resolvedFeatureStates + $this->defaultFeatureStates);
     }
 
     /**
@@ -141,6 +149,10 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
             return $this->unknownFeatureValue;
         }
 
+        if (array_key_exists($feature, $this->defaultFeatureStates)) {
+            return $this->defaultFeatureStates[$feature];
+        }
+
         return $this->featureStateResolvers[$feature]($scope);
     }
 
@@ -186,6 +198,40 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
+     * Set a feature flag's default state.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    public function setDefaultState($feature, $value): void
+    {
+        $this->defaultFeatureStates[$feature] = $value;
+    }
+
+    /**
+     * Set a feature flag's default state and discard every stored scope value.
+     *
+     * @param  string  $feature
+     * @param  mixed  $value
+     */
+    public function resetToDefaultState($feature, $value): void
+    {
+        unset($this->resolvedFeatureStates[$feature]);
+
+        $this->setDefaultState($feature, $value);
+    }
+
+    /**
+     * Remove a feature flag's default state.
+     *
+     * @param  string  $feature
+     */
+    public function forgetDefaultState($feature): void
+    {
+        unset($this->defaultFeatureStates[$feature]);
+    }
+
+    /**
      * Delete a feature flag's value.
      *
      * @param  string  $feature
@@ -205,9 +251,10 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     {
         if ($features === null) {
             $this->resolvedFeatureStates = [];
+            $this->defaultFeatureStates = [];
         } else {
             foreach ($features as $feature) {
-                unset($this->resolvedFeatureStates[$feature]);
+                unset($this->resolvedFeatureStates[$feature], $this->defaultFeatureStates[$feature]);
             }
         }
     }
@@ -224,12 +271,13 @@ class ArrayDriver implements CanListStoredFeatures, Driver, HasFlushableCache
     }
 
     /**
-     * Flush the resolved feature states.
+     * Flush the resolved and default feature states.
      *
      * @return void
      */
     public function flushCache()
     {
         $this->resolvedFeatureStates = [];
+        $this->defaultFeatureStates = [];
     }
 }
