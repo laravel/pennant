@@ -1,6 +1,21 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/pennant/compare/v1.26.0...1.x)
+## [Unreleased](https://github.com/laravel/pennant/compare/v1.27.0...1.x)
+
+## [v1.27.0](https://github.com/laravel/pennant/compare/v1.26.0...v1.27.0) - 2026-10-29
+
+### What's Changed
+
+* Remove security policy in favor of the org-wide default by [@pushpak1300](https://github.com/pushpak1300) in https://github.com/laravel/pennant/pull/186
+* Bump shivammathur/setup-php from 2.37.2 to 2.40.0 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/187
+* Bump stefanzweifel/git-auto-commit-action from 7.2.0 to 7.2.1 in the github-actions group by [@dependabot](https://github.com/dependabot)[bot] in https://github.com/laravel/pennant/pull/189
+* Flush feature cache when queued jobs fail by [@Riley19280](https://github.com/Riley19280) in https://github.com/laravel/pennant/pull/190
+
+### New Contributors
+
+* [@Riley19280](https://github.com/Riley19280) made their first contribution in https://github.com/laravel/pennant/pull/190
+
+**Full Changelog**: https://github.com/laravel/pennant/compare/v1.26.0...v1.27.0
 
 ## [v1.26.0](https://github.com/laravel/pennant/compare/v1.25.0...v1.26.0) - 2026-08-13
 
