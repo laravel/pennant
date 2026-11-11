@@ -98,9 +98,7 @@ class PennantServiceProvider extends ServiceProvider
             __DIR__.'/../config/pennant.php' => config_path('pennant.php'),
         ], 'pennant-config');
 
-        $method = method_exists($this, 'publishesMigrations') ? 'publishesMigrations' : 'publishes';
-
-        $this->{$method}([
+        $this->publishesMigrations([
             __DIR__.'/../database/migrations' => $this->app->databasePath('migrations'),
         ], 'pennant-migrations');
     }
